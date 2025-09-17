@@ -46,7 +46,7 @@ function attachSignIn() {
         // Pass existing username/email to forget password
         const goToReset = await Modal.confirm("User already exists. Go to reset password?");
         if (goToReset && window.mountForgetPassword) {
-          window.mountForgetPassword(username);
+          window.mountForgetPassword(username); // <-- pass username/email
         }
         return;
       }

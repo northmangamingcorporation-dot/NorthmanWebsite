@@ -39,20 +39,21 @@ function attachSignIn() {
       const clientsCol = window.db.collection("clients");
 
       // Check for existing username or email
-      const usernameSnapshot = await clientsCol.where("username", "==", username).get();
-      const emailSnapshot = await clientsCol.where("email", "==", email).get();
+      const duplicateSnapshot = await clientsCol
+        .where("username", "==", username)
+        .get();
 
-      if (!usernameSnapshot.empty || !emailSnapshot.empty) {
-        // Pass existing username/email to forget password
-        const goToReset = await Modal.confirm("User already exists. Go to reset password?");
+      const emailSnapshot = await clientsCol
+        .where("email", "==", email)
+        .get();
+
+      if (!duplicateSnapshot.empty || !emailSnapshot.empty) {
+        const goToReset = confirm("User already exists. Click OK to reset password.");
         if (goToReset && window.mountForgetPassword) {
-          window.mountForgetPassword(username);
+          window.mountForgetPassword();
         }
-        return;
+        return; // Stop execution
       }
-
-      // Show loading modal
-      Modal.show("Creating account...");
 
       // Store user in Firestore
       await clientsCol.add({
@@ -63,17 +64,17 @@ function attachSignIn() {
         status: "active"
       });
 
-      Modal.hide();
       msg.textContent = "Account created! Redirecting to login...";
       msg.style.display = "block";
 
       // Pass username and password to login page
       setTimeout(() => {
-        if (window.mountLogin) window.mountLogin(username, password);
+        if (window.mountLogin) {
+          window.mountLogin(username, password);
+        }
       }, 1500);
 
     } catch (error) {
-      Modal.hide();
       console.error(error);
       showError("Error creating account. Try again.");
     }
@@ -89,6 +90,7 @@ function attachSignIn() {
     if (window.mountLogin) window.mountLogin();
   });
 }
+
 
 function mountSignIn() {
   mount(renderSignIn());

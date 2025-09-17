@@ -21,6 +21,7 @@ function renderSignIn() {
   `;
 }
 
+
 function attachSignIn() {
   document.getElementById("signUpBtn").addEventListener("click", async () => {
     const username = document.getElementById("newUsername").value.trim();
@@ -47,7 +48,6 @@ function attachSignIn() {
         const goToReset = await Modal.confirm("User already exists. Go to reset password?");
         if (goToReset && window.mountForgetPassword) {
           window.mountForgetPassword(username);
-        }
         return;
       }
 

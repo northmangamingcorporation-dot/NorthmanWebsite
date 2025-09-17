@@ -43,10 +43,9 @@ function attachSignIn() {
       const emailSnapshot = await clientsCol.where("email", "==", email).get();
 
       if (!usernameSnapshot.empty || !emailSnapshot.empty) {
-        // Pass existing username/email to forget password
-        const goToReset = await Modal.confirm("User already exists. Go to reset password?");
-        if (goToReset && window.mountForgetPassword) {
-          window.mountForgetPassword(username);
+        const confirmed = await Modal.confirm("User already exists. Go to reset password?");
+        if (confirmed && window.mountForgetPassword) {
+          window.mountForgetPassword();
         }
         return;
       }
@@ -69,7 +68,9 @@ function attachSignIn() {
 
       // Pass username and password to login page
       setTimeout(() => {
-        if (window.mountLogin) window.mountLogin(username, password);
+        if (window.mountLogin) {
+          window.mountLogin(username, password);
+        }
       }, 1500);
 
     } catch (error) {
