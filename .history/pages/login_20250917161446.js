@@ -68,7 +68,6 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
 
       // Hide loading
       Modal.hide();  
-      
       console.error(err);
       errorMsg.textContent = "Error logging in. Try again.";
       errorMsg.style.display = "block";

@@ -46,7 +46,6 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
 
       // Show loading
       Modal.show("Checking credentials...");
-
       const clientsCol = window.db.collection("clients");
       const snapshot = await clientsCol
         .where("username", "==", username)
@@ -61,14 +60,7 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
         errorMsg.style.display = "block";
       }
 
-      // Hide loading
-      Modal.hide();
-
     } catch (err) {
-
-      // Hide loading
-      Modal.hide();  
-      
       console.error(err);
       errorMsg.textContent = "Error logging in. Try again.";
       errorMsg.style.display = "block";

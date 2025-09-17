@@ -60,15 +60,9 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
         errorMsg.textContent = "Invalid username or password.";
         errorMsg.style.display = "block";
       }
-
-      // Hide loading
+  // Hide loading
       Modal.hide();
-
     } catch (err) {
-
-      // Hide loading
-      Modal.hide();  
-      
       console.error(err);
       errorMsg.textContent = "Error logging in. Try again.";
       errorMsg.style.display = "block";
