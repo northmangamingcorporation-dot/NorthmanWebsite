@@ -24,60 +24,27 @@ function renderHome() {
     ${renderNav()}
     <div class="container">
       <section class="hero">
-        <h1>Welcome to Northman Gaming Corporation (NGC)</h1>
-        <p class="lead">Providing premier gaming services under the Philippine Charity Sweepstakes Office (PCSO) in Davao del Norte, committed to quality, innovation, and community growth.</p>
+        <h1>Welcome to Northman Gaming Corporation</h1>
+        <p class="lead">Empowering clients with modern gaming platforms, esports partnerships, and tailored digital entertainment solutions.</p>
         <div style="margin-top:14px;">
           <button class="btn" id="getStartedBtn">Portal</button>
           <button class="btn secondary" id="learnMoreBtn" style="margin-left:10px;">Learn More</button>
         </div>
       </section>
 
-      <!-- Services Section: Small Town Lottery -->
       <section class="section">
         <h3 style="margin:0; font-size:20px; margin-top:6px;">Our Services</h3>
         <div class="grid-3" style="margin-top:12px;">
-          <div class="card">
-            <h4>STL Retail Solutions</h4>
-            <p>Providing fully managed Small Town Lottery outlets and point-of-sale systems for seamless lottery operations.</p>
-          </div>
-          <div class="card">
-            <h4>Ticket Distribution & Logistics</h4>
-            <p>Efficient delivery, inventory management, and secure handling of STL tickets to ensure continuous availability.</p>
-          </div>
-          <div class="card">
-            <h4>Community & Player Support</h4>
-            <p>Dedicated support for players and retailers to ensure fair play, quick issue resolution, and responsible gaming awareness.</p>
-          </div>
+          <div class="card"><h4>Gaming Solutions</h4><p>Custom platforms, APIs and tools for game publishers and operators.</p></div>
+          <div class="card"><h4>Esports Partnerships</h4><p>Event & team collaborations, sponsorship activations and tournament ops.</p></div>
+          <div class="card"><h4>Client Support</h4><p>Dedicated account & technical support to keep your service running smoothly.</p></div>
         </div>
       </section>
 
-      <!-- About Us Section -->
       <section class="section">
         <h3 style="margin:0; font-size:20px;">About Us</h3>
         <div class="card" style="margin-top:12px;">
-          <p style="margin:0; color:var(--muted)">
-            Northman Gaming Corporation (NGC) was established in September 2024 as an Authorized Agent Corporation under the Philippine Charity Sweepstakes Office (PCSO). 
-            Our mission is to provide safe, responsible, and innovative gaming experiences while positively impacting the local community in Davao del Norte.
-          </p>
-        </div>
-      </section>
-
-      <!-- Mission, Vision, Values Section -->
-      <section class="section alt">
-        <h3 style="margin:0; font-size:20px;">Mission, Vision & Core Values</h3>
-        <div class="grid-3" style="margin-top:12px;">
-          <div class="card">
-            <h4>Mission</h4>
-            <p>To provide exceptional gaming experiences while fostering community growth and responsible gaming practices in Davao del Norte.</p>
-          </div>
-          <div class="card">
-            <h4>Vision</h4>
-            <p>To become the leading gaming corporation in Davao del Norte, recognized for quality service, innovation, and community engagement.</p>
-          </div>
-          <div class="card">
-            <h4>Core Values</h4>
-            <p>Transparency, Responsibility, Unity, Service Excellence, and Trustworthiness guide everything we do at NGC.</p>
-          </div>
+          <p style="margin:0; color:var(--muted)">Northman Gaming Corporation focuses on innovation, community growth, and scalable entertainment solutions for our clients worldwide.</p>
         </div>
       </section>
 
