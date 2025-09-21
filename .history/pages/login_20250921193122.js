@@ -25,7 +25,7 @@ function renderLoginModal() {
 
         <!-- Title -->
         <h2 style="margin-bottom:20px; color:var(--accent); font-weight:600; font-size:22px;">
-          Northman Login
+          Client Login
         </h2>
         
         <!-- Username -->
@@ -96,23 +96,12 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
         .where("username", "==", username)
         .where("password", "==", password)
         .get();
+
       if (!snapshot.empty) {
         const user = snapshot.docs[0].data();
         document.getElementById("loginModal").remove(); // close modal
-
-        // Normalize position text to avoid case sensitivity issues
-        const role = (user.position || "").toLowerCase();
-
-        if (
-          role === "it manager" ||
-          role === "admin head" ||
-          role === "operation manager"
-        ) {
-          window.mountAdminDashboard(user); // Load admin dashboard
-        } else {
-          window.mountDashboard(user); // Load normal dashboard
-        }
-      }else {
+        window.mountDashboard(user); // <-- this loads the dashboard AND the table
+      } else {
         errorMsg.textContent = "Invalid username or password.";
         errorMsg.style.display = "block";
       }

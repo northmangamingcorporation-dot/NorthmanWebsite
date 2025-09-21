@@ -25,7 +25,7 @@ function renderLoginModal() {
 
         <!-- Title -->
         <h2 style="margin-bottom:20px; color:var(--accent); font-weight:600; font-size:22px;">
-          Northman Login
+          Client Login
         </h2>
         
         <!-- Username -->
@@ -50,12 +50,8 @@ function renderLoginModal() {
         <p id="errorMsg" style="color:red; margin-top:14px; display:none; font-size:14px;">
           Invalid credentials
         </p>
-      </div>
-    </div>
-  `;
-}
 
-// <!-- Links -->
+        // <!-- Links -->
         // <div style="margin-top:18px; text-align:center; font-size:14px;">
         //   <a href="#" id="signupLink" style="color:var(--accent); text-decoration:none; font-weight:500; display:block; margin-bottom:8px;">
         //     Sign Up
@@ -64,6 +60,10 @@ function renderLoginModal() {
         //     Forgot Password?
         //   </a>
         // </div>
+      </div>
+    </div>
+  `;
+}
 
 function attachLogin(preFillUsername = "", preFillPassword = "") {
   const loginBtn = document.getElementById("loginBtn");
@@ -96,23 +96,12 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
         .where("username", "==", username)
         .where("password", "==", password)
         .get();
+
       if (!snapshot.empty) {
         const user = snapshot.docs[0].data();
         document.getElementById("loginModal").remove(); // close modal
-
-        // Normalize position text to avoid case sensitivity issues
-        const role = (user.position || "").toLowerCase();
-
-        if (
-          role === "it manager" ||
-          role === "admin head" ||
-          role === "operation manager"
-        ) {
-          window.mountAdminDashboard(user); // Load admin dashboard
-        } else {
-          window.mountDashboard(user); // Load normal dashboard
-        }
-      }else {
+        window.mountDashboard(user); // <-- this loads the dashboard AND the table
+      } else {
         errorMsg.textContent = "Invalid username or password.";
         errorMsg.style.display = "block";
       }

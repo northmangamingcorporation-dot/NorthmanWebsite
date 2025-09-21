@@ -290,7 +290,7 @@ function mountDashboard(user) {
   attachDashboard(user);
 }
 
-mountGenericModal()
+mountGenericModal
 
 // Expose globally
 window.renderDashboard = renderDashboard;
