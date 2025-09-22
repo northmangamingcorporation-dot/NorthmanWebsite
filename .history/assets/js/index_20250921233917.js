@@ -25,59 +25,46 @@ function renderHome() {
     <div class="container">
       <section class="hero">
         <h1>Welcome to Northman Gaming Corporation (NGC)</h1>
-        <p class="lead">Providing premier gaming services under the Philippine Charity Sweepstakes Office (PCSO) in Davao del Norte, committed to quality, innovation, and community growth.</p>
+        <p class="lead">An Authorized Agent Corporation under the Philippine Charity Sweepstakes Office (PCSO), delivering premier gaming services in Davao del Norte since September 2024.</p>
         <div style="margin-top:14px;">
           <button class="btn" id="getStartedBtn">Portal</button>
           <button class="btn secondary" id="learnMoreBtn" style="margin-left:10px;">Learn More</button>
         </div>
       </section>
 
-      <!-- Services Section: Small Town Lottery -->
       <section class="section">
-        <h3 style="margin:0; font-size:20px; margin-top:6px;">Our Services</h3>
-        <div class="grid-3" style="margin-top:12px;">
-          <div class="card">
-            <h4>STL Retail Solutions</h4>
-            <p>Providing fully managed Small Town Lottery outlets and point-of-sale systems for seamless lottery operations.</p>
-          </div>
-          <div class="card">
-            <h4>Ticket Distribution & Logistics</h4>
-            <p>Efficient delivery, inventory management, and secure handling of STL tickets to ensure continuous availability.</p>
-          </div>
-          <div class="card">
-            <h4>Community & Player Support</h4>
-            <p>Dedicated support for players and retailers to ensure fair play, quick issue resolution, and responsible gaming awareness.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- About Us Section -->
-      <section class="section">
-        <h3 style="margin:0; font-size:20px;">About Us</h3>
+        <h3 style="margin:0; font-size:20px;">Pangkalahatang-ideya</h3>
         <div class="card" style="margin-top:12px;">
-          <p style="margin:0; color:var(--muted)">
-            Northman Gaming Corporation (NGC) was established in September 2024 as an Authorized Agent Corporation under the Philippine Charity Sweepstakes Office (PCSO). 
-            Our mission is to provide safe, responsible, and innovative gaming experiences while positively impacting the local community in Davao del Norte.
-          </p>
+          <p>Northman Gaming Corporation (NGC) was established in September 2024 under the auspices of the Philippine Charity Sweepstakes Office (PCSO). 
+          As an authorized Agent Corporation (AAC), NGC is committed to providing premier gaming services in Davao del Norte, 
+          delivering exceptional quality to its customers and contributing positively to the local community.</p>
         </div>
       </section>
 
-      <!-- Mission, Vision, Values Section -->
-      <section class="section alt">
-        <h3 style="margin:0; font-size:20px;">Mission, Vision & Core Values</h3>
-        <div class="grid-3" style="margin-top:12px;">
-          <div class="card">
-            <h4>Mission</h4>
-            <p>To provide exceptional gaming experiences while fostering community growth and responsible gaming practices in Davao del Norte.</p>
-          </div>
-          <div class="card">
-            <h4>Vision</h4>
-            <p>To become the leading gaming corporation in Davao del Norte, recognized for quality service, innovation, and community engagement.</p>
-          </div>
-          <div class="card">
-            <h4>Core Values</h4>
-            <p>Transparency, Responsibility, Unity, Service Excellence, and Trustworthiness guide everything we do at NGC.</p>
-          </div>
+      <section class="section">
+        <h3 style="margin:0; font-size:20px;">Our Mission</h3>
+        <div class="card" style="margin-top:12px;">
+          <p>NGC is dedicated to providing exceptional gaming experiences while fostering a sense of community through responsible gaming practices and community service. 
+          Our mission is to ensure a safe and enjoyable gaming environment that supports both the entertainment and philanthropic goals of our patrons.</p>
+        </div>
+      </section>
+
+      <section class="section">
+        <h3 style="margin:0; font-size:20px;">Our Vision</h3>
+        <div class="card" style="margin-top:12px;">
+          <p>Our vision is to become the leading gaming corporation in Davao del Norte, renowned for our commitment to quality service and community engagement. 
+          We aim to set the standard in the gaming industry for innovation, integrity, and community involvement.</p>
+        </div>
+      </section>
+
+      <section class="section">
+        <h3 style="margin:0; font-size:20px;">Our Core Values: 𝐓.𝐑.𝐔.𝐒.𝐓.</h3>
+        <div class="grid-2" style="margin-top:12px; gap:16px;">
+          <div class="card"><strong>Transparency</strong><p>We operate with openness and honesty in all our business dealings.</p></div>
+          <div class="card"><strong>Responsibility</strong><p>We are committed to responsible gaming practices, ensuring the well-being of our customers and community.</p></div>
+          <div class="card"><strong>Unity</strong><p>We foster strong relationships within our team and communities we serve.</p></div>
+          <div class="card"><strong>Service Excellence</strong><p>We are dedicated to providing the highest level of service to our customers.</p></div>
+          <div class="card"><strong>Trustworthiness</strong><p>We strive to earn and maintain the trust of colleagues, customers, and partners.</p></div>
         </div>
       </section>
 
