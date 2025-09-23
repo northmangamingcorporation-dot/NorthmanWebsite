@@ -12,9 +12,9 @@ function renderSignInModal() {
       z-index:1000;">
       
       <div class="modal-content" style="
-        background:#fff; width:100%; max-width:500px; padding:32px; border-radius:12px;
-        box-shadow:0 4px 16px rgba(0,0,0,0.1); position:relative;
-        max-height:90vh; overflow-y:auto;">
+      background:#fff; width:100%; max-width:500px; padding:32px; border-radius:12px;
+      box-shadow:0 4px 16px rgba(0,0,0,0.1); position:relative;
+      max-height:90vh; overflow-y:auto;">
         
         <!-- Close Button (X) -->
         <span id="closeSignInModal" style="
@@ -116,51 +116,6 @@ function attachSignIn() {
   flatpickr("#birthdate", {
     dateFormat: "m/d/Y",
     allowInput: true
-  });
-
-const modal = document.getElementById("signInModal");
-  const closeBtn = document.getElementById("closeSignInModal");
-  const inputs = modal.querySelectorAll("input, select");
-
-  // Close modal
-  closeBtn.addEventListener("click", () => modal.remove());
-
-  // Tooltip element
-  const tooltip = document.createElement("div");
-  tooltip.style.cssText = `
-    position:absolute; background:#333; color:#fff; padding:6px 10px;
-    border-radius:6px; font-size:13px; display:none; z-index:1100;
-  `;
-  document.body.appendChild(tooltip);
-
-  // Show tooltip on focus/click
-  inputs.forEach(input => {
-    input.addEventListener("focus", (e) => {
-      let msg = "";
-      switch (input.id) {
-        case "firstName": msg = "Enter your given name."; break;
-        case "lastName": msg = "Enter your family name."; break;
-        case "phone": msg = "Optional: for account recovery."; break;
-        case "birthdate": msg = "Birthdate Format: MM/DD/YYYY."; break;
-        case "newUsername": msg = "Choose a unique username."; break;
-        case "newPassword": msg = "Password must be at least 6 characters."; break;
-        case "repeatPassword": msg = "Re-enter the same password."; break;
-        case "department": msg = "Select your department."; break;
-        case "position": msg = "Example: IT Manager, HR Officer."; break;
-      }
-
-      if (msg) {
-        tooltip.textContent = msg;
-        tooltip.style.display = "block";
-        const rect = e.target.getBoundingClientRect();
-        tooltip.style.left = rect.left + "px";
-        tooltip.style.top = (rect.bottom + 6) + "px";
-      }
-    });
-
-    input.addEventListener("blur", () => {
-      tooltip.style.display = "none";
-    });
   });
 
   document.getElementById("signUpBtn").addEventListener("click", async () => {

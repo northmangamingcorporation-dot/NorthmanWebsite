@@ -63,22 +63,22 @@ function renderAdminTravelOrderModal() {
           </div>
 
           <!-- Admin Controls -->
-        <div style="border:1px solid #e5e7eb; border-radius:8px; padding:16px;">
-          <h3 style="font-size:16px; font-weight:600; margin-bottom:12px; color:#374151;">Admin Action</h3>
-          <div style="display:flex; flex-direction:column; gap:12px;">
-            <select id="assignStaff" style="padding:10px; border-radius:6px; border:1px solid #ccc;">
-              <option value="">-- Assign Staff --</option>
-            </select>
-            <select id="updateStatus" style="padding:10px; border-radius:6px; border:1px solid #ccc;">
-              <option value="Pending">Pending</option>
-              <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
-              <option value="Completed">Completed</option>
-            </select>
-            <textarea id="adminRemarks" placeholder="Remarks (optional)" rows="3"
-                      style="padding:10px; border-radius:6px; border:1px solid #ccc;"></textarea>
+          <div style="border:1px solid #e5e7eb; border-radius:8px; padding:16px;">
+            <h3 style="font-size:16px; font-weight:600; margin-bottom:12px; color:#374151;">Admin Action</h3>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <select id="assignDriver" style="padding:10px; border-radius:6px; border:1px solid #ccc;">
+                <option value="">-- Assign Driver --</option>
+              </select>
+              <select id="updateStatus" style="padding:10px; border-radius:6px; border:1px solid #ccc;">
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Completed">Completed</option>
+              </select>
+              <textarea id="adminRemarks" placeholder="Remarks (optional)" rows="3"
+                        style="padding:10px; border-radius:6px; border:1px solid #ccc;"></textarea>
+            </div>
           </div>
-        </div>
 
           <!-- Actions -->
           <div style="display:flex; justify-content:flex-end; gap:12px;">
@@ -103,32 +103,32 @@ function attachAdminTravelOrderModal() {
   modal.addEventListener("click", e => { if (e.target === modal) modal.style.display = "none"; });
 
   form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  Modal.show("Updating Travel Order...");
+    e.preventDefault();
+    Modal.show("Updating Travel Order...");
 
-  const { orderData, admin } = modal.currentContext;
-  const staff = document.getElementById("assignStaff").value;
-  const status = document.getElementById("updateStatus").value;
-  const remarks = document.getElementById("adminRemarks").value.trim();
+    const { orderData, admin } = modal.currentContext;
+    const driver = document.getElementById("assignDriver").value;
+    const status = document.getElementById("updateStatus").value;
+    const remarks = document.getElementById("adminRemarks").value.trim();
 
-  try {
-    await db.collection("travel_orders").doc(orderData.id).update({
-      status,
-      assignedStaff: staff || null,
-      reviewedBy: admin.username || admin.firstName,
-      remarks,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    try {
+      await db.collection("travel_orders").doc(orderData.id).update({
+        status,
+        assignedDriver: driver || null,
+        reviewedBy: admin.username || admin.firstName,
+        remarks,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
 
-    alert(`✅ Travel Order updated (Status: ${status})`);
-    modal.style.display = "none";
-    Modal.hide();
-  } catch (err) {
-    Modal.hide();
-    console.error("Error updating Travel Order:", err);
-    alert("Failed to update Travel Order.");
-  }
-});
+      alert(`✅ Travel Order updated (Status: ${status})`);
+      modal.style.display = "none";
+      Modal.hide();
+    } catch (err) {
+      Modal.hide();
+      console.error("Error updating Travel Order:", err);
+      alert("Failed to update Travel Order.");
+    }
+  });
 }
 
 // --- Mount Admin Modal ---

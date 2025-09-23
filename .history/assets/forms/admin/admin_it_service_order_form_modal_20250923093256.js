@@ -142,7 +142,7 @@ async function mountAdminITServiceModal(admin, orderData) {
   const staffDropdown = document.getElementById("staffDropdown");
   staffDropdown.innerHTML = `<option value="">-- Select Staff --</option>`;
 
-  const staffSnap = await db.collection("clients")
+  const staffSnap = await db.collection("users")
     .where("department", "==", admin.department)
     .get();
 

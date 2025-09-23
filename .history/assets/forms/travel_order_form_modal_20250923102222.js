@@ -5,8 +5,8 @@
 function renderTravelOrderForm() {
   return `
     <div id="travelOrderModal" 
-         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); 
-                display:flex; align-items:center; justify-content:center; padding:16px; overflow:auto; z-index:1000;">
+     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); 
+            align-items:center; justify-content:center; padding:16px; overflow:auto; z-index:1000;">
       
       <div style="background:white; border-radius:12px; max-width:850px; width:100%; padding:28px; position:relative; 
                   box-shadow:0 10px 25px rgba(0,0,0,0.2); animation:fadeIn 0.3s ease;">
@@ -229,6 +229,8 @@ function attachTravelOrderForm(preFillUsername = "") {
     alert("Error submitting Travel Order.");
   }
 });
+
+
 }
 
 // --- Mount function ---

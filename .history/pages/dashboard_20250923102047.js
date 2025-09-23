@@ -185,7 +185,8 @@ function mountDashboard(user) {
   attachDashboard(user);
 }
 
-mountSignIn()
+mountTravelOrderForm()
+
 // Expose globally
 window.renderDashboard = renderDashboard;
 window.mountDashboard = mountDashboard;

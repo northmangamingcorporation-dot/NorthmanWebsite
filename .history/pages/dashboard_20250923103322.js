@@ -185,7 +185,7 @@ function mountDashboard(user) {
   attachDashboard(user);
 }
 
-mountSignIn()
+
 // Expose globally
 window.renderDashboard = renderDashboard;
 window.mountDashboard = mountDashboard;

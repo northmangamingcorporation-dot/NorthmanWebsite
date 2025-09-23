@@ -150,20 +150,15 @@ async function mountAdminTravelOrderModal(admin, orderData) {
     }
   }
 
-  // Populate staff dropdown (same dept as admin)
-  const staffDropdown = document.getElementById("staffDropdown");
-  staffDropdown.innerHTML = `<option value="">-- Select Staff --</option>`;
-
-  const staffSnap = await db.collection("clients")
-    .where("department", "==", admin.department)
-    .get();
-
+  // Populate staff dropdown
+  const staffDropdown = document.getElementById("assignStaff");
+  staffDropdown.innerHTML = `<option value="">-- Assign Staff --</option>`;
+  const staffSnap = await db.collection("users").where("role", "==", "Staff").get();
   staffSnap.forEach(doc => {
     const u = doc.data();
-    if (u.position && u.username) {
-      staffDropdown.innerHTML += `<option value="${u.username}|${u.position}">${u.username} - ${u.position}</option>`;
-    }
+    staffDropdown.innerHTML += `<option value="${u.username}">${u.username}</option>`;
   });
+
 
   modal.currentContext = { admin, orderData };
   modal.style.display = "flex";

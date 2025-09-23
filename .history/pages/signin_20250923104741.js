@@ -6,15 +6,14 @@ function closeAllModals() {
 // pages/signin.js
 function renderSignInModal() {
   return `
-    <div id="signInModal" class="modal-overlay" style="
-      position:fixed; top:0; left:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center;
-      z-index:1000;">
+    <div class="modal-content" style="
+      background:#fff; width:100%; max-width:500px; padding:32px; border-radius:12px;
+      box-shadow:0 4px 16px rgba(0,0,0,0.1); position:relative;
+      max-height:90vh; overflow-y:auto;">
       
       <div class="modal-content" style="
         background:#fff; width:100%; max-width:500px; padding:32px; border-radius:12px;
-        box-shadow:0 4px 16px rgba(0,0,0,0.1); position:relative;
-        max-height:90vh; overflow-y:auto;">
+        box-shadow:0 4px 16px rgba(0,0,0,0.1); position:relative;">
         
         <!-- Close Button (X) -->
         <span id="closeSignInModal" style="
@@ -118,14 +117,7 @@ function attachSignIn() {
     allowInput: true
   });
 
-const modal = document.getElementById("signInModal");
-  const closeBtn = document.getElementById("closeSignInModal");
-  const inputs = modal.querySelectorAll("input, select");
-
-  // Close modal
-  closeBtn.addEventListener("click", () => modal.remove());
-
-  // Tooltip element
+// Tooltip element
   const tooltip = document.createElement("div");
   tooltip.style.cssText = `
     position:absolute; background:#333; color:#fff; padding:6px 10px;
@@ -141,7 +133,7 @@ const modal = document.getElementById("signInModal");
         case "firstName": msg = "Enter your given name."; break;
         case "lastName": msg = "Enter your family name."; break;
         case "phone": msg = "Optional: for account recovery."; break;
-        case "birthdate": msg = "Birthdate Format: MM/DD/YYYY."; break;
+        case "birthdate": msg = "Format: MM/DD/YYYY."; break;
         case "newUsername": msg = "Choose a unique username."; break;
         case "newPassword": msg = "Password must be at least 6 characters."; break;
         case "repeatPassword": msg = "Re-enter the same password."; break;

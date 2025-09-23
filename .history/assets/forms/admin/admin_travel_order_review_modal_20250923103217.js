@@ -80,6 +80,7 @@ function renderAdminTravelOrderModal() {
           </div>
         </div>
 
+
           <!-- Actions -->
           <div style="display:flex; justify-content:flex-end; gap:12px;">
             <button type="button" id="cancelAdminTravelOrder"
@@ -103,32 +104,32 @@ function attachAdminTravelOrderModal() {
   modal.addEventListener("click", e => { if (e.target === modal) modal.style.display = "none"; });
 
   form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  Modal.show("Updating Travel Order...");
+    e.preventDefault();
+    Modal.show("Updating Travel Order...");
 
-  const { orderData, admin } = modal.currentContext;
-  const staff = document.getElementById("assignStaff").value;
-  const status = document.getElementById("updateStatus").value;
-  const remarks = document.getElementById("adminRemarks").value.trim();
+    const { orderData, admin } = modal.currentContext;
+    const driver = document.getElementById("assignDriver").value;
+    const status = document.getElementById("updateStatus").value;
+    const remarks = document.getElementById("adminRemarks").value.trim();
 
-  try {
-    await db.collection("travel_orders").doc(orderData.id).update({
-      status,
-      assignedStaff: staff || null,
-      reviewedBy: admin.username || admin.firstName,
-      remarks,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    try {
+      await db.collection("travel_orders").doc(orderData.id).update({
+        status,
+        assignedDriver: driver || null,
+        reviewedBy: admin.username || admin.firstName,
+        remarks,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
 
-    alert(`✅ Travel Order updated (Status: ${status})`);
-    modal.style.display = "none";
-    Modal.hide();
-  } catch (err) {
-    Modal.hide();
-    console.error("Error updating Travel Order:", err);
-    alert("Failed to update Travel Order.");
-  }
-});
+      alert(`✅ Travel Order updated (Status: ${status})`);
+      modal.style.display = "none";
+      Modal.hide();
+    } catch (err) {
+      Modal.hide();
+      console.error("Error updating Travel Order:", err);
+      alert("Failed to update Travel Order.");
+    }
+  });
 }
 
 // --- Mount Admin Modal ---
