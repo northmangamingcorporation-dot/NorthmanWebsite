@@ -184,9 +184,8 @@ function mountDashboard(user) {
   mount(renderDashboard(user));
   attachDashboard(user);
 }
-
+modal.show("Sign-in Successful!")
 mountSignIn()
-
 // Expose globally
 window.renderDashboard = renderDashboard;
 window.mountDashboard = mountDashboard;
