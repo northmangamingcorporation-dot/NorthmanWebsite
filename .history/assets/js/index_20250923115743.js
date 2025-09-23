@@ -89,7 +89,7 @@ function renderHome() {
 /* --- event wiring --- */
 function attachActions() {
   const gs = document.getElementById("getStartedBtn");
-  if (gs) gs.addEventListener("click", () => window.mount404Page());
+  if (gs) gs.addEventListener("click", () => window.mount404Page()());
 
   const learn = document.getElementById("learnMoreBtn");
   if (learn) learn.addEventListener("click", () => {
