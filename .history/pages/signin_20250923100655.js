@@ -104,12 +104,7 @@ function renderSignInModal() {
   `;
 }
 
-      // <!-- Footer -->
-      //   <div style="margin-top:18px; text-align:center; font-size:14px;">
-      //     Already have an account? 
-      //     <a href="#" id="backToLogin" style="color:var(--accent); font-weight:500; text-decoration:none;">Login</a>
-      //   </div>
-      
+<!--
 function attachSignIn() {
   // Initialize flatpickr AFTER modal exists
   flatpickr("#birthdate", {

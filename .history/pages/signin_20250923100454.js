@@ -81,7 +81,6 @@ function renderSignInModal() {
             <option value="HR">HR</option>
           </select>
         </div>
-
         <!-- Position -->
         <div style="margin-bottom:24px;">
           <input id="position" type="text" placeholder="Position (e.g., IT Manager)" 
@@ -98,18 +97,16 @@ function renderSignInModal() {
         <p id="signUpMsg" style="color:green; margin-top:14px; display:none; text-align:center; font-size:14px;"></p>
         <p id="signUpError" style="color:red; margin-top:14px; display:none; text-align:center; font-size:14px;"></p>
 
-        
+        <!-- Footer -->
+        <div style="margin-top:18px; text-align:center; font-size:14px;">
+          Already have an account? 
+          <a href="#" id="backToLogin" style="color:var(--accent); font-weight:500; text-decoration:none;">Login</a>
+        </div>
       </div>
     </div>
   `;
 }
 
-      // <!-- Footer -->
-      //   <div style="margin-top:18px; text-align:center; font-size:14px;">
-      //     Already have an account? 
-      //     <a href="#" id="backToLogin" style="color:var(--accent); font-weight:500; text-decoration:none;">Login</a>
-      //   </div>
-      
 function attachSignIn() {
   // Initialize flatpickr AFTER modal exists
   flatpickr("#birthdate", {
@@ -127,14 +124,13 @@ function attachSignIn() {
     const password = document.getElementById("newPassword").value;
     const repeat = document.getElementById("repeatPassword").value;
     const department = document.getElementById("department").value;
-    const position = document.getElementById("position").value.trim();
 
     const msg = document.getElementById("signUpMsg");
     const err = document.getElementById("signUpError");
     msg.style.display = "none";
     err.style.display = "none";
 
-    if (!firstName || !lastName || !birthdate || !username || !email || !password || !repeat || !department || !position) {
+    if (!firstName || !lastName || !birthdate || !username || !email || !password || !repeat || !department) {
       return showError("All required fields must be filled.");
     }
     if (password !== repeat) {
@@ -166,7 +162,6 @@ function attachSignIn() {
         email,
         password,
         department,
-        position,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         status: "active"
       });

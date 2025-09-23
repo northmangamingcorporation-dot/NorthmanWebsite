@@ -104,13 +104,13 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
         const role = (user.position || "").toLowerCase();
 
         if (role === "it manager") {
-          window.mountITAdminDashboard(user);   // IT-only dashboard
-        } else if (role === "admin head") {
-          window.mountAdminDashboard(user);     // Admin head dashboard
-        } else {
-          window.mountDashboard(user);          // Normal employee dashboard
+          window.mountAdminDashboard(user); // Load admin dashboard
+        } if (role === "it manager") {
+          window.mountAdminDashboard(user); // Load admin dashboard
+        } 
+        else {
+          window.mountDashboard(user); // Load normal dashboard
         }
-        
       }else {
         errorMsg.textContent = "Invalid username or password.";
         errorMsg.style.display = "block";

@@ -110,7 +110,7 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
         } else {
           window.mountDashboard(user);          // Normal employee dashboard
         }
-        
+
       }else {
         errorMsg.textContent = "Invalid username or password.";
         errorMsg.style.display = "block";

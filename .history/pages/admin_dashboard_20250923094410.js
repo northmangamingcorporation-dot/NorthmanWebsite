@@ -71,13 +71,15 @@ function renderAdminDashboard(admin = { username: "Admin", position: "" }) {
   `;
 }
 
-// --- Attach Admin Dashboard ---
+
 // --- Attach Admin Dashboard ---
 async function attachAdminDashboard(admin) {
-  // Choose collection based on role
+  // Choose collection based on role/department
   let collectionName = "it_service_orders";
   if ((admin.position || "").toLowerCase() === "admin head") {
     collectionName = "drivers_trip_tickets";
+  } else if (admin.department?.toLowerCase() === "hr") {
+    collectionName = "travel_orders";
   }
 
   const ordersCol = window.db.collection(collectionName);
@@ -91,7 +93,7 @@ async function attachAdminDashboard(admin) {
       snapshot => {
         const tbody = document.getElementById("adminRequestsTable");
         tbody.innerHTML = "";
-        const stats = { pending: 0, approved: 0, denied: 0, cancelled: 0 };
+        const stats = { pending: 0, approved: 0, denied: 0, cancelled: 0, assigned: 0 };
 
         if (snapshot.empty) {
           tbody.innerHTML = `<tr><td colspan="6" style="padding:12px; text-align:center; color:var(--muted)">No requests yet.</td></tr>`;
@@ -115,68 +117,28 @@ async function attachAdminDashboard(admin) {
             <td style="padding:10px 0">${order.type || "-"}</td>
             <td style="padding:10px 0">${order.description || "-"}</td>
             <td style="padding:10px 0">${createdAt}</td>
-            <td style="padding:10px 0; color:${statusColor(statusKey)}">${statusKey}</td>
+            <td style="padding:10px 0; color:${statusColor(statusKey)}">${order.status || "Pending"}</td>
             <td style="padding:10px 0">
               ${statusKey === "pending" 
-                ? `
-                  <button class="btn btn-approve" data-id="${doc.id}">Approve</button>
-                  <button class="btn btn-deny" data-id="${doc.id}">Deny</button>
-                `
+                ? `<button class="btn btn-assign" data-id="${doc.id}">Assign</button>`
                 : "-"
               }
             </td>
           `;
 
-          // ✅ Row click → show generic modal
-          row.addEventListener("click", (e) => {
-            if (!e.target.classList.contains("btn")) {
-              mountGenericModal({
-                user: admin,
-                title: order.type || "Request Details",
-                subtitle: `Submitted by ${order.username || "Unknown"}`,
-                bodyContent: `<p>${order.description || "No details provided."}</p>`,
-                photoUrl: order.photoUrl || "https://via.placeholder.com/400",
-                onSubmit: async (data) => {
-                  console.log("Modal submitted:", data);
-                  try {
-                    await ordersCol.doc(doc.id).update({
-                      status: data.status,
-                      assignedDept: data.dept,
-                      assignedStaff: data.staff,
-                      remarks: data.remarks || "",
-                      reviewedBy: admin.username || admin.firstName
-                    });
-                    alert(`Request ${data.status} successfully.`);
-                  } catch (err) {
-                    console.error("Error updating request:", err);
-                    alert("Failed to update request. Check console.");
-                  }
-                }
-              });
-            }
+          // ✅ Assign button → open Admin modal
+          row.querySelector(".btn-assign")?.addEventListener("click", async () => {
+            mo(admin, {
+              ...order,
+              id: doc.id,
+              collection: collectionName
+            });
           });
 
           tbody.appendChild(row);
         });
 
         updateAdminStats(stats);
-
-        // Old inline buttons → still work if you want quick approve/deny
-        document.querySelectorAll(".btn-approve").forEach(btn => {
-          btn.addEventListener("click", async () => {
-            const id = btn.dataset.id;
-            await ordersCol.doc(id).update({ status: "approved" });
-            alert("Request approved.");
-          });
-        });
-        document.querySelectorAll(".btn-deny").forEach(btn => {
-          btn.addEventListener("click", async () => {
-            const id = btn.dataset.id;
-            await ordersCol.doc(id).update({ status: "denied" });
-            alert("Request denied.");
-          });
-        });
-
         Modal.hide();
       },
       err => {
@@ -185,6 +147,7 @@ async function attachAdminDashboard(admin) {
       }
     );
   }
+
 
   function updateAdminStats(stats) {
     document.getElementById("admin-pending").textContent = stats.pending || 0;
