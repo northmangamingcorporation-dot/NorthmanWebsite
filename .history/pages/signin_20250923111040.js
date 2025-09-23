@@ -73,7 +73,7 @@ function renderSignInModal() {
         <!-- Department -->
         <div style="margin-bottom:24px;">
           <select id="department" 
-            style="text-transform:capitalize; width:100%; padding:12px; border-radius:8px; border:1px solid #ccc; font-size:15px; background:#fff;">
+            style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc; font-size:15px; background:#fff;">
             <option value="">Select Department</option>
             <option value="IT">IT</option>
             <option value="Operation">Operation</option>
@@ -86,7 +86,7 @@ function renderSignInModal() {
         <!-- Position -->
         <div style="margin-bottom:24px;">
           <input id="position" type="text" placeholder="Position (e.g., IT Manager)" 
-            style="text-transform:capitalize; width:100%; padding:12px; border-radius:8px; border:1px solid #ccc; font-size:15px;" />
+            style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc; font-size:15px;" />
         </div>
 
         <!-- Submit -->

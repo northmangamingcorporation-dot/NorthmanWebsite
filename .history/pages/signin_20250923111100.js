@@ -86,7 +86,7 @@ function renderSignInModal() {
         <!-- Position -->
         <div style="margin-bottom:24px;">
           <input id="position" type="text" placeholder="Position (e.g., IT Manager)" 
-            style="text-transform:capitalize; width:100%; padding:12px; border-radius:8px; border:1px solid #ccc; font-size:15px;" />
+            style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc; font-size:15px;" />
         </div>
 
         <!-- Submit -->
