@@ -590,7 +590,7 @@ function attachSidebarNavigation() {
       
       // Show target section with animation
       const targetSection = btn.getAttribute("data-section");
-      const section = document.getElementById(`${targetSection}Section`);
+      const section = document.getElementById(`dashboardSection`);
       
       setTimeout(() => {
         section.style.display = "block";
@@ -1502,7 +1502,6 @@ async function mountITAdminDashboard(admin) {
   mount(renderITAdminDashboard(admin, staffTasks));
   attachITAdminDashboard(admin);
   attachSidebarNavigation();
-  initializeDashboardOnLoad();
 }
 
 // Enhanced styles injection

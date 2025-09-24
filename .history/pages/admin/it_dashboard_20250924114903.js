@@ -602,127 +602,6 @@ function attachSidebarNavigation() {
   });
 }
 
-// Enhanced sidebar navigation with animations and onload initialization
-function attachSidebarNavigation() {
-  try {
-    // Update pending badge (example: fetch from API or local data)
-    const pendingBadge = document.getElementById('pending-badge');
-    if (pendingBadge) {
-      // Placeholder: Set to 3 pending requests (replace with real data)
-      const pendingCount = 3; // e.g., from API: fetch('/api/pending-requests').then(res => res.count)
-      pendingBadge.textContent = pendingCount > 0 ? pendingCount : '';
-      if (pendingCount > 0) {
-        pendingBadge.style.display = 'inline-block';
-      } else {
-        pendingBadge.style.display = 'none';
-      }
-    }
-
-    document.querySelectorAll(".sidebar-btn[data-section]").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        
-        // Remove active class from all buttons and indicators
-        document.querySelectorAll(".sidebar-btn").forEach(b => {
-          b.classList.remove("active");
-          const indicator = b.querySelector('.nav-indicator');
-          if (indicator) indicator.style.transform = 'translateX(0)'; // Reset indicator
-        });
-        
-        // Add active to clicked button and slide indicator
-        btn.classList.add("active");
-        const indicator = btn.querySelector('.nav-indicator');
-        if (indicator) {
-          setTimeout(() => {
-            indicator.style.transform = 'translateX(100%)';
-          }, 10);
-        }
-        
-        // Hide all sections with animation
-        const sections = document.querySelectorAll(".section");
-        sections.forEach(section => {
-          if (!section.classList.contains('active-section')) {
-            section.style.opacity = "0";
-            section.style.transform = "translateY(20px)";
-            setTimeout(() => {
-              section.style.display = "none";
-              section.classList.remove('active-section');
-            }, 200);
-          }
-        });
-        
-        // Show target section with animation
-        const targetSection = btn.getAttribute("data-section");
-        const section = document.getElementById(`${targetSection}Section`);
-        if (section) {
-          setTimeout(() => {
-            section.style.display = "block";
-            section.classList.add('active-section');
-            section.offsetHeight; // Force reflow for animation
-            section.style.opacity = "1";
-            section.style.transform = "translateY(0)";
-          }, 250);
-          
-          // Track navigation (if analytics available)
-          if (window.gtag) {
-            gtag('event', 'sidebar_navigation', {
-              'event_category': 'engagement',
-              'event_label': targetSection
-            });
-          }
-        } else {
-          console.warn(`Section ${targetSection}Section not found.`);
-        }
-      });
-    });
-
-    console.log("Sidebar navigation attached successfully.");
-  } catch (error) {
-    console.error("Error attaching sidebar navigation:", error);
-  }
-}
-
-  // New: Initialize Dashboard on Load (shows dashboard by default with animation)
-  function initializeDashboardOnLoad() {
-    try {
-      // Ensure dashboard button is active (already in HTML, but confirm)
-      const dashboardBtn = document.querySelector('.sidebar-btn[data-section="dashboard"]');
-      if (dashboardBtn && !dashboardBtn.classList.contains('active')) {
-        dashboardBtn.classList.add('active');
-      }
-      
-      // Hide all non-dashboard sections immediately
-      const sections = document.querySelectorAll(".section");
-      sections.forEach(section => {
-        if (section.id !== 'dashboardSection') {
-          section.style.display = "none";
-          section.classList.remove('active-section');
-        }
-      });
-      
-      // Show and animate dashboard section
-      const dashboardSection = document.getElementById('dashboardSection');
-      if (dashboardSection) {
-        dashboardSection.style.display = "block";
-        dashboardSection.classList.add('active-section');
-        // Initial animation: Start hidden and fade in
-        dashboardSection.style.opacity = "0";
-        dashboardSection.style.transform = "translateY(20px)";
-        setTimeout(() => {
-          dashboardSection.offsetHeight; // Force reflow
-          dashboardSection.style.opacity = "1";
-          dashboardSection.style.transform = "translateY(0)";
-        }, 100);
-        
-        console.log("Dashboard initialized and shown on load.");
-      } else {
-        console.warn("Dashboard section (#dashboardSection) not found.");
-      }
-    } catch (error) {
-      console.error("Error initializing dashboard on load:", error);
-    }
-  }
-
 // Enhanced IT Manager tasks loading
 async function loadITManagerTasks(user) {
   console.log(user);
@@ -1502,7 +1381,6 @@ async function mountITAdminDashboard(admin) {
   mount(renderITAdminDashboard(admin, staffTasks));
   attachITAdminDashboard(admin);
   attachSidebarNavigation();
-  initializeDashboardOnLoad();
 }
 
 // Enhanced styles injection

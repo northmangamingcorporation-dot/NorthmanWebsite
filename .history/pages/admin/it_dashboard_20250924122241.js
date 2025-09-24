@@ -1502,7 +1502,7 @@ async function mountITAdminDashboard(admin) {
   mount(renderITAdminDashboard(admin, staffTasks));
   attachITAdminDashboard(admin);
   attachSidebarNavigation();
-  initializeDashboardOnLoad();
+  initializeDashboardOnLoad()
 }
 
 // Enhanced styles injection

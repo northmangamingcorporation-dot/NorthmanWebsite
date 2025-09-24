@@ -682,7 +682,7 @@ function attachSidebarNavigation() {
   }
 }
 
-  // New: Initialize Dashboard on Load (shows dashboard by default with animation)
+// New: Initialize Dashboard on Load (shows dashboard by default with animation)
   function initializeDashboardOnLoad() {
     try {
       // Ensure dashboard button is active (already in HTML, but confirm)
@@ -1502,7 +1502,6 @@ async function mountITAdminDashboard(admin) {
   mount(renderITAdminDashboard(admin, staffTasks));
   attachITAdminDashboard(admin);
   attachSidebarNavigation();
-  initializeDashboardOnLoad();
 }
 
 // Enhanced styles injection

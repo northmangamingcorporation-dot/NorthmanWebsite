@@ -682,46 +682,67 @@ function attachSidebarNavigation() {
   }
 }
 
-  // New: Initialize Dashboard on Load (shows dashboard by default with animation)
-  function initializeDashboardOnLoad() {
-    try {
-      // Ensure dashboard button is active (already in HTML, but confirm)
-      const dashboardBtn = document.querySelector('.sidebar-btn[data-section="dashboard"]');
-      if (dashboardBtn && !dashboardBtn.classList.contains('active')) {
-        dashboardBtn.classList.add('active');
-      }
-      
-      // Hide all non-dashboard sections immediately
-      const sections = document.querySelectorAll(".section");
-      sections.forEach(section => {
-        if (section.id !== 'dashboardSection') {
-          section.style.display = "none";
-          section.classList.remove('active-section');
-        }
-      });
-      
-      // Show and animate dashboard section
-      const dashboardSection = document.getElementById('dashboardSection');
-      if (dashboardSection) {
-        dashboardSection.style.display = "block";
-        dashboardSection.classList.add('active-section');
-        // Initial animation: Start hidden and fade in
-        dashboardSection.style.opacity = "0";
-        dashboardSection.style.transform = "translateY(20px)";
-        setTimeout(() => {
-          dashboardSection.offsetHeight; // Force reflow
-          dashboardSection.style.opacity = "1";
-          dashboardSection.style.transform = "translateY(0)";
-        }, 100);
-        
-        console.log("Dashboard initialized and shown on load.");
-      } else {
-        console.warn("Dashboard section (#dashboardSection) not found.");
-      }
-    } catch (error) {
-      console.error("Error initializing dashboard on load:", error);
+// New: Initialize Dashboard on Load (shows dashboard by default with animation)
+function initializeDashboardOnLoad() {
+  try {
+    // Ensure dashboard button is active (already in HTML, but confirm)
+    const dashboardBtn = document.querySelector('.sidebar-btn[data-section="dashboard"]');
+    if (dashboardBtn && !dashboardBtn.classList.contains('active')) {
+      dashboardBtn.classList.add('active');
     }
+    
+    // Hide all non-dashboard sections immediately
+    const sections = document.querySelectorAll(".section");
+    sections.forEach(section => {
+      if (section.id !== 'dashboardSection') {
+        section.style.display = "none";
+        section.classList.remove('active-section');
+      }
+    });
+    
+    // Show and animate dashboard section
+    const dashboardSection = document.getElementById('dashboardSection');
+    if (dashboardSection) {
+      dashboardSection.style.display = "block";
+      dashboardSection.classList.add('active-section');
+      // Initial animation: Start hidden and fade in
+      dashboardSection.style.opacity = "0";
+      dashboardSection.style.transform = "translateY(20px)";
+      setTimeout(() => {
+        dashboardSection.offsetHeight; // Force reflow
+        dashboardSection.style.opacity = "1";
+        dashboardSection.style.transform = "translateY(0)";
+      }, 100);
+      
+      console.log("Dashboard initialized and shown on load.");
+    } else {
+      console.warn("Dashboard section (#dashboardSection) not found.");
+    }
+  } catch (error) {
+    console.error("Error initializing dashboard on load:", error);
   }
+}
+
+// Onload Initialization (integrate into your DOMContentLoaded or call manually)
+document.addEventListener("DOMContentLoaded", () => {
+  // Attach navigation and styles
+  injectSidebarStyles();
+  attachSidebarNavigation();
+  
+  // Show dashboard on load
+  initializeDashboardOnLoad();
+  
+  // Optional: Mobile toggle (if you add a toggle button)
+  const toggleBtn = document.querySelector('.mobile-sidebar-toggle');
+  const sidebar = document.querySelector('.sidebar-nav');
+  if (toggleBtn && sidebar) {
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
+  }
+  
+  console.log("Sidebar and dashboard initialized on load.");
+});
 
 // Enhanced IT Manager tasks loading
 async function loadITManagerTasks(user) {
@@ -1502,7 +1523,6 @@ async function mountITAdminDashboard(admin) {
   mount(renderITAdminDashboard(admin, staffTasks));
   attachITAdminDashboard(admin);
   attachSidebarNavigation();
-  initializeDashboardOnLoad();
 }
 
 // Enhanced styles injection

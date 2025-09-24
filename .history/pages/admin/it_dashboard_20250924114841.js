@@ -568,40 +568,6 @@ function statusColor(status) {
   return colors[status] || "#6b7280";
 }
 
-// Enhanced sidebar navigation with animations
-function attachSidebarNavigation() {
-  document.querySelectorAll(".sidebar-btn[data-section]").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      
-      // Remove active class from all buttons
-      document.querySelectorAll(".sidebar-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      
-      // Hide all sections with animation
-      const sections = document.querySelectorAll(".section");
-      sections.forEach(section => {
-        section.style.opacity = "0";
-        section.style.transform = "translateY(20px)";
-        setTimeout(() => {
-          section.style.display = "none";
-        }, 200);
-      });
-      
-      // Show target section with animation
-      const targetSection = btn.getAttribute("data-section");
-      const section = document.getElementById(`${targetSection}Section`);
-      
-      setTimeout(() => {
-        section.style.display = "block";
-        section.offsetHeight; // Force reflow
-        section.style.opacity = "1";
-        section.style.transform = "translateY(0)";
-      }, 250);
-    });
-  });
-}
-
 // Enhanced sidebar navigation with animations and onload initialization
 function attachSidebarNavigation() {
   try {
@@ -682,46 +648,229 @@ function attachSidebarNavigation() {
   }
 }
 
-  // New: Initialize Dashboard on Load (shows dashboard by default with animation)
-  function initializeDashboardOnLoad() {
-    try {
-      // Ensure dashboard button is active (already in HTML, but confirm)
-      const dashboardBtn = document.querySelector('.sidebar-btn[data-section="dashboard"]');
-      if (dashboardBtn && !dashboardBtn.classList.contains('active')) {
-        dashboardBtn.classList.add('active');
-      }
-      
-      // Hide all non-dashboard sections immediately
-      const sections = document.querySelectorAll(".section");
-      sections.forEach(section => {
-        if (section.id !== 'dashboardSection') {
-          section.style.display = "none";
-          section.classList.remove('active-section');
-        }
-      });
-      
-      // Show and animate dashboard section
-      const dashboardSection = document.getElementById('dashboardSection');
-      if (dashboardSection) {
-        dashboardSection.style.display = "block";
-        dashboardSection.classList.add('active-section');
-        // Initial animation: Start hidden and fade in
-        dashboardSection.style.opacity = "0";
-        dashboardSection.style.transform = "translateY(20px)";
-        setTimeout(() => {
-          dashboardSection.offsetHeight; // Force reflow
-          dashboardSection.style.opacity = "1";
-          dashboardSection.style.transform = "translateY(0)";
-        }, 100);
-        
-        console.log("Dashboard initialized and shown on load.");
-      } else {
-        console.warn("Dashboard section (#dashboardSection) not found.");
-      }
-    } catch (error) {
-      console.error("Error initializing dashboard on load:", error);
+// New: Initialize Dashboard on Load (shows dashboard by default with animation)
+function initializeDashboardOnLoad() {
+  try {
+    // Ensure dashboard button is active (already in HTML, but confirm)
+    const dashboardBtn = document.querySelector('.sidebar-btn[data-section="dashboard"]');
+    if (dashboardBtn && !dashboardBtn.classList.contains('active')) {
+      dashboardBtn.classList.add('active');
     }
+    
+    // Hide all non-dashboard sections immediately
+    const sections = document.querySelectorAll(".section");
+    sections.forEach(section => {
+      if (section.id !== 'dashboardSection') {
+        section.style.display = "none";
+        section.classList.remove('active-section');
+      }
+    });
+    
+    // Show and animate dashboard section
+    const dashboardSection = document.getElementById('dashboardSection');
+    if (dashboardSection) {
+      dashboardSection.style.display = "block";
+      dashboardSection.classList.add('active-section');
+      // Initial animation: Start hidden and fade in
+      dashboardSection.style.opacity = "0";
+      dashboardSection.style.transform = "translateY(20px)";
+      setTimeout(() => {
+        dashboardSection.offsetHeight; // Force reflow
+        dashboardSection.style.opacity = "1";
+        dashboardSection.style.transform = "translateY(0)";
+      }, 100);
+      
+      console.log("Dashboard initialized and shown on load.");
+    } else {
+      console.warn("Dashboard section (#dashboardSection) not found.");
+    }
+  } catch (error) {
+    console.error("Error initializing dashboard on load:", error);
   }
+}
+
+// Inject Sidebar CSS (add this to your styles injection, e.g., in injectMainPageStyles())
+function injectSidebarStyles() {
+  const existingStyles = document.querySelector('#sidebar-styles');
+  if (existingStyles) existingStyles.remove();
+
+  const style = document.createElement("style");
+  style.id = "sidebar-styles";
+  style.textContent = `
+    /* Sidebar Navigation Styles */
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      width: 250px;
+      background: #ffffff;
+      border-right: 1px solid #e2e8f0;
+      padding: 20px 0;
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 100;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .sidebar-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      color: #64748b;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-btn:hover {
+      background: rgba(59, 130, 246, 0.05);
+      color: #3b82f6;
+      border-left-color: #3b82f6;
+    }
+
+    .sidebar-btn.active {
+      background: rgba(59, 130, 246, 0.1);
+      color: #3b82f6;
+      border-left-color: #3b82f6;
+    }
+
+    .sidebar-btn i {
+      font-size: 18px;
+      width: 20px;
+      text-align: center;
+    }
+
+    .sidebar-btn span {
+      flex: 1;
+    }
+
+    .nav-indicator {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%) translateX(0);
+      width: 4px;
+      height: 100%;
+      background: #3b82f6;
+      border-radius: 0 2px 2px 0;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-btn.active .nav-indicator {
+      transform: translateY(-50%) translateX(100%);
+    }
+
+    .notification-badge {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #ef4444;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: none;
+      font-size: 12px;
+      font-weight: bold;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    /* Main Content Area (adjust for sidebar) */
+    .main-content {
+      margin-left: 250px;
+      padding: 20px;
+      min-height: 100vh;
+      transition: margin-left 0.3s ease;
+    }
+
+    /* Sections */
+    .section {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      padding: 20px;
+      background: #f8fafc;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .section.active-section {
+      display: block;
+    }
+
+    /* Responsive: Hide sidebar on mobile */
+    @media (max-width: 768px) {
+      .sidebar-nav {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+      
+      .sidebar-nav.open {
+        transform: translateX(0);
+      }
+      
+      .main-content {
+        margin-left: 0;
+      }
+    }
+
+    /* Mobile toggle (add if needed) */
+    .mobile-sidebar-toggle {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 101;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .mobile-sidebar-toggle {
+        display: block;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+  console.log("Sidebar styles injected successfully.");
+}
+
+// Onload Initialization (integrate into your DOMContentLoaded or call manually)
+document.addEventListener("DOMContentLoaded", () => {
+  // Attach navigation and styles
+  injectSidebarStyles();
+  attachSidebarNavigation();
+  
+  // Show dashboard on load
+  initializeDashboardOnLoad();
+  
+  // Optional: Mobile toggle (if you add a toggle button)
+  const toggleBtn = document.querySelector('.mobile-sidebar-toggle');
+  const sidebar = document.querySelector('.sidebar-nav');
+  if (toggleBtn && sidebar) {
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
+  }
+  
+  console.log("Sidebar and dashboard initialized on load.");
+});
 
 // Enhanced IT Manager tasks loading
 async function loadITManagerTasks(user) {
@@ -1502,7 +1651,6 @@ async function mountITAdminDashboard(admin) {
   mount(renderITAdminDashboard(admin, staffTasks));
   attachITAdminDashboard(admin);
   attachSidebarNavigation();
-  initializeDashboardOnLoad();
 }
 
 // Enhanced styles injection
