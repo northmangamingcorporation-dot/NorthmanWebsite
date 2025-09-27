@@ -1,0 +1,1130 @@
+// Enhanced assets/js/travel_order_form_modal.js
+
+// Utility function to format date for input
+function formatDateForInput(date) {
+  const d = new Date(date);
+  return d.toISOString().split('T')[0];
+}
+
+// Enhanced rendering with modern UI (unchanged, but added data-required for easier JS targeting)
+function renderTravelOrderForm(user = { username: "Employee", firstName: "", lastName: "", department: "" }) {
+  const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username;
+  const today = formatDateForInput(new Date());
+
+  return `
+    <div id="travelOrderModal" class="modal-overlay travel-order-modal" style="
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 1001;
+      opacity: 0;
+      animation: fadeIn 0.3s ease forwards;
+      overflow: auto;
+    ">
+      
+      <div class="modal-content travel-form-content" style="
+        background: linear-gradient(145deg, #ffffff, #f8fafc);
+        border-radius: 20px;
+        max-width: 900px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 40px;
+        position: relative;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        transform: translateY(20px);
+        animation: slideIn 0.4s ease forwards;
+      ">
+        
+        <!-- Enhanced Close Button -->
+        <button id="closeTravelOrderModal" class="close-btn" style="
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          width: 40px;
+          height: 40px;
+          border: none;
+          background: rgba(100, 116, 139, 0.1);
+          border-radius: 50%;
+          font-size: 18px;
+          cursor: pointer;
+          color: #64748b;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        " onmouseover="
+          this.style.background = 'rgba(239, 68, 68, 0.1)';
+          this.style.color = '#ef4444';
+        " onmouseout="
+          this.style.background = 'rgba(100, 116, 139, 0.1)';
+          this.style.color = '#64748b';
+        " aria-label="Close Travel Order Form">
+          <i class="fas fa-times"></i>
+        </button>
+
+        <!-- Enhanced Title -->
+        <div class="form-header" style="
+          text-align: center;
+          margin-bottom: 32px;
+          animation: logoFloat 0.6s ease forwards;
+        ">
+          <h2 style="
+            margin: 0 0 8px 0;
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 28px;
+            background: linear-gradient(135deg, #0f172a, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+          ">
+            Travel Order Request
+          </h2>
+          <p style="
+            margin: 0;
+            color: #64748b;
+            font-size: 16px;
+            font-weight: 500;
+          ">
+            Fill out the details for your official travel authorization
+          </p>
+        </div>
+
+        <!-- Form -->
+        <form id="travelOrderForm" style="
+          display: flex;
+          flex-direction: column;
+          gap: 32px;
+        ">
+          
+          <!-- SECTION 1: Employee Information -->
+          <section class="form-section" style="
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 24px;
+          ">
+            <h3 style="
+              font-size: 20px;
+              margin-bottom: 20px;
+              color: #0f172a;
+              font-weight: 600;
+            ">
+              <i class="fas fa-user" style="color: #3b82f6; margin-right: 8px;"></i>
+              Employee Information
+            </h3>
+            <div class="form-grid" style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+              gap: 20px;
+            ">
+              <div class="form-group" style="display: flex; flex-direction: column;">
+                <label style="
+                  font-weight: 600;
+                  color: #374151;
+                  margin-bottom: 8px;
+                  font-size: 14px;
+                ">Employee Name <span style="color: #ef4444;">*</span></label>
+                <input type="text" name="employeeName" value="${fullName}" required data-required="true"
+                       style="
+                         padding: 12px 16px;
+                         border: 2px solid #e2e8f0;
+                         border-radius: 12px;
+                         font-size: 16px;
+                         transition: all 0.3s ease;
+                         background: white;
+                       " onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                       onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+                       aria-required="true" />
+                <div class="field-error" style="color: #ef4444; font-size: 14px; margin-top: 4px; display: none;"></div>
+              </div>
+              <div class="form-group" style="display: flex; flex-direction: column;">
+                <label style="
+                  font-weight: 600;
+                  color: #374151;
+                  margin-bottom: 8px;
+                  font-size: 14px;
+                ">Department <span style="color: #ef4444;">*</span></label>
+                <input type="text" name="department" value="${user.department || ''}" required data-required="true"
+                       style="
+                         padding: 12px 16px;
+                         border: 2px solid #e2e8f0;
+                         border-radius: 12px;
+                         font-size: 16px;
+                         transition: all 0.3s ease;
+                         background: white;
+                       " onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                       onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+                       aria-required="true" />
+                <div class="field-error" style="color: #ef4444; font-size: 14px; margin-top: 4px; display: none;"></div>
+              </div>
+              <div class="form-group" style="display: flex; flex-direction: column;">
+                <label style="
+                  font-weight: 600;
+                  color: #374151;
+                  margin-bottom: 8px;
+                  font-size: 14px;
+                ">Date Filed <span style="color: #ef4444;">*</span></label>
+                <input type="date" name="dateFiled" value="${today}" required data-required="true"
+                       style="
+                         padding: 12px 16px;
+                         border: 2px solid #e2e8f0;
+                         border-radius: 12px;
+                         font-size: 16px;
+                         transition: all 0.3s ease;
+                         background: white;
+                       " onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                       onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+                       min="${today}" aria-required="true" />
+                <div class="field-error" style="color: #ef4444; font-size: 14px; margin-top: 4px; display: none;"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- SECTION 2: Travel Details -->
+          <section class="form-section" style="
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 24px;
+          ">
+            <h3 style="
+              font-size: 20px;
+              margin-bottom: 20px;
+              color: #0f172a;
+              font-weight: 600;
+            ">
+              <i class="fas fa-map-marker-alt" style="color: #3b82f6; margin-right: 8px;"></i>
+              Travel Details
+            </h3>
+            <div class="form-grid" style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+              gap: 20px;
+            ">
+              <div class="form-group" style="display: flex; flex-direction: column;">
+                <label style="
+                  font-weight: 600;
+                  color: #374151;
+                  margin-bottom: 8px;
+                  font-size: 14px;
+                ">Travel Date <span style="color: #ef4444;">*</span></label>
+                <input type="date" name="travelDate" required data-required="true"
+                       style="
+                         padding: 12px 16px;
+                         border: 2px solid #e2e8f0;
+                         border-radius: 12px;
+                         font-size: 16px;
+                         transition: all 0.3s ease;
+                         background: white;
+                       " onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                       onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+                       min="${today}" aria-required="true" />
+                <div class="field-error" style="color: #ef4444; font-size: 14px; margin-top: 4px; display: none;"></div>
+              </div>
+              <div class="form-group" style="display: flex; flex-direction: column;">
+                <label style="
+                  font-weight: 600;
+                  color: #374151;
+                  margin-bottom: 8px;
+                  font-size: 14px;
+                ">Travel From</label>
+                <input type="text" name="travelFrom" data-required="false"
+                       style="
+                         padding: 12px 16px;
+                         border: 2px solid #e2e8f0;
+                         border-radius: 12px;
+                         font-size: 16px;
+                         transition: all 0.3s ease;
+                         background: white;
+                       " onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                       onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+                       placeholder="e.g., Office Location" />
+                <div class="field-error" style="color: #ef4444; font-size: 14px; margin-top: 4px; display: none;"></div>
+              </div>
+              <div class="form-group" style="display: flex; flex-direction: column;">
+                <label style="
+                  font-weight: 600;
+                  color: #374151;
+                  margin-bottom: 8px;
+                  font-size: 14px;
+                ">Travel To</label>
+                <input type="text" name="travelTo" data-required="false"
+                       style="
+                         padding: 12px 16px;
+                         border: 2px solid #e2e8f0;
+                         border-radius: 12px;
+                         font-size: 16px;
+                         transition: all 0.3s ease;
+                         background: white;
+                       " onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                       onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+                       placeholder="e.g., Client Meeting Venue" />
+                <div class="field-error" style="color: #ef4444; font-size: 14px; margin-top: 4px; display: none;"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- SECTION 3: Schedule -->
+          <section class="form-section" style="
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 24px;
+          ">
+            <h3 style="
+              font-size: 20px;
+              margin-bottom: 20px;
+              color: #0f172a;
+              font-weight: 600;
+            ">
+              <i class="fas fa-clock" style="color: #3b82f6; margin-right: 8px;"></i>
+              Schedule
+            </h3>
+            <div class="form-grid" style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+              gap: 20px;
+            ">
+              <div class="form-group" style="display: flex; flex-direction: column;">
+                <label style="
+                  font-weight: 600;
+                  color: #374151;
+                  margin-bottom: 8px;
+                  font-size: 14px;
+                ">Time Out</label>
+                <input type="time" name="timeOut" data-required="false"
+                       style="
+                         padding: 12px 16px;
+                         border: 2px solid #e2e8f0;
+                         border-radius: 12px;
+                         font-size: 16px;
+                         transition: all 0.3s ease;
+                         background: white;
+                       " onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                       onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+                       placeholder="e.g., 09:00 AM" />
+                <div class="field-error" style="color: #ef4444; font-size: 14px; margin-top: 4px; display: none;"></div>
+              </div>
+              <div class="form-group" style="display: flex; flex-direction: column;">
+                <label style="
+                  font-weight: 600;
+                  color: #374151;
+                  margin-bottom: 8px;
+                  font-size: 14px;
+                ">Time In</label>
+                <input type="time" name="timeIn" data-required="false"
+                       style="
+                         padding: 12px 16px;
+                         border: 2px solid #e2e8f0;
+                         border-radius: 12px;
+                         font-size: 16px;
+                         transition: all 0.3s ease;
+                         background: white;
+                       " onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                       onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+                       placeholder="e.g., 05:00 PM" />
+                <div class="field-error" style="color: #ef4444; font-size: 14px; margin-top: 4px; display: none;"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- SECTION 4: Driver & Reliever -->
+          <section class="form-section" style="
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 24px;
+          ">
+            <h3 style="
+              font-size: 20px;
+              margin-bottom: 20px;
+              color: #0f172a;
+              font-weight: 600;
+            ">
+              <i class="fas fa-car" style="color: #3b82f6; margin-right: 8px;"></i>
+              Driver & Reliever
+            </h3>
+            <div class="form-grid" style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+              gap: 20px;
+            ">
+              <div class="form-group" style="display: flex; flex-direction: column;">
+                <label style="
+                  font-weight: 600;
+                  color: #374151;
+                  margin-bottom: 8px;
+                  font-size: 14px;
+                ">Driver's Name</label>
+                <input type="text" name="driversName" data-required="false"
+                       style="
+                         padding: 12px 16px;
+                         border: 2px solid #e2e8f0;
+                         border-radius: 12px;
+                         font-size: 16px;
+                         transition: all 0.3s ease;
+                         background: white;
+                       " onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                       onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+                       placeholder="e.g., John Doe" />
+                <div class="field-error" style="color: #ef4444; font-size: 14px; margin-top: 4px; display: none;"></div>
+              </div>
+              <div class="form-group" style="display: flex; flex-direction: column;">
+                <label style="
+                  font-weight: 600;
+                  color: #374151;
+                  margin-bottom: 8px;
+                  font-size: 14px;
+                ">Reliever's Name</label>
+                <input type="text" name="relieversName" data-required="false"
+                       style="
+                         padding: 12px 16px;
+                         border: 2px solid #e2e8f0;
+                         border-radius: 12px;
+                         font-size: 16px;
+                         transition: all 0.3s ease;
+                         background: white;
+                       " onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                       onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+                       placeholder="e.g., Jane Smith" />
+                <div class="field-error" style="color: #ef4444; font-size: 14px; margin-top: 4px; display: none;"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- SECTION 5: Passengers -->
+          <section class="form-section" style="
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 24px;
+          ">
+            <h3 style="
+              font-size: 20px;
+              margin-bottom: 20px;
+              color: #0f172a;
+              font-weight: 600;
+            ">
+              <i class="fas fa-users" style="color: #3b82f6; margin-right: 8px;"></i>
+              Passengers
+            </h3>
+            <div id="passengersWrapper" class="passengers-wrapper" style="
+              display: flex;
+              flex-direction: column;
+              gap: 12px;
+              margin-bottom: 16px;
+            ">
+              <div class="passenger-row" style="
+                display: flex;
+                gap: 12px;
+                align-items: center;
+              ">
+                <input type="text" name="passenger[]" placeholder="Enter passenger name (optional)" data-required="false"
+                       style="
+                         flex: 1;
+                         padding: 12px 16px;
+                         border: 2px solid #e2e8f0;
+                         border-radius: 12px;
+                         font-size: 16px;
+                         transition: all 0.3s ease;
+                         background: white;
+                       " onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                       onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+                       maxlength="100" />
+                <button type="button" class="remove-passenger" style="
+                  padding: 12px;
+                  border: none;
+                  background: rgba(239, 68, 68, 0.1);
+                  color: #ef4444;
+                  border-radius: 12px;
+                  cursor: pointer;
+                  font-size: 16px;
+                  transition: all 0.3s ease;
+                  width: 44px;
+                  height: 44px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                " onmouseover="this.style.background='rgba(239, 68, 68, 0.2)';"
+                   onmouseout="this.style.background='rgba(239, 68, 68, 0.1)';"
+                   aria-label="Remove passenger">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+            <button type="button" id="addPassengerBtn" class="add-btn" style="
+              background: linear-gradient(135deg, #10b981, #059669);
+              color: white;
+              padding: 12px 24px;
+              border: none;
+              border-radius: 12px;
+              cursor: pointer;
+              font-weight: 600;
+              font-size: 16px;
+              transition: all 0.3s ease;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              margin: 0 auto;
+              box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+            " onmouseover="
+              this.style.transform = 'translateY(-2px)';
+              this.style.boxShadow = '0 8px 16px rgba(16, 185, 129, 0.3)';
+            " onmouseout="
+              this.style.transform = 'translateY(0)';
+              this.style.boxShadow = '0 4px 6px -1px rgba(16, 185, 129, 0.2)';
+            ">
+              <i class="fas fa-plus"></i>
+              Add Passenger
+            </button>
+            <div id="passengersError" class="field-error" style="color: #ef4444; font-size: 14px; margin-top: 8px; text-align: center; display: none;"></div>
+          </section>
+
+          <!-- SECTION 6: Vehicle & Purpose -->
+          <section class="form-section">
+            <h3 style="
+              font-size: 20px;
+              margin-bottom: 20px;
+              color: #0f172a;
+              font-weight: 600;
+            ">
+              <i class="fas fa-car-side" style="color: #3b82f6; margin-right: 8px;"></i>
+              Vehicle & Purpose
+            </h3>
+            <div class="form-grid" style="
+              display: grid;
+              grid-template-columns: 1fr;
+              gap: 20px;
+            ">
+              <div class="form-group" style="display: flex; flex-direction: column;">
+                <label style="
+                  font-weight: 600;
+                  color: #374151;
+                  margin-bottom: 8px;
+                  font-size: 14px;
+                ">Car Unit / Plate #</label>
+                <input type="text" name="carUnit" data-required="false"
+                       style="
+                         padding: 12px 16px;
+                         border: 2px solid #e2e8f0;
+                         border-radius: 12px;
+                         font-size: 16px;
+                         transition: all 0.3s ease;
+                         background: white;
+                       " onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                       onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+                       placeholder="e.g., ABC-123" />
+                <div class="field-error" style="color: #ef4444; font-size: 14px; margin-top: 4px; display: none;"></div>
+              </div>
+              <div class="form-group" style="display: flex; flex-direction: column;">
+                <label style="
+                  font-weight: 600;
+                  color: #374151;
+                  margin-bottom: 8px;
+                  font-size: 14px;
+                ">Purpose <span style="color: #ef4444;">*</span></label>
+                <textarea name="purpose" rows="4" required data-required="true"
+                          style="
+                            padding: 12px 16px;
+                            border: 2px solid #e2e8f0;
+                            border-radius: 12px;
+                            font-size: 16px;
+                            transition: all 0.3s ease;
+                            background: white;
+                            resize: vertical;
+                            min-height: 100px;
+                          " onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                          onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+                          placeholder="Describe the purpose of your travel (e.g., Client meeting, Conference attendance)..."
+                          maxlength="1000" aria-required="true"></textarea>
+                <div class="field-error" style="color: #ef4444; font-size: 14px; margin-top: 4px; display: none;"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Form Actions (enhanced with validation state) -->
+          <div class="form-actions" style="
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+          ">
+            <button type="button" id="cancelTravelOrder" class="btn secondary-btn" style="
+              padding: 12px 24px;
+              font-size: 16px;
+              font-weight: 600;
+              border: 2px solid #6b7280;
+              border-radius: 12px;
+              background: transparent;
+              color: #6b7280;
+              cursor: pointer;
+              transition: all 0.3s ease;
+            " onmouseover="
+              this.style.background = 'rgba(107, 114, 128, 0.1)';
+              this.style.transform = 'translateY(-2px)';
+            " onmouseout="
+              this.style.background = 'transparent';
+              this.style.transform = 'translateY(0)';
+            ">
+              <i class="fas fa-times" style="margin-right: 8px;"></i>
+              Cancel
+            </button>
+            <button type="submit" id="submitTravelOrder" class="btn primary-btn" disabled style="
+              padding: 12px 24px;
+              font-size: 16px;
+              font-weight: 600;
+              border: none;
+              border-radius: 12px;
+              background: linear-gradient(135deg, #9ca3af, #6b7280);
+              color: white;
+              cursor: not-allowed;
+              transition: all 0.3s ease;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              box-shadow: 0 4px 6px -1px rgba(156, 163, 175, 0.2);
+              opacity: 0.6;
+            " title="Please fill all fields to enable submission">
+              <i class="fas fa-times" style="color: #ef4444;"></i>
+              Complete Form First
+            </button>
+          </div>
+        </form>
+
+        <!-- Loading Overlay -->
+        <div id="travelFormLoading" class="loading-overlay" style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(255, 255, 255, 0.9);
+          display: none;
+          justify-content: center;
+          align-items: center;
+          border-radius: 20px;
+          z-index: 10;
+        ">
+          <div style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+          ">
+            <div style="
+              width: 48px;
+              height: 48px;
+              border: 4px solid #e2e8f0;
+              border-top: 4px solid #3b82f6;
+              border-radius: 50%;
+              animation: spin 1s linear infinite;
+            "></div>
+            <p style="margin: 0; color: #64748b; font-weight: 500;">Processing your request...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      
+      @keyframes slideIn {
+        from { 
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to { 
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      @keyframes logoFloat {
+        from { 
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to { 
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .travel-form-content {
+          padding: 24px 16px;
+          margin: 8px;
+          max-height: 95vh;
+        }
+        
+        .form-grid {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+        
+        .form-actions {
+          flex-direction: column;
+          gap: 12px;
+        }
+        
+        .btn, .add-btn {
+          width: 100%;
+          justify-content: center;
+        }
+        
+        .passenger-row {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 8px;
+        }
+        
+        .remove-passenger {
+          align-self: flex-end;
+          width: auto;
+          padding: 8px 12px;
+        }
+      }
+      
+      /* Enhanced Validation Styles */
+      .form-group input:invalid,
+      .form-group textarea:invalid,
+      .form-group input.error,
+      .form-group textarea.error {
+        border-color: #ef4444 !important;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+      }
+      
+      .field-error.show {
+        display: block !important;
+      }
+      
+      /* Passenger Styles */
+      .passenger-row {
+        transition: all 0.3s ease;
+      }
+      
+      .passenger-row:hover {
+        background: rgba(59, 130, 246, 0.02);
+      }
+      
+      .passenger-row.error-row {
+        border: 2px solid #ef4444;
+        border-radius: 8px;
+        padding: 8px;
+        background: rgba(239, 68, 68, 0.05);
+      }
+      
+      .remove-passenger:hover {
+        background: rgba(239, 68, 68, 0.2);
+        transform: scale(1.1);
+      }
+      
+      /* Submit Button States */
+      .primary-btn.valid {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+        cursor: pointer !important;
+        opacity: 1 !important;
+        box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2) !important;
+      }
+      
+      .primary-btn.valid:hover {
+        background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3) !important;
+      }
+      
+      .primary-btn:disabled {
+        background: linear-gradient(135deg, #9ca3af, #6b7280) !important;
+        cursor: not-allowed !important;
+        opacity: 0.6 !important;
+        transform: none !important;
+      }
+      
+      /* Custom Scrollbar */
+      .travel-form-content::-webkit-scrollbar {
+        width: 8px;
+      }
+      
+      .travel-form-content::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+      }
+      
+      .travel-form-content::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      
+      .travel-form-content::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+    </style>
+  `;
+}
+
+// Enhanced attach logic with full field validation
+function attachTravelOrderForm(user) {
+  // Wait for DOM to render (retry if elements not ready)
+  function waitForElements(callback, maxRetries = 10, delay = 50) {
+    let retries = 0;
+    function attempt() {
+      const modal = document.getElementById("travelOrderModal");
+      const form = document.getElementById("travelOrderForm");
+      const loadingOverlay = document.getElementById("travelFormLoading");
+      const submitBtn = document.getElementById("submitTravelOrder");
+      const addPassengerBtn = document.getElementById("addPassengerBtn");
+      const passengersWrapper = document.getElementById("passengersWrapper");
+      const closeBtn = document.getElementById("closeTravelOrderModal");
+      const cancelBtn = document.getElementById("cancelTravelOrder");
+      const passengersError = document.getElementById("passengersError");
+
+      if (modal && form && loadingOverlay && submitBtn && addPassengerBtn && passengersWrapper && closeBtn && cancelBtn && passengersError) {
+        callback({ modal, form, loadingOverlay, submitBtn, addPassengerBtn, passengersWrapper, closeBtn, cancelBtn, passengersError });
+      } else if (retries < maxRetries) {
+        retries++;
+        console.warn(`Elements not ready (retry ${retries}/${maxRetries})...`);
+        setTimeout(attempt, delay);
+      } else {
+        console.error("Failed to find required elements after retries.");
+        if (window.Modal && window.Modal.show) {
+          window.Modal.show("Form elements failed to load. Please refresh.", "error");
+        } else {
+          alert("Form failed to load. Please refresh the page.");
+        }
+      }
+    }
+    attempt();
+  }
+
+  waitForElements(({ modal, form, loadingOverlay, submitBtn, addPassengerBtn, passengersWrapper, closeBtn, cancelBtn, passengersError }) => {
+    console.log("All form elements attached successfully.");
+
+    let passengerCount = 1; // Start with 1 (initial row)
+
+    // Close modal functions
+    function closeModal() {
+      modal.style.animation = "fadeOut 0.3s ease forwards";
+      setTimeout(() => {
+        modal.remove();
+        // Clean up listeners if needed
+        document.removeEventListener("keydown", keydownHandler);
+      }, 300);
+    }
+
+    // Global keydown handler (to avoid duplicates)
+    const keydownHandler = (e) => {
+      if (e.key === "Escape" && modal.contains(document.activeElement)) {
+        closeModal();
+      }
+    };
+    document.addEventListener("keydown", keydownHandler);
+
+    closeBtn.addEventListener("click", closeModal);
+    cancelBtn.addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    // Dynamic passenger management (with validation integration)
+    function addPassengerRow() {
+      // Check max before adding
+      if (passengersWrapper.querySelectorAll(".passenger-row").length >= 10) {
+        if (window.Modal && window.Modal.show) {
+          window.Modal.show("Maximum 10 passengers allowed.", "warning");
+        } else {
+          alert("Maximum 10 passengers allowed.");
+        }
+        return;
+      }
+
+      passengerCount++;
+      const row = document.createElement("div");
+      row.className = "passenger-row";
+      row.style.cssText = `
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        transition: all 0.3s ease;
+      `;
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.name = "passenger[]";
+      input.placeholder = `Passenger ${passengerCount}`;
+      input.dataset.required = "false";
+      input.style.cssText = `
+        flex: 1;
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background: white;
+      `;
+      input.onfocus = () => {
+        input.style.borderColor = '#3b82f6';
+        input.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+      };
+      input.onblur = () => {
+        input.style.borderColor = '#e2e8f0';
+        input.style.boxShadow = 'none';
+      };
+      input.maxLength = 100;
+      // Add input listener for real-time validation
+      input.addEventListener('input', debounce(validateForm, 300));
+      input.addEventListener('change', validateForm);
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "remove-passenger";
+      removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+      removeBtn.style.cssText = `
+        padding: 12px;
+        border: none;
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      `;
+      removeBtn.onmouseover = () => removeBtn.style.background = 'rgba(239, 68, 68, 0.2)';
+      removeBtn.onmouseout = () => removeBtn.style.background = 'rgba(239, 68, 68, 0.1)';
+      removeBtn.onclick = () => {
+        row.remove();
+        passengerCount = Math.max(1, passengerCount - 1);
+        // If no rows left, add one empty
+        if (passengersWrapper.querySelectorAll(".passenger-row").length === 0) {
+          addPassengerRow();
+          passengerCount = 1;
+        }
+        validateForm(); // Re-validate after remove
+      };
+
+      row.appendChild(input);
+      row.appendChild(removeBtn);
+      passengersWrapper.appendChild(row);
+      console.log(`Added passenger row #${passengerCount}`);
+      validateForm(); // Validate after add
+    }
+
+    addPassengerBtn.addEventListener("click", addPassengerRow);
+
+    // Fix initial remove button and add listeners
+    const initialRemoveBtn = passengersWrapper.querySelector(".remove-passenger");
+    const initialInput = passengersWrapper.querySelector('input[name="passenger[]"]');
+    if (initialRemoveBtn) {
+      initialRemoveBtn.onclick = () => {
+        const row = initialRemoveBtn.closest(".passenger-row");
+        row.remove();
+        passengerCount = Math.max(1, passengerCount - 1);
+        if (passengersWrapper.querySelectorAll(".passenger-row").length === 0) {
+          addPassengerRow();
+          passengerCount = 1;
+        }
+        validateForm();
+      };
+    }
+    if (initialInput) {
+      initialInput.addEventListener('input', debounce(validateForm, 300));
+      initialInput.addEventListener('change', validateForm);
+    }
+
+    // Full field validation function (checks all available fields)
+    function validateForm() {
+      console.log("Running full field validation...");
+      let isValid = true;
+      const missingFields = []; // Collect for submit alert
+      const allFields = form.querySelectorAll('input, textarea'); // All available fields
+      const requiredFields = form.querySelectorAll('[data-required="true"]');
+      const passengerInputs = passengersWrapper.querySelectorAll('input[name="passenger[]"]');
+
+      // Clear previous errors and styles
+      form.querySelectorAll('.field-error').forEach(el => {
+        el.classList.remove('show');
+        el.textContent = '';
+        el.style.display = 'none';
+      });
+      form.querySelectorAll('input, textarea').forEach(field => {
+        field.classList.remove('error');
+        field.style.borderColor = '#e2e8f0';
+        field.style.boxShadow = 'none';
+      });
+      passengersWrapper.querySelectorAll('.passenger-row').forEach(row => row.classList.remove('error-row'));
+      passengersError.classList.remove('show');
+      passengersError.style.display = 'none';
+
+      // Check required fields first
+      requiredFields.forEach(field => {
+        const value = field.value.trim();
+        const errorEl = field.parentElement.querySelector('.field-error') || passengersError; // Fallback for passengers
+        const fieldLabel = field.name.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()); // e.g., "Travel Date"
+
+        if (!value) {
+          isValid = false;
+          missingFields.push(fieldLabel);
+          field.classList.add('error');
+          field.style.borderColor = '#ef4444';
+          field.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+          if (errorEl) {
+            errorEl.textContent = `${fieldLabel} is required`;
+            errorEl.classList.add('show');
+            errorEl.style.display = 'block';
+          }
+        }
+      });
+
+      // Check optional fields (all must be filled for strict "all available fields")
+      const optionalFields = allFields.filter(f => f.dataset.required !== "true");
+      optionalFields.forEach(field => {
+        const value = field.value.trim();
+        const errorEl = field.parentElement.querySelector('.field-error');
+        const fieldLabel = field.name.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+
+        if (!value && field !== initialInput && !passengerInputs.includes(field)) { // Skip initial empty passenger if no others
+          isValid = false;
+          missingFields.push(fieldLabel);
+          field.classList.add('error');
+          field.style.borderColor = '#ef4444';
+          field.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+          if (errorEl) {
+            errorEl.textContent = `Please fill ${fieldLabel}`;
+            errorEl.classList.add('show');
+            errorEl.style.display = 'block';
+          }
+        }
+      });
+
+      // Passenger-specific checks (remove empty rows, flag others)
+      let emptyPassengerRows = 0;
+      passengerInputs.forEach((input, index) => {
+        const value = input.value.trim();
+        const row = input.closest('.passenger-row');
+        const errorEl = passengersError;
+
+        if (!value) {
+          emptyPassengerRows++;
+          row.classList.add('error-row');
+          row.style.border = '2px solid #ef4444';
+          row.style.borderRadius = '8px';
+          row.style.padding = '8px';
+          row.style.background = 'rgba(239, 68, 68, 0.05)';
+          isValid = false;
+          missingFields.push(`Passenger ${index + 1}`);
+          if (errorEl && index === 0) { // Show once for section
+            errorEl.textContent = 'Please fill or remove empty passenger rows';
+            errorEl.classList.add('show');
+            errorEl.style.display = 'block';
+          }
+        }
+      });
+      // Auto-remove fully empty rows (except if only one left)
+      if (emptyPassengerRows > 0 && passengersWrapper.querySelectorAll(".passenger-row").length > 1) {
+        passengersWrapper.querySelectorAll('.passenger-row').forEach(row => {
+          const input = row.querySelector('input');
+          if (input && !input.value.trim()) {
+            row.remove();
+            passengerCount--;
+          }
+        });
+        if (passengersWrapper.querySelectorAll(".passenger-row").length === 0) {
+          addPassengerRow();
+          passengerCount = 1;
+        }
+        console.log("Auto-removed empty passenger rows.");
+      }
+
+      // Date validation (Travel Date >= Date Filed)
+      const travelDate = form.querySelector('[name="travelDate"]').value;
+      const dateFiled = form.querySelector('[name="dateFiled"]').value;
+      if (travelDate && dateFiled && new Date(travelDate) < new Date(dateFiled)) {
+        isValid = false;
+        missingFields.push("Travel Date (must be on or after Date Filed)");
+        const errorEl = form.querySelector('[name="travelDate"] + .field-error');
+        if (errorEl) {
+          errorEl.textContent = 'Travel date cannot be before the filing date';
+          errorEl.classList.add('show');
+          errorEl.style.display = 'block';
+          form.querySelector('[name="travelDate"]').style.borderColor = '#ef4444';
+          form.querySelector('[name="travelDate"]').style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+        }
+      }
+
+      // Passenger max check
+      if (passengersWrapper.querySelectorAll(".passenger-row").length > 10) {
+        isValid = false;
+        missingFields.push("Too many passengers (max 10)");
+        if (window.Modal && window.Modal.show) {
+          window.Modal.show("Maximum 10 passengers allowed.", "warning");
+        }
+      }
+
+      // Update submit button state
+      if (isValid) {
+        submitBtn.disabled = false;
+        submitBtn.classList.add('valid');
+        submitBtn.innerHTML = '<i class="fas fa-check"></i> Submit Request';
+        submitBtn.title = 'Form is complete. Ready to submit.';
+        submitBtn.style.background = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+        submitBtn.style.cursor = 'pointer';
+        submitBtn.style.opacity = '1';
+      } else {
+        submitBtn.disabled = true;
+        submitBtn.classList.remove('valid');
+        submitBtn.innerHTML = '<i class="fas fa-times" style="color: #ef4444;"></i> Complete Form First';
+        submitBtn.title = missingFields.length > 0 ? `Missing: ${missingFields.slice(0, 3).join(', ')}${missingFields.length > 3 ? '...' : ''}` : 'Please fill all fields';
+        submitBtn.style.background = 'linear-gradient(135deg, #9ca3af, #6b7280)';
+        submitBtn.style.cursor = 'not-allowed';
+        submitBtn.style.opacity = '0.6';
+      }
+
+      console.log(`Validation result: ${isValid ? 'PASS (All fields filled)' : 'FAIL'}. Missing: ${missingFields.join(', ')}`);
+      return { isValid, missingFields };
+    }
+
+    // Attach real-time validation listeners (debounced for performance)
+    form.addEventListener('input', debounce(() => validateForm(), 300));
+    form.addEventListener('change', () => validateForm());
+
+    // Form submission (with validation block and missing fields summary)
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      console.log("Submit handler triggered.");
+
+      const { isValid, missingFields } = validateForm();
+
+      if (!isValid) {
+        console.log("Validation failed on submit. Missing fields:", missingFields);
+        const errorSummary = `Please complete the form. Missing fields:\n${missingFields.join('\n')}`;
+        if (window.Modal && window.Modal.show) {
+          window.Modal.show(errorSummary, "warning");
+        } else {
+          alert(errorSummary);
+        }
+        // Focus first missing field
+        const firstMissing = form.querySelector('.error');
+        if (firstMissing) firstMissing.focus();
+        return;
+      }
+
+      console.log("All fields validated. Preparing data...");
+
+      // Show loading and disable form
+      loading

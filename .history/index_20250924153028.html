@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  
+  <!-- SEO Meta Tags -->
+  <title>Northman Gaming Corporation - PCSO Authorized Gaming Services in Davao del Norte</title>
+  <meta name="description" content="Northman Gaming Corporation is a PCSO authorized agent providing premier STL gaming services, distribution & logistics, and community support in Davao del Norte, Philippines since 2024.">
+  <meta name="keywords" content="PCSO, STL, Small Town Lottery, Gaming, Davao del Norte, Philippines, Northman Gaming Corporation, Authorized Agent">
+  <meta name="author" content="Northman Gaming Corporation">
+  <meta name="robots" content="index, follow">
+  
+  <!-- Open Graph Meta Tags for Social Media -->
+  <meta property="og:title" content="Northman Gaming Corporation - PCSO Authorized Gaming Services">
+  <meta property="og:description" content="Premier gaming services under PCSO in Davao del Norte, committed to quality, innovation, and community growth.">
+  <meta property="og:image" content="/assets/images/main_logo.jpg">
+  <meta property="og:url" content="https://northmangaming.com">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Northman Gaming Corporation">
+  
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Northman Gaming Corporation - PCSO Authorized Gaming Services">
+  <meta name="twitter:description" content="Premier gaming services under PCSO in Davao del Norte, committed to quality, innovation, and community growth.">
+  <meta name="twitter:image" content="/assets/images/main_logo.jpg">
+  
+  <!-- Favicon and Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/main_logo.jpg">
+  <link rel="apple-touch-icon" href="/assets/images/main_logo.jpg">
+  
+  <!-- Preload Critical Resources -->
+  <link rel="preload" href="assets/css/style.css" as="style">
+  <link rel="preload" href="assets/images/main_logo.jpg" as="image">
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  
+  <!-- Structured Data for SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Northman Gaming Corporation",
+    "description": "PCSO Authorized Agent Corporation providing premier gaming services in Davao del Norte, Philippines",
+    "url": "https://northmangaming.com",
+    "logo": "https://northmangaming.com/assets/images/main_logo.jpg",
+    "foundingDate": "2024-09",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Davao del Norte",
+      "addressCountry": "Philippines"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer service",
+      "availableLanguage": ["English", "Filipino"]
+    },
+    "sameAs": [
+      "https://facebook.com/northmangaming",
+      "https://twitter.com/northmangaming",
+      "https://instagram.com/northmangaming",
+      "https://linkedin.com/company/northmangaming"
+    ]
+  }
+  </script>
+</head>
+<body>
+  <!-- Skip to main content for accessibility -->
+  <a href="#main-content" class="skip-link" style="position: absolute; top: -40px; left: 6px; background: #000; color: #fff; padding: 8px; text-decoration: none; z-index: 9999; transition: top 0.3s;" onfocus="this.style.top='6px'" onblur="this.style.top='-40px'">Skip to main content</a>
+  
+  <div id="root" role="main" aria-label="Main application content"></div>
+
+  <!-- Database -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="database/databaseConnect.js"></script>
+  <script src="database/telegramConnect.js"></script>
+
+  <!--widgets-->
+  <script src="assets/js/loading_modal.js"></script>
+  <script src="assets/js/404page.js"></script>
+
+
+
+  <!-- Logout utility -->
+  <script src="assets/js/logout.js"></script>
+
+  <!-- Modals -->
+  <script src="assets\forms\it_service_order_form_modal.js"></script>
+  <script src="assets\forms\travel_order_form_modal.js"></script>
+  <script src="assets\forms\drivers_trip_ticket_form_forDepartureApproval_modal.js"></script>
+  <script src="assets\forms\drivers_trip_ticket_form_forArrivalApproval_modal.js"></script>
+  
+  <script src="assets/js/request_modal.js"></script>
+
+  <!--Admin Modals-->
+  <script src="assets\forms\admin\admin_travel_order_review_modal.js"></script>
+  <script src="assets\forms\admin\admin_it_service_order_form_modal.js"></script>
+
+  <!--Admin dashboards-->
+  <script src="pages/admin/admin_dashboard.js"></script>
+  <script src="pages/admin/it_dashboard.js"></script>
+
+  <!-- Pages -->
+  <script src="pages/forgetpassword.js"></script>
+  <script src="pages/signin.js"></script>
+  <script src="pages/login.js"></script>
+  <script src="pages/dashboard.js"></script>
+  <script src="assets/js/index.js"></script>
+
+  
+  
+  <!-- Enhanced Error Tracking and Analytics -->
+  <script>
+    // Enhanced Error Tracking
+    window.addEventListener('error', function(e) {
+      console.error('Global Error:', {
+        message: e.message,
+        source: e.filename,
+        line: e.lineno,
+        column: e.colno,
+        stack: e.error?.stack,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        url: window.location.href
+      });
+      
+      // Send to analytics if available
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'exception', {
+          'description': e.message,
+          'fatal': false
+        });
+      }
+    });
+    
+    // Performance Monitoring
+    window.addEventListener('load', function() {
+      if ('performance' in window) {
+        setTimeout(function() {
+          const perfData = performance.getEntriesByType('navigation')[0];
+          const metrics = {
+            loadTime: Math.round(perfData.loadEventEnd - perfData.fetchStart),
+            domContentLoaded: Math.round(perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart),
+            firstPaint: Math.round(performance.getEntriesByType('paint')[0]?.startTime || 0),
+            largestContentfulPaint: Math.round(performance.getEntriesByType('largest-contentful-paint')[0]?.startTime || 0)
+          };
+          
+          console.log('Performance Metrics:', metrics);
+          
+          // Send to analytics
+          if (typeof gtag !== 'undefined') {
+            gtag('event', 'page_load_time', {
+              'event_category': 'performance',
+              'value': metrics.loadTime
+            });
+          }
+        }, 0);
+      }
+    });
+  </script>
+</body>
+</html>
