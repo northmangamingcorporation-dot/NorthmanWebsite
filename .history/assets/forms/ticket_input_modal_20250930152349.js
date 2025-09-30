@@ -2237,182 +2237,64 @@ function renderErrorChartModal() {
   `;
 }
 
-// Close & cleanup function (safe to call multiple times)
-function closeErrorChartModal() {
-  const modal = document.getElementById("errorChartModal");
-  if (!modal) return;
 
-  // destroy chart instance
-  if (errorChartInstance) {
-    try { errorChartInstance.destroy(); } catch (err) { /* ignore */ }
-    errorChartInstance = null;
-  }
 
-  // remove attached listeners stored on modal (if any)
-  if (modal._closeHandler && modal._closeBtn) modal._closeBtn.removeEventListener("click", modal._closeHandler);
-  if (modal._closeHandler && modal._closeFooter) modal._closeFooter.removeEventListener("click", modal._closeHandler);
-  if (modal._overlayClick) modal.removeEventListener("click", modal._overlayClick);
-  if (modal._esc) document.removeEventListener("keydown", modal._esc);
-
-  // remove modal from DOM
-  modal.remove();
-
-  // restore body scroll
-  document.body.style.overflow = "";
-}
-
-// Initialize ChartJS logic for a single teller and wire modal controls
+// Initialize ChartJS logic for one teller
 async function initializeErrorChartModal(tellerName) {
-  const modal = document.getElementById("errorChartModal");
-  if (!modal) {
-    console.error("Modal not found.");
-    return;
-  }
-
-  // Helper: attach a close handler and keep a reference for cleanup
-  const closeHandler = () => closeErrorChartModal();
-  const closeBtn = document.getElementById("closeErrorChartBtn");
-  const closeFooter = document.getElementById("closeErrorChartFooterBtn");
-  if (closeBtn) { closeBtn.addEventListener("click", closeHandler); modal._closeBtn = closeBtn; }
-  if (closeFooter) { closeFooter.addEventListener("click", closeHandler); modal._closeFooter = closeFooter; }
-  modal._closeHandler = closeHandler;
-
-  // Close when clicking outside modal content (overlay)
-  const overlayClick = (e) => {
-    if (e.target === modal) closeErrorChartModal();
-  };
-  modal.addEventListener("click", overlayClick);
-  modal._overlayClick = overlayClick;
-
-  // Close on Escape
-  const escListener = (e) => { if (e.key === "Escape") closeErrorChartModal(); };
-  document.addEventListener("keydown", escListener);
-  modal._esc = escListener;
-
-  // Chart container & canvas
   const canvas = document.getElementById("errorChartCanvas");
-  const container = modal.querySelector(".chart-container");
-
-  if (!canvas || !container) {
-    console.error("Chart canvas or container missing.");
+  if (!canvas) {
+    console.error("Error chart canvas not found");
     return;
   }
-
-  // Ensure Chart.js is loaded
-  if (typeof Chart === "undefined") {
-    container.innerHTML = `
-      <div style="padding:20px;color:#ef4444;text-align:center;">
-        <strong>Chart.js not loaded.</strong><br>
-        Include Chart.js to display the chart.
-      </div>
-    `;
-    return;
-  }
-
   const ctx = canvas.getContext("2d");
 
-  // Destroy previous chart instance if any
-  if (errorChartInstance) {
-    try { errorChartInstance.destroy(); } catch (_) {}
-    errorChartInstance = null;
-  }
+  const snapshot = await db.collection("ticket_humanErr_report")
+    .orderBy("submittedAt", "asc")
+    .get();
 
-  // Fetch Firestore docs (oldest → newest)
-  let snapshot;
-  try {
-    snapshot = await db.collection("ticket_humanErr_report")
-      .orderBy("submittedAt", "asc")
-      .get();
-  } catch (err) {
-    console.error("Error fetching ticket_humanErr_report:", err);
-    container.innerHTML = `<div style="padding:20px;color:#ef4444;text-align:center;">Error loading data.</div>`;
-    return;
-  }
-
-  // Build a chronological map of counts per day, filtered by tellerName
-  const dailyCounts = {}; 
-  const tellerDates = [];
-  const tellerNormalized = tellerName ? tellerName.toString().trim().toLowerCase() : "";
-
+  const dailyCounts = {};
   snapshot.forEach(doc => {
     const data = doc.data();
-    const t = (data.parsedData?.teller || data.teller || "Unknown").toString().trim();
-    if (t.toLowerCase() !== tellerNormalized) return; // only this teller
+    const teller = data.parsedData?.teller || data.teller || "Unknown";
+    if (teller !== tellerName) return;
 
     const submittedAt = data.submittedAt?.toDate ? data.submittedAt.toDate() : data.submittedAt;
-    if (!submittedAt) return;
-
-    tellerDates.push(new Date(submittedAt));
     const date = new Date(submittedAt);
     const dayKey = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-
     dailyCounts[dayKey] = (dailyCounts[dayKey] || 0) + 1;
   });
 
-  // If no dates → exit
-  if (!tellerDates.length) {
-    container.innerHTML = `
-      <div style="padding:24px;text-align:center;color:#64748b;">
-        No error data found for <strong>${escapeHtml(tellerName)}</strong>.
-      </div>
-    `;
-    return;
-  }
+  const labels = Object.keys(dailyCounts);
+  const values = Object.values(dailyCounts);
 
-  // Find first available date and build exactly 7 days
-  tellerDates.sort((a, b) => a - b);
-  const startDate = tellerDates[0];
-
-  const labels = [];
-  const values = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(startDate);
-    d.setDate(startDate.getDate() + i);
-    const dayKey = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-
-    labels.push(dayKey);
-    values.push(dailyCounts[dayKey] || 0);
-  }
-
-  // Render Chart
-  errorChartInstance = new Chart(ctx, {
-    type: "bar",
+  new Chart(ctx, {
+    type: "line",
     data: {
       labels,
       datasets: [{
         label: `Errors per Day (${tellerName})`,
         data: values,
         fill: true,
-        backgroundColor: "rgba(239, 68, 68, 0.14)",
+        backgroundColor: "rgba(239, 68, 68, 0.2)",
         borderColor: "#ef4444",
-        borderWidth: 2
+        borderWidth: 2,
+        tension: 0.3,
+        pointBackgroundColor: "#dc2626",
+        pointRadius: 4
       }]
     },
     options: {
       responsive: true,
-      plugins: {
-        legend: { display: true },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => `${ctx.raw} error${ctx.raw !== 1 ? 's' : ''}`
-          }
-        }
-      },
+      plugins: { legend: { display: true } },
       scales: {
-        x: { grid: { display: false }, ticks: { color: "#475569" } },
-        y: { beginAtZero: true, ticks: { stepSize: 1, color: "#475569" } }
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, ticks: { stepSize: 1 } }
       }
     }
   });
-}
 
-// small helper to escape text for HTML injection (used in messages)
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  // Close modal buttons
+  const modal = document.getElementById("errorChartModal");
+  document.getElementById("closeErrorChartBtn").onclick = () => modal.remove();
+  document.getElementById("closeErrorChartFooterBtn").onclick = () => modal.remove();
 }

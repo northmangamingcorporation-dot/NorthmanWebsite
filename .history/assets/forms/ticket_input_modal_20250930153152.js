@@ -2329,10 +2329,10 @@ async function initializeErrorChartModal(tellerName) {
     return;
   }
 
-  // Build a chronological map of counts per day, filtered by tellerName
-  const dailyCounts = {}; 
-  const tellerDates = [];
+  // Build weekly counts instead of daily counts
+  const weeklyCounts = {};
   const tellerNormalized = tellerName ? tellerName.toString().trim().toLowerCase() : "";
+  let firstDate = null;
 
   snapshot.forEach(doc => {
     const data = doc.data();
@@ -2342,15 +2342,19 @@ async function initializeErrorChartModal(tellerName) {
     const submittedAt = data.submittedAt?.toDate ? data.submittedAt.toDate() : data.submittedAt;
     if (!submittedAt) return;
 
-    tellerDates.push(new Date(submittedAt));
-    const date = new Date(submittedAt);
-    const dayKey = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    if (!firstDate) firstDate = submittedAt;
 
-    dailyCounts[dayKey] = (dailyCounts[dayKey] || 0) + 1;
+    // Calculate week index relative to firstDate
+    const diffDays = Math.floor((submittedAt - firstDate) / (1000 * 60 * 60 * 24));
+    const weekIndex = Math.floor(diffDays / 7) + 1; // Week 1, 2, 3 ...
+
+    weeklyCounts[weekIndex] = (weeklyCounts[weekIndex] || 0) + 1;
   });
 
-  // If no dates → exit
-  if (!tellerDates.length) {
+  const labels = Object.keys(weeklyCounts).map(week => `Week ${week}`);
+  const values = Object.values(weeklyCounts);
+
+  if (!labels.length) {
     container.innerHTML = `
       <div style="padding:24px;text-align:center;color:#64748b;">
         No error data found for <strong>${escapeHtml(tellerName)}</strong>.
@@ -2359,33 +2363,21 @@ async function initializeErrorChartModal(tellerName) {
     return;
   }
 
-  // Find first available date and build exactly 7 days
-  tellerDates.sort((a, b) => a - b);
-  const startDate = tellerDates[0];
-
-  const labels = [];
-  const values = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(startDate);
-    d.setDate(startDate.getDate() + i);
-    const dayKey = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-
-    labels.push(dayKey);
-    values.push(dailyCounts[dayKey] || 0);
-  }
-
   // Render Chart
   errorChartInstance = new Chart(ctx, {
     type: "bar",
     data: {
       labels,
       datasets: [{
-        label: `Errors per Day (${tellerName})`,
+        label: `Weekly Errors (${tellerName})`,
         data: values,
         fill: true,
         backgroundColor: "rgba(239, 68, 68, 0.14)",
         borderColor: "#ef4444",
-        borderWidth: 2
+        borderWidth: 2,
+        tension: 0.3,
+        pointBackgroundColor: "#dc2626",
+        pointRadius: 4
       }]
     },
     options: {

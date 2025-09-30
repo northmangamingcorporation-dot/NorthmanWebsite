@@ -2330,8 +2330,7 @@ async function initializeErrorChartModal(tellerName) {
   }
 
   // Build a chronological map of counts per day, filtered by tellerName
-  const dailyCounts = {}; 
-  const tellerDates = [];
+  const dailyCounts = {}; // { "Sep 1": 2, "Sep 2": 0, ... } insertion order preserved by query
   const tellerNormalized = tellerName ? tellerName.toString().trim().toLowerCase() : "";
 
   snapshot.forEach(doc => {
@@ -2340,38 +2339,23 @@ async function initializeErrorChartModal(tellerName) {
     if (t.toLowerCase() !== tellerNormalized) return; // only this teller
 
     const submittedAt = data.submittedAt?.toDate ? data.submittedAt.toDate() : data.submittedAt;
-    if (!submittedAt) return;
-
-    tellerDates.push(new Date(submittedAt));
-    const date = new Date(submittedAt);
+    const date = new Date(submittedAt || Date.now());
+    // Key formatted like "Sep 1"
     const dayKey = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
     dailyCounts[dayKey] = (dailyCounts[dayKey] || 0) + 1;
   });
 
-  // If no dates → exit
-  if (!tellerDates.length) {
+  const labels = Object.keys(dailyCounts);
+  const values = labels.map(k => dailyCounts[k]);
+
+  if (!labels.length) {
     container.innerHTML = `
       <div style="padding:24px;text-align:center;color:#64748b;">
         No error data found for <strong>${escapeHtml(tellerName)}</strong>.
       </div>
     `;
     return;
-  }
-
-  // Find first available date and build exactly 7 days
-  tellerDates.sort((a, b) => a - b);
-  const startDate = tellerDates[0];
-
-  const labels = [];
-  const values = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(startDate);
-    d.setDate(startDate.getDate() + i);
-    const dayKey = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-
-    labels.push(dayKey);
-    values.push(dailyCounts[dayKey] || 0);
   }
 
   // Render Chart
@@ -2385,7 +2369,10 @@ async function initializeErrorChartModal(tellerName) {
         fill: true,
         backgroundColor: "rgba(239, 68, 68, 0.14)",
         borderColor: "#ef4444",
-        borderWidth: 2
+        borderWidth: 2,
+        tension: 0.3,
+        pointBackgroundColor: "#dc2626",
+        pointRadius: 4
       }]
     },
     options: {

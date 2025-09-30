@@ -1313,7 +1313,18 @@ function renderTicketDetailsModal(ticketData) {
           ">
             <div>
               <h3 style="margin: 0 0 4px 0; color: #0f172a; font-weight: 600;">${type}</h3>
+              <p style="margin: 0; color: #64748b; font-size: 14px;">${description}</p>
             </div>
+            <span class="status-badge" style="
+              background: ${status === 'pending' ? 'rgba(251, 191, 36, 0.15)' : status === 'resolved' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)'};
+              color: ${status === 'pending' ? '#d97706' : status === 'resolved' ? '#16a34a' : '#dc2626'};
+              border: 1px solid ${status === 'pending' ? 'rgba(251, 191, 36, 0.3)' : status === 'resolved' ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'};
+              padding: 8px 16px;
+              border-radius: 20px;
+              font-size: 12px;
+              font-weight: 700;
+              text-transform: uppercase;
+            ">${status}</span>
           </div>
 
           <div class="details-section">
@@ -1551,7 +1562,7 @@ function renderTellerRankingItem(rank, teller, count, isTopError = false) {
       border: 1px solid ${borderColor};
       border-radius: 8px;
       transition: all 0.2s ease;
-    " onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='translateX(0)'" onclick="showErrorChartModal('${teller}')">
+    " onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='translateX(0)'">
       <div style="display: flex; align-items: center; gap: 12px;">
         <span style="
           font-size: 20px;
@@ -1627,7 +1638,6 @@ function renderTicketRow(ticketData) {
   const type = ticketData.type;
   const employeeName = ticketData.employeeName;
   const submittedAt = ticketData.submittedAt;
-  const id = ticketData.id;
   
   // Format the date
   let formattedDate = 'N/A';
@@ -1678,8 +1688,8 @@ function renderTicketRow(ticketData) {
       transition: background-color 0.2s;
     " 
     onmouseover="this.style.backgroundColor='#f8fafc'" 
-    onmouseout="this.style.backgroundColor='white'">
-      <td style="padding: 16px;" onclick="viewITRequestDetails('${id}')">
+    onmouseout="this.style.backgroundColor='white'" P>
+      <td style="padding: 16px;">
         <span style="
           color: #0f172a; 
           font-weight: 600;
@@ -1855,6 +1865,7 @@ function loadTickets() {
                 newRow.id = `ticket-row-${doc.id}`;
                 newRow.innerHTML = renderTicketRow(ticketData).replace(/<\/?tr[^>]*>/g, '');
                 newRow.style.animation = 'slideInFromTop 0.4s ease-out';
+                
                 // Insert at the beginning (since orderBy desc)
                 tbody.insertBefore(newRow, tbody.firstChild);
                 loadedTicketIds.add(doc.id);
@@ -2062,357 +2073,3 @@ function listenAndShowTellerRankings() {
 }
 
 window.listenAndShowTellerRankings = listenAndShowTellerRankings;
-
-// global chart instance
-let errorChartInstance = null;
-
-// Show Error Chart Modal for one teller (renders modal then initializes chart)
-function showErrorChartModal(tellerName) {
-  if (typeof closeAllModals === "function") {
-    closeAllModals();
-  }
-
-  const existingModal = document.getElementById("errorChartModal");
-  if (existingModal) {
-    existingModal.remove();
-  }
-
-  // render modal HTML (use your existing renderErrorChartModal())
-  document.body.insertAdjacentHTML("beforeend", renderErrorChartModal());
-
-  // prevent body scroll while modal is open
-  document.body.style.overflow = "hidden";
-
-  // Initialize chart after rendering
-  setTimeout(() => initializeErrorChartModal(tellerName), 100);
-}
-
-
-// Render Error Chart Modal
-function renderErrorChartModal() {
-  return `
-    <div id="errorChartModal" class="modal-overlay error-chart-modal" style="
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(10px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      z-index: 1001;
-      opacity: 0;
-      animation: fadeIn 0.3s ease forwards;
-      overflow: auto;
-    ">
-      <div class="modal-content error-chart-content" style="
-        background: linear-gradient(145deg, #ffffff, #eff6ff);
-        border-radius: 20px;
-        max-width: 800px;
-        width: 100%;
-        max-height: 90vh;
-        overflow-y: auto;
-        padding: 40px;
-        position: relative;
-        box-shadow: 0 25px 50px -12px rgba(59, 130, 246, 0.3);
-        border: 1px solid rgba(59, 130, 246, 0.2);
-        transform: translateY(20px);
-        animation: slideIn 0.4s ease forwards;
-      ">
-        <!-- Close Button -->
-        <button id="closeErrorChartBtn" class="close-btn" style="
-          position: absolute;
-          top: 16px;
-          right: 16px;
-          width: 40px;
-          height: 40px;
-          border: none;
-          background: rgba(100, 116, 139, 0.1);
-          border-radius: 50%;
-          font-size: 18px;
-          cursor: pointer;
-          color: #64748b;
-          transition: all 0.3s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        " onmouseover="
-          this.style.background = 'rgba(239, 68, 68, 0.1)';
-          this.style.color = '#ef4444';
-        " onmouseout="
-          this.style.background = 'rgba(100, 116, 139, 0.1)';
-          this.style.color = '#64748b';
-        " aria-label="Close Error Chart Modal">
-          <i class="fas fa-times"></i>
-        </button>
-
-        <!-- Header -->
-        <div class="chart-header" style="
-          text-align: center;
-          margin-bottom: 32px;
-          animation: logoFloat 0.6s ease forwards;
-        ">
-          <div style="
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 16px;
-            box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
-          ">
-            <i class="fas fa-chart-line" style="font-size: 36px; color: white;"></i>
-          </div>
-          <h2 style="
-            margin: 0 0 8px 0;
-            color: #0f172a;
-            font-weight: 700;
-            font-size: 28px;
-            background: linear-gradient(135deg, #0f172a, #ef4444);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-          ">
-            Daily Human Errors
-          </h2>
-          <p style="
-            margin: 0;
-            color: #64748b;
-            font-size: 16px;
-            font-weight: 500;
-          ">
-            Visual breakdown of reported teller errors by day
-          </p>
-        </div>
-
-        <!-- Chart -->
-        <div class="chart-container" style="
-          width: 100%;
-          height: 400px;
-          padding: 16px;
-          background: #f8fafc;
-          border-radius: 12px;
-          border: 1px solid #e2e8f0;
-        ">
-          <canvas id="errorChartCanvas"></canvas>
-        </div>
-
-        <!-- Actions -->
-        <div class="details-actions" style="
-          display: flex;
-          justify-content: flex-end;
-          gap: 16px;
-          margin-top: 32px;
-          padding-top: 20px;
-          border-top: 1px solid #e2e8f0;
-        ">
-          <button id="closeErrorChartFooterBtn" class="btn secondary-btn" style="
-            padding: 12px 24px;
-            font-size: 16px;
-            font-weight: 600;
-            border: 2px solid #6b7280;
-            border-radius: 12px;
-            background: transparent;
-            color: #6b7280;
-            cursor: pointer;
-            transition: all 0.3s ease;
-          " onmouseover="
-            this.style.background = 'rgba(107, 114, 128, 0.1)';
-            this.style.transform = 'translateY(-2px)';
-          " onmouseout="
-            this.style.background = 'transparent';
-            this.style.transform = 'translateY(0)';
-          ">
-            <i class="fas fa-times" style="margin-right: 8px;"></i>
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-// Close & cleanup function (safe to call multiple times)
-function closeErrorChartModal() {
-  const modal = document.getElementById("errorChartModal");
-  if (!modal) return;
-
-  // destroy chart instance
-  if (errorChartInstance) {
-    try { errorChartInstance.destroy(); } catch (err) { /* ignore */ }
-    errorChartInstance = null;
-  }
-
-  // remove attached listeners stored on modal (if any)
-  if (modal._closeHandler && modal._closeBtn) modal._closeBtn.removeEventListener("click", modal._closeHandler);
-  if (modal._closeHandler && modal._closeFooter) modal._closeFooter.removeEventListener("click", modal._closeHandler);
-  if (modal._overlayClick) modal.removeEventListener("click", modal._overlayClick);
-  if (modal._esc) document.removeEventListener("keydown", modal._esc);
-
-  // remove modal from DOM
-  modal.remove();
-
-  // restore body scroll
-  document.body.style.overflow = "";
-}
-
-// Initialize ChartJS logic for a single teller and wire modal controls
-async function initializeErrorChartModal(tellerName) {
-  const modal = document.getElementById("errorChartModal");
-  if (!modal) {
-    console.error("Modal not found.");
-    return;
-  }
-
-  // Helper: attach a close handler and keep a reference for cleanup
-  const closeHandler = () => closeErrorChartModal();
-  const closeBtn = document.getElementById("closeErrorChartBtn");
-  const closeFooter = document.getElementById("closeErrorChartFooterBtn");
-  if (closeBtn) { closeBtn.addEventListener("click", closeHandler); modal._closeBtn = closeBtn; }
-  if (closeFooter) { closeFooter.addEventListener("click", closeHandler); modal._closeFooter = closeFooter; }
-  modal._closeHandler = closeHandler;
-
-  // Close when clicking outside modal content (overlay)
-  const overlayClick = (e) => {
-    if (e.target === modal) closeErrorChartModal();
-  };
-  modal.addEventListener("click", overlayClick);
-  modal._overlayClick = overlayClick;
-
-  // Close on Escape
-  const escListener = (e) => { if (e.key === "Escape") closeErrorChartModal(); };
-  document.addEventListener("keydown", escListener);
-  modal._esc = escListener;
-
-  // Chart container & canvas
-  const canvas = document.getElementById("errorChartCanvas");
-  const container = modal.querySelector(".chart-container");
-
-  if (!canvas || !container) {
-    console.error("Chart canvas or container missing.");
-    return;
-  }
-
-  // Ensure Chart.js is loaded
-  if (typeof Chart === "undefined") {
-    container.innerHTML = `
-      <div style="padding:20px;color:#ef4444;text-align:center;">
-        <strong>Chart.js not loaded.</strong><br>
-        Include Chart.js to display the chart.
-      </div>
-    `;
-    return;
-  }
-
-  const ctx = canvas.getContext("2d");
-
-  // Destroy previous chart instance if any
-  if (errorChartInstance) {
-    try { errorChartInstance.destroy(); } catch (_) {}
-    errorChartInstance = null;
-  }
-
-  // Fetch Firestore docs (oldest → newest)
-  let snapshot;
-  try {
-    snapshot = await db.collection("ticket_humanErr_report")
-      .orderBy("submittedAt", "asc")
-      .get();
-  } catch (err) {
-    console.error("Error fetching ticket_humanErr_report:", err);
-    container.innerHTML = `<div style="padding:20px;color:#ef4444;text-align:center;">Error loading data.</div>`;
-    return;
-  }
-
-  // Build a chronological map of counts per day, filtered by tellerName
-  const dailyCounts = {}; 
-  const tellerDates = [];
-  const tellerNormalized = tellerName ? tellerName.toString().trim().toLowerCase() : "";
-
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    const t = (data.parsedData?.teller || data.teller || "Unknown").toString().trim();
-    if (t.toLowerCase() !== tellerNormalized) return; // only this teller
-
-    const submittedAt = data.submittedAt?.toDate ? data.submittedAt.toDate() : data.submittedAt;
-    if (!submittedAt) return;
-
-    tellerDates.push(new Date(submittedAt));
-    const date = new Date(submittedAt);
-    const dayKey = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-
-    dailyCounts[dayKey] = (dailyCounts[dayKey] || 0) + 1;
-  });
-
-  // If no dates → exit
-  if (!tellerDates.length) {
-    container.innerHTML = `
-      <div style="padding:24px;text-align:center;color:#64748b;">
-        No error data found for <strong>${escapeHtml(tellerName)}</strong>.
-      </div>
-    `;
-    return;
-  }
-
-  // Find first available date and build exactly 7 days
-  tellerDates.sort((a, b) => a - b);
-  const startDate = tellerDates[0];
-
-  const labels = [];
-  const values = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(startDate);
-    d.setDate(startDate.getDate() + i);
-    const dayKey = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-
-    labels.push(dayKey);
-    values.push(dailyCounts[dayKey] || 0);
-  }
-
-  // Render Chart
-  errorChartInstance = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        label: `Errors per Day (${tellerName})`,
-        data: values,
-        fill: true,
-        backgroundColor: "rgba(239, 68, 68, 0.14)",
-        borderColor: "#ef4444",
-        borderWidth: 2
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: true },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => `${ctx.raw} error${ctx.raw !== 1 ? 's' : ''}`
-          }
-        }
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { color: "#475569" } },
-        y: { beginAtZero: true, ticks: { stepSize: 1, color: "#475569" } }
-      }
-    }
-  });
-}
-
-// small helper to escape text for HTML injection (used in messages)
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}

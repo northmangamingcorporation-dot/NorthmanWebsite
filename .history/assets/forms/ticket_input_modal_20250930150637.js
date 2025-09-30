@@ -1551,7 +1551,7 @@ function renderTellerRankingItem(rank, teller, count, isTopError = false) {
       border: 1px solid ${borderColor};
       border-radius: 8px;
       transition: all 0.2s ease;
-    " onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='translateX(0)'" onclick="showErrorChartModal('${teller}')">
+    " onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='translateX(0)'">
       <div style="display: flex; align-items: center; gap: 12px;">
         <span style="
           font-size: 20px;
@@ -2063,11 +2063,9 @@ function listenAndShowTellerRankings() {
 
 window.listenAndShowTellerRankings = listenAndShowTellerRankings;
 
-// global chart instance
-let errorChartInstance = null;
-
-// Show Error Chart Modal for one teller (renders modal then initializes chart)
-function showErrorChartModal(tellerName) {
+// Show Error Chart Modal
+f// Show Error Chart Modal
+function showErrorChartModal(docId) {
   if (typeof closeAllModals === "function") {
     closeAllModals();
   }
@@ -2077,14 +2075,13 @@ function showErrorChartModal(tellerName) {
     existingModal.remove();
   }
 
-  // render modal HTML (use your existing renderErrorChartModal())
-  document.body.insertAdjacentHTML("beforeend", renderErrorChartModal());
+  const html = renderErrorChartModal(docId);
+  document.body.insertAdjacentHTML("beforeend", html);
 
-  // prevent body scroll while modal is open
-  document.body.style.overflow = "hidden";
+  // Initialize after rendering
+  setTimeout(() => initializeErrorChartModal(docId), 100);
 
-  // Initialize chart after rendering
-  setTimeout(() => initializeErrorChartModal(tellerName), 100);
+  console.log("Error Chart Modal mounted successfully for Doc ID:", docId);
 }
 
 
@@ -2108,6 +2105,7 @@ function renderErrorChartModal() {
       animation: fadeIn 0.3s ease forwards;
       overflow: auto;
     ">
+
       <div class="modal-content error-chart-content" style="
         background: linear-gradient(145deg, #ffffff, #eff6ff);
         border-radius: 20px;
@@ -2122,6 +2120,7 @@ function renderErrorChartModal() {
         transform: translateY(20px);
         animation: slideIn 0.4s ease forwards;
       ">
+
         <!-- Close Button -->
         <button id="closeErrorChartBtn" class="close-btn" style="
           position: absolute;
@@ -2237,182 +2236,53 @@ function renderErrorChartModal() {
   `;
 }
 
-// Close & cleanup function (safe to call multiple times)
-function closeErrorChartModal() {
-  const modal = document.getElementById("errorChartModal");
-  if (!modal) return;
+// Initialize ChartJS logic inside modal
+async function initializeErrorChartModal() {
+  const ctx = document.getElementById("errorChartCanvas").getContext("2d");
 
-  // destroy chart instance
-  if (errorChartInstance) {
-    try { errorChartInstance.destroy(); } catch (err) { /* ignore */ }
-    errorChartInstance = null;
-  }
+  // Fetch Firestore data
+  const snapshot = await db.collection("ticket_humanErr_report")
+    .orderBy("submittedAt", "asc")
+    .get();
 
-  // remove attached listeners stored on modal (if any)
-  if (modal._closeHandler && modal._closeBtn) modal._closeBtn.removeEventListener("click", modal._closeHandler);
-  if (modal._closeHandler && modal._closeFooter) modal._closeFooter.removeEventListener("click", modal._closeHandler);
-  if (modal._overlayClick) modal.removeEventListener("click", modal._overlayClick);
-  if (modal._esc) document.removeEventListener("keydown", modal._esc);
-
-  // remove modal from DOM
-  modal.remove();
-
-  // restore body scroll
-  document.body.style.overflow = "";
-}
-
-// Initialize ChartJS logic for a single teller and wire modal controls
-async function initializeErrorChartModal(tellerName) {
-  const modal = document.getElementById("errorChartModal");
-  if (!modal) {
-    console.error("Modal not found.");
-    return;
-  }
-
-  // Helper: attach a close handler and keep a reference for cleanup
-  const closeHandler = () => closeErrorChartModal();
-  const closeBtn = document.getElementById("closeErrorChartBtn");
-  const closeFooter = document.getElementById("closeErrorChartFooterBtn");
-  if (closeBtn) { closeBtn.addEventListener("click", closeHandler); modal._closeBtn = closeBtn; }
-  if (closeFooter) { closeFooter.addEventListener("click", closeHandler); modal._closeFooter = closeFooter; }
-  modal._closeHandler = closeHandler;
-
-  // Close when clicking outside modal content (overlay)
-  const overlayClick = (e) => {
-    if (e.target === modal) closeErrorChartModal();
-  };
-  modal.addEventListener("click", overlayClick);
-  modal._overlayClick = overlayClick;
-
-  // Close on Escape
-  const escListener = (e) => { if (e.key === "Escape") closeErrorChartModal(); };
-  document.addEventListener("keydown", escListener);
-  modal._esc = escListener;
-
-  // Chart container & canvas
-  const canvas = document.getElementById("errorChartCanvas");
-  const container = modal.querySelector(".chart-container");
-
-  if (!canvas || !container) {
-    console.error("Chart canvas or container missing.");
-    return;
-  }
-
-  // Ensure Chart.js is loaded
-  if (typeof Chart === "undefined") {
-    container.innerHTML = `
-      <div style="padding:20px;color:#ef4444;text-align:center;">
-        <strong>Chart.js not loaded.</strong><br>
-        Include Chart.js to display the chart.
-      </div>
-    `;
-    return;
-  }
-
-  const ctx = canvas.getContext("2d");
-
-  // Destroy previous chart instance if any
-  if (errorChartInstance) {
-    try { errorChartInstance.destroy(); } catch (_) {}
-    errorChartInstance = null;
-  }
-
-  // Fetch Firestore docs (oldest → newest)
-  let snapshot;
-  try {
-    snapshot = await db.collection("ticket_humanErr_report")
-      .orderBy("submittedAt", "asc")
-      .get();
-  } catch (err) {
-    console.error("Error fetching ticket_humanErr_report:", err);
-    container.innerHTML = `<div style="padding:20px;color:#ef4444;text-align:center;">Error loading data.</div>`;
-    return;
-  }
-
-  // Build a chronological map of counts per day, filtered by tellerName
-  const dailyCounts = {}; 
-  const tellerDates = [];
-  const tellerNormalized = tellerName ? tellerName.toString().trim().toLowerCase() : "";
-
+  const dailyCounts = {};
   snapshot.forEach(doc => {
     const data = doc.data();
-    const t = (data.parsedData?.teller || data.teller || "Unknown").toString().trim();
-    if (t.toLowerCase() !== tellerNormalized) return; // only this teller
-
-    const submittedAt = data.submittedAt?.toDate ? data.submittedAt.toDate() : data.submittedAt;
-    if (!submittedAt) return;
-
-    tellerDates.push(new Date(submittedAt));
-    const date = new Date(submittedAt);
+    const date = new Date(data.submittedAt?.toDate ? data.submittedAt.toDate() : data.submittedAt);
     const dayKey = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-
     dailyCounts[dayKey] = (dailyCounts[dayKey] || 0) + 1;
   });
 
-  // If no dates → exit
-  if (!tellerDates.length) {
-    container.innerHTML = `
-      <div style="padding:24px;text-align:center;color:#64748b;">
-        No error data found for <strong>${escapeHtml(tellerName)}</strong>.
-      </div>
-    `;
-    return;
-  }
+  const labels = Object.keys(dailyCounts);
+  const values = Object.values(dailyCounts);
 
-  // Find first available date and build exactly 7 days
-  tellerDates.sort((a, b) => a - b);
-  const startDate = tellerDates[0];
-
-  const labels = [];
-  const values = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(startDate);
-    d.setDate(startDate.getDate() + i);
-    const dayKey = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-
-    labels.push(dayKey);
-    values.push(dailyCounts[dayKey] || 0);
-  }
-
-  // Render Chart
-  errorChartInstance = new Chart(ctx, {
-    type: "bar",
+  new Chart(ctx, {
+    type: "line",
     data: {
       labels,
       datasets: [{
-        label: `Errors per Day (${tellerName})`,
+        label: "Errors per Day",
         data: values,
         fill: true,
-        backgroundColor: "rgba(239, 68, 68, 0.14)",
+        backgroundColor: "rgba(239, 68, 68, 0.2)",
         borderColor: "#ef4444",
-        borderWidth: 2
+        borderWidth: 2,
+        tension: 0.3,
+        pointBackgroundColor: "#dc2626",
+        pointRadius: 4
       }]
     },
     options: {
       responsive: true,
-      plugins: {
-        legend: { display: true },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => `${ctx.raw} error${ctx.raw !== 1 ? 's' : ''}`
-          }
-        }
-      },
+      plugins: { legend: { display: false } },
       scales: {
-        x: { grid: { display: false }, ticks: { color: "#475569" } },
-        y: { beginAtZero: true, ticks: { stepSize: 1, color: "#475569" } }
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, ticks: { stepSize: 1 } }
       }
     }
   });
-}
 
-// small helper to escape text for HTML injection (used in messages)
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  // Attach close buttons
+  document.getElementById("closeErrorChartBtn").onclick = () => document.getElementById("errorChartModal").remove();
+  document.getElementById("closeErrorChartFooterBtn").onclick = () => document.getElementById("errorChartModal").remove();
 }
