@@ -1764,12 +1764,6 @@ function injectEnhancedITAdminStyles() {
       padding: 24px;
     }
 
-    .section.active-section {
-      display: block;
-      opacity: 1;
-      transform: translateY(0);
-    }
-
     /* Enhanced Sidebar */
     .sidebar {
       background: linear-gradient(145deg, #1e293b, #0f172a);

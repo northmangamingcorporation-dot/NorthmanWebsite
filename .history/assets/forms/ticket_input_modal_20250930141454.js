@@ -1873,25 +1873,24 @@ function loadTickets() {
                 console.log('New ticket added:', doc.id);
               }
             } else if (change.type === 'modified') {
-              // Update existing row
-              const existingRow = document.getElementById(`ticket-row-${doc.id}`);
-              if (existingRow) {
-                existingRow.innerHTML = renderTicketRow(ticketData).replace(/<\/?tr[^>]*>/g, '');
-                existingRow.style.animation = 'pulse 0.3s ease';
-                console.log('Ticket updated:', doc.id);
-              }
-            } else if (change.type === 'removed') {
-              // Remove row
-              const existingRow = document.getElementById(`ticket-row-${doc.id}`);
-              if (existingRow) {
-                existingRow.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => existingRow.remove(), 300);
-                loadedTicketIds.delete(doc.id);
-                console.log('Ticket removed:', doc.id);
-              }
+            // Update existing row
+            const existingRow = document.getElementById(`ticket-row-${doc.id}`);
+            if (existingRow) {
+              existingRow.innerHTML = renderTicketRow(ticketData).replace(/<\/?tr[^>]*>/g, '');
+              existingRow.style.animation = 'pulse 0.3s ease';
+              console.log('Ticket updated:', doc.id);
             }
-          });
-        }
+          } else if (change.type === 'removed') {
+            // Remove row
+            const existingRow = document.getElementById(`ticket-row-${doc.id}`);
+            if (existingRow) {
+              existingRow.style.animation = 'fadeOut 0.3s ease';
+              setTimeout(() => existingRow.remove(), 300);
+              loadedTicketIds.delete(doc.id);
+              console.log('Ticket removed:', doc.id);
+            }
+          }
+        });
         
         // Collect all current tickets for rankings
         snapshot.forEach((doc) => {
@@ -1902,7 +1901,7 @@ function loadTickets() {
         updateTellerRankings(allTickets);
         
         console.log(`Total tickets: ${snapshot.size}`);
-      }, (error) => {
+      } (error) => {
         console.error('Error loading tickets:', error);
         tbody.innerHTML = `
           <tr class="no-data-row">
@@ -1931,7 +1930,7 @@ function loadTickets() {
             </td>
           </tr>
         `;
-      });
+      })
   }, 500);
 }
 

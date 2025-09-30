@@ -1740,7 +1740,7 @@ function renderTicketRow(ticketData) {
 
 // Store loaded ticket IDs to track what's already in the table
 const loadedTicketIds = new Set();
-// Load tickets from Firestore with real-time updates
+// Load tickets from Firestore
 function loadTickets() {
   const tbody = document.getElementById("ticketsTable");
   if (!tbody) {
@@ -1791,7 +1791,7 @@ function loadTickets() {
       return;
     }
 
-    // Use real-time listener with docChanges for efficient updates
+    // Use real-time listener
     window.db.collection('ticket_humanErr_report')
       .orderBy('submittedAt', 'desc')
       .limit(100)
@@ -1824,84 +1824,27 @@ function loadTickets() {
               </td>
             </tr>
           `;
-          loadedTicketIds.clear();
+          
+          // Update rankings with empty data
           updateTellerRankings([]);
           return;
         }
 
-        // Remove no-data row if exists
-        const noDataRow = tbody.querySelector('.no-data-row');
-        if (noDataRow) noDataRow.remove();
-
-        // Track all tickets for rankings
-        const allTickets = [];
+        const tickets = [];
+        let html = '';
         
-        // Check if this is initial load
-        const isInitialLoad = loadedTicketIds.size === 0;
-        
-        if (isInitialLoad) {
-          // Initial load: build entire table in correct order
-          let html = '';
-          snapshot.forEach((doc) => {
-            const ticketData = { ...doc.data(), id: doc.id };
-            allTickets.push(ticketData);
-            loadedTicketIds.add(doc.id);
-            
-            const rowHtml = renderTicketRow(ticketData);
-            html += rowHtml.replace(/id="ticket-row-[^"]*"/, `id="ticket-row-${doc.id}"`);
-          });
-          tbody.innerHTML = html;
-          console.log('Initial load: added', snapshot.size, 'tickets');
-        } else {
-          // Real-time updates: process only changes
-          snapshot.docChanges().forEach((change) => {
-            const doc = change.doc;
-            const ticketData = { ...doc.data(), id: doc.id };
-            
-            if (change.type === 'added') {
-              // Only add if not already loaded
-              if (!loadedTicketIds.has(doc.id)) {
-                const newRow = document.createElement('tr');
-                newRow.id = `ticket-row-${doc.id}`;
-                newRow.innerHTML = renderTicketRow(ticketData).replace(/<\/?tr[^>]*>/g, '');
-                newRow.style.animation = 'slideInFromTop 0.4s ease-out';
-                
-                // Insert at the beginning (since orderBy desc)
-                tbody.insertBefore(newRow, tbody.firstChild);
-                loadedTicketIds.add(doc.id);
-                
-                console.log('New ticket added:', doc.id);
-              }
-            } else if (change.type === 'modified') {
-              // Update existing row
-              const existingRow = document.getElementById(`ticket-row-${doc.id}`);
-              if (existingRow) {
-                existingRow.innerHTML = renderTicketRow(ticketData).replace(/<\/?tr[^>]*>/g, '');
-                existingRow.style.animation = 'pulse 0.3s ease';
-                console.log('Ticket updated:', doc.id);
-              }
-            } else if (change.type === 'removed') {
-              // Remove row
-              const existingRow = document.getElementById(`ticket-row-${doc.id}`);
-              if (existingRow) {
-                existingRow.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => existingRow.remove(), 300);
-                loadedTicketIds.delete(doc.id);
-                console.log('Ticket removed:', doc.id);
-              }
-            }
-          });
-        }
-        
-        // Collect all current tickets for rankings
         snapshot.forEach((doc) => {
-          allTickets.push({ ...doc.data(), id: doc.id });
+          const ticketData = { ...doc.data(), id: doc.id };
+          tickets.push(ticketData);
+          html += renderTicketRow(ticketData);
         });
+
+        tbody.innerHTML = html;
         
         // Update teller rankings
-        updateTellerRankings(allTickets);
+        updateTellerRankings(tickets);
         
-        console.log(`Total tickets: ${snapshot.size}`);
+        console.log(`Loaded ${snapshot.size} tickets`);
       }, (error) => {
         console.error('Error loading tickets:', error);
         tbody.innerHTML = `
@@ -1945,42 +1888,7 @@ if (document.readyState === 'loading') {
 // Expose loadTickets globally
 window.loadTickets = loadTickets;
 
-// Add CSS animations for smooth row additions
-const styleSheet = document.createElement('style');
-styleSheet.textContent = `
-  @keyframes slideInFromTop {
-    from {
-      opacity: 0;
-      transform: translateY(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  @keyframes pulse {
-    0%, 100% {
-      background-color: white;
-    }
-    50% {
-      background-color: #dbeafe;
-    }
-  }
-  
-  @keyframes fadeOut {
-    from {
-      opacity: 1;
-    }
-    to {
-      opacity: 0;
-      transform: translateX(20px);
-    }
-  }
-`;
-document.head.appendChild(styleSheet);
-
-// Combined Firestore listener + rankings with smooth updates
+// 🔥 Combined Firestore listener + rankings
 function listenAndShowTellerRankings() {
   const rankingsList = document.getElementById('tellerRankingsList');
   if (!rankingsList || !window.db) return;
@@ -2010,65 +1918,16 @@ function listenAndShowTellerRankings() {
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10);
 
-      if (sortedTellers.length === 0) {
-        rankingsList.innerHTML = `
-          <p style="margin: 0; color: #92400e; font-size: 14px;">
-            No teller data available yet
-          </p>
-        `;
-        return;
-      }
-
       const topCount = sortedTellers[0][1];
-      
-      // Get existing rankings for comparison
-      const existingRankings = Array.from(rankingsList.children)
-        .map(el => el.getAttribute('data-teller'));
-      
-      const newRankings = sortedTellers.map(([teller]) => teller);
-      
-      // Check if rankings changed
-      const rankingsChanged = JSON.stringify(existingRankings) !== JSON.stringify(newRankings);
-      
-      if (rankingsChanged) {
-        // Fade out old rankings
-        rankingsList.style.animation = 'fadeOutScale 0.3s ease';
-        
-        setTimeout(() => {
-          let html = '';
-          sortedTellers.forEach(([teller, count], index) => {
-            const rank = index + 1;
-            const isTopError = count === topCount && topCount >= 5;
-            html += renderTellerRankingItem(rank, teller, count, isTopError);
-          });
-          
-          rankingsList.innerHTML = html;
-          rankingsList.style.animation = 'fadeInScale 0.3s ease';
-          
-          // Add data-teller attribute for tracking
-          Array.from(rankingsList.children).forEach((el, index) => {
-            if (sortedTellers[index]) {
-              el.setAttribute('data-teller', sortedTellers[index][0]);
-            }
-          });
-        }, 300);
-      } else {
-        // Just update counts without animation
-        sortedTellers.forEach(([teller, count], index) => {
-          const existingItem = rankingsList.children[index];
-          if (existingItem && existingItem.getAttribute('data-teller') === teller) {
-            // Update count only
-            const countBadge = existingItem.querySelector('span:last-child span');
-            if (countBadge) {
-              const newText = `${count} ${count === 1 ? 'error' : 'errors'}`;
-              if (countBadge.textContent !== newText) {
-                countBadge.textContent = newText;
-                countBadge.style.animation = 'pulse 0.3s ease';
-              }
-            }
-          }
-        });
-      }
+      let html = '';
+
+      sortedTellers.forEach(([teller, count], index) => {
+        const rank = index + 1;
+        const isTopError = count === topCount && topCount >= 5;
+        html += renderTellerRankingItem(rank, teller, count, isTopError);
+      });
+
+      rankingsList.innerHTML = html;
     });
 }
 

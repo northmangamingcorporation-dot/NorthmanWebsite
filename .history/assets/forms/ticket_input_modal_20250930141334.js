@@ -1741,6 +1741,7 @@ function renderTicketRow(ticketData) {
 // Store loaded ticket IDs to track what's already in the table
 const loadedTicketIds = new Set();
 // Load tickets from Firestore with real-time updates
+// Load tickets from Firestore with real-time updates
 function loadTickets() {
   const tbody = document.getElementById("ticketsTable");
   if (!tbody) {
@@ -1873,25 +1874,24 @@ function loadTickets() {
                 console.log('New ticket added:', doc.id);
               }
             } else if (change.type === 'modified') {
-              // Update existing row
-              const existingRow = document.getElementById(`ticket-row-${doc.id}`);
-              if (existingRow) {
-                existingRow.innerHTML = renderTicketRow(ticketData).replace(/<\/?tr[^>]*>/g, '');
-                existingRow.style.animation = 'pulse 0.3s ease';
-                console.log('Ticket updated:', doc.id);
-              }
-            } else if (change.type === 'removed') {
-              // Remove row
-              const existingRow = document.getElementById(`ticket-row-${doc.id}`);
-              if (existingRow) {
-                existingRow.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => existingRow.remove(), 300);
-                loadedTicketIds.delete(doc.id);
-                console.log('Ticket removed:', doc.id);
-              }
+            // Update existing row
+            const existingRow = document.getElementById(`ticket-row-${doc.id}`);
+            if (existingRow) {
+              existingRow.innerHTML = renderTicketRow(ticketData).replace(/<\/?tr[^>]*>/g, '');
+              existingRow.style.animation = 'pulse 0.3s ease';
+              console.log('Ticket updated:', doc.id);
             }
-          });
-        }
+          } else if (change.type === 'removed') {
+            // Remove row
+            const existingRow = document.getElementById(`ticket-row-${doc.id}`);
+            if (existingRow) {
+              existingRow.style.animation = 'fadeOut 0.3s ease';
+              setTimeout(() => existingRow.remove(), 300);
+              loadedTicketIds.delete(doc.id);
+              console.log('Ticket removed:', doc.id);
+            }
+          }
+        });
         
         // Collect all current tickets for rankings
         snapshot.forEach((doc) => {
@@ -1941,6 +1941,7 @@ if (document.readyState === 'loading') {
 } else {
   loadTickets();
 }
+
 
 // Expose loadTickets globally
 window.loadTickets = loadTickets;

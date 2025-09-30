@@ -1765,10 +1765,10 @@ function injectEnhancedITAdminStyles() {
     }
 
     .section.active-section {
-      display: block;
-      opacity: 1;
-      transform: translateY(0);
-    }
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
 
     /* Enhanced Sidebar */
     .sidebar {

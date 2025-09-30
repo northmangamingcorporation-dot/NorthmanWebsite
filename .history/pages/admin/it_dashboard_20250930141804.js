@@ -889,7 +889,6 @@ async function attachITAdminDashboard(admin) {
   injectEnhancedITAdminStyles();
   
   // Initialize components
-  initializeDashboardOnLoad(); // ← ADD THIS LINE
   loadITManagerTasks(admin.username);
   initializeRealTimeUpdates();
   initializeSearchAndFilters();
@@ -1762,12 +1761,6 @@ function injectEnhancedITAdminStyles() {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
       background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
       padding: 24px;
-    }
-
-    .section.active-section {
-      display: block;
-      opacity: 1;
-      transform: translateY(0);
     }
 
     /* Enhanced Sidebar */

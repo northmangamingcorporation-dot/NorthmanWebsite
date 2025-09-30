@@ -1794,7 +1794,6 @@ function loadTickets() {
     // Use real-time listener with docChanges for efficient updates
     window.db.collection('ticket_humanErr_report')
       .orderBy('submittedAt', 'desc')
-      .limit(100)
       .onSnapshot((snapshot) => {
         if (snapshot.empty) {
           tbody.innerHTML = `
@@ -1836,62 +1835,44 @@ function loadTickets() {
         // Track all tickets for rankings
         const allTickets = [];
         
-        // Check if this is initial load
-        const isInitialLoad = loadedTicketIds.size === 0;
-        
-        if (isInitialLoad) {
-          // Initial load: build entire table in correct order
-          let html = '';
-          snapshot.forEach((doc) => {
-            const ticketData = { ...doc.data(), id: doc.id };
-            allTickets.push(ticketData);
-            loadedTicketIds.add(doc.id);
-            
-            const rowHtml = renderTicketRow(ticketData);
-            html += rowHtml.replace(/id="ticket-row-[^"]*"/, `id="ticket-row-${doc.id}"`);
-          });
-          tbody.innerHTML = html;
-          console.log('Initial load: added', snapshot.size, 'tickets');
-        } else {
-          // Real-time updates: process only changes
-          snapshot.docChanges().forEach((change) => {
-            const doc = change.doc;
-            const ticketData = { ...doc.data(), id: doc.id };
-            
-            if (change.type === 'added') {
-              // Only add if not already loaded
-              if (!loadedTicketIds.has(doc.id)) {
-                const newRow = document.createElement('tr');
-                newRow.id = `ticket-row-${doc.id}`;
-                newRow.innerHTML = renderTicketRow(ticketData).replace(/<\/?tr[^>]*>/g, '');
-                newRow.style.animation = 'slideInFromTop 0.4s ease-out';
-                
-                // Insert at the beginning (since orderBy desc)
-                tbody.insertBefore(newRow, tbody.firstChild);
-                loadedTicketIds.add(doc.id);
-                
-                console.log('New ticket added:', doc.id);
-              }
-            } else if (change.type === 'modified') {
-              // Update existing row
-              const existingRow = document.getElementById(`ticket-row-${doc.id}`);
-              if (existingRow) {
-                existingRow.innerHTML = renderTicketRow(ticketData).replace(/<\/?tr[^>]*>/g, '');
-                existingRow.style.animation = 'pulse 0.3s ease';
-                console.log('Ticket updated:', doc.id);
-              }
-            } else if (change.type === 'removed') {
-              // Remove row
-              const existingRow = document.getElementById(`ticket-row-${doc.id}`);
-              if (existingRow) {
-                existingRow.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => existingRow.remove(), 300);
-                loadedTicketIds.delete(doc.id);
-                console.log('Ticket removed:', doc.id);
-              }
+        // Process document changes
+        snapshot.docChanges().forEach((change) => {
+          const doc = change.doc;
+          const ticketData = { ...doc.data(), id: doc.id };
+          
+          if (change.type === 'added') {
+            // Only add if not already loaded
+            if (!loadedTicketIds.has(doc.id)) {
+              const newRow = document.createElement('tr');
+              newRow.id = `ticket-row-${doc.id}`;
+              newRow.innerHTML = renderTicketRow(ticketData).replace(/<\/?tr[^>]*>/g, '');
+              newRow.style.animation = 'slideInFromTop 0.4s ease-out';
+              
+              // Insert at the beginning (since orderBy desc)
+              tbody.insertBefore(newRow, tbody.firstChild);
+              loadedTicketIds.add(doc.id);
+              
+              console.log('New ticket added:', doc.id);
             }
-          });
-        }
+          } else if (change.type === 'modified') {
+            // Update existing row
+            const existingRow = document.getElementById(`ticket-row-${doc.id}`);
+            if (existingRow) {
+              existingRow.innerHTML = renderTicketRow(ticketData).replace(/<\/?tr[^>]*>/g, '');
+              existingRow.style.animation = 'pulse 0.3s ease';
+              console.log('Ticket updated:', doc.id);
+            }
+          } else if (change.type === 'removed') {
+            // Remove row
+            const existingRow = document.getElementById(`ticket-row-${doc.id}`);
+            if (existingRow) {
+              existingRow.style.animation = 'fadeOut 0.3s ease';
+              setTimeout(() => existingRow.remove(), 300);
+              loadedTicketIds.delete(doc.id);
+              console.log('Ticket removed:', doc.id);
+            }
+          }
+        });
         
         // Collect all current tickets for rankings
         snapshot.forEach((doc) => {
