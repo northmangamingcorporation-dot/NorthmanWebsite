@@ -974,8 +974,11 @@ function initializeTicketInputForm(user) {
           charCounter.textContent = '0/5000';
           if (typeof loadITRequests === 'function') loadITRequests();
           if (typeof addITRequest === 'function') addITRequest({...ticketData, id: docRef.id});
-          successMsg.innerHTML = ``;
-          form.insertBefore(successMsg, form.firstElementChild);
+          successMsg.innerHTML = `
+          <i class="fas fa-check-circle" style="margin-right: 8px; color: #16a34a;"></i>
+          Ticket submitted successfully! It will be reviewed by IT support.
+        `;
+        form.insertBefore(successMsg, form.firstElementChild);
         }, 2000);
 
       } catch (error) {

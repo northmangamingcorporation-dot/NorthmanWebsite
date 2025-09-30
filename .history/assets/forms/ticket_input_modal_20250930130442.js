@@ -974,7 +974,8 @@ function initializeTicketInputForm(user) {
           charCounter.textContent = '0/5000';
           if (typeof loadITRequests === 'function') loadITRequests();
           if (typeof addITRequest === 'function') addITRequest({...ticketData, id: docRef.id});
-          successMsg.innerHTML = ``;
+          successMsg.innerHTML = `
+`;
           form.insertBefore(successMsg, form.firstElementChild);
         }, 2000);
 
