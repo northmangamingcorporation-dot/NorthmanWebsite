@@ -1633,7 +1633,7 @@ function renderTicketErrReportSection() {
           this.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
         ">
           <i class="fas fa-paste"></i>
-          Report Teller
+          Re
         </button>
       </div>
 

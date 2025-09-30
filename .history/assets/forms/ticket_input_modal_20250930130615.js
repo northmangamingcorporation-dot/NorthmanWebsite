@@ -975,7 +975,7 @@ function initializeTicketInputForm(user) {
           if (typeof loadITRequests === 'function') loadITRequests();
           if (typeof addITRequest === 'function') addITRequest({...ticketData, id: docRef.id});
           // ✅ Remove the success message completely after delay
-          successMsg.remove();
+  successMsg.remove();
         }, 2000);
 
       } catch (error) {
