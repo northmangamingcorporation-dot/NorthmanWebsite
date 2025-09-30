@@ -1863,4 +1863,4 @@ function listenAndShowTellerRankings() {
     });
 }
 
-window.listenAndShowTellerRankings = listenAndShowTellerRankings;
+w

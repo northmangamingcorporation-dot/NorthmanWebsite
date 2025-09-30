@@ -1820,6 +1820,7 @@ if (document.readyState === 'loading') {
 // Expose loadTickets globally
 window.loadTickets = loadTickets;
 
+
 // 🔥 Combined Firestore listener + rankings
 function listenAndShowTellerRankings() {
   const rankingsList = document.getElementById('tellerRankingsList');
@@ -1862,5 +1863,3 @@ function listenAndShowTellerRankings() {
       rankingsList.innerHTML = html;
     });
 }
-
-window.listenAndShowTellerRankings = listenAndShowTellerRankings;

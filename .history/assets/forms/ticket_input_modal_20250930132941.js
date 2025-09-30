@@ -1862,5 +1862,3 @@ function listenAndShowTellerRankings() {
       rankingsList.innerHTML = html;
     });
 }
-
-window.listenAndShowTellerRankings = listenAndShowTellerRankings;

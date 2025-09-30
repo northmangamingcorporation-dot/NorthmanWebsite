@@ -205,6 +205,7 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
     </div>
 
     <div style="display: flex; align-items: center; gap: 16px;">
+
       <button onclick="window.showTicketInputModal()" style="
         padding: 10px 20px;
         font-size: 14px;

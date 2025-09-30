@@ -1820,6 +1820,60 @@ if (document.readyState === 'loading') {
 // Expose loadTickets globally
 window.loadTickets = loadTickets;
 
+// Render individual teller ranking item
+function renderTellerRankingItem(rank, teller, count, isTopError = false) {
+  const medals = ['🥇', '🥈', '🥉'];
+  const medal = rank <= 3 ? medals[rank - 1] : `${rank}.`;
+
+  const bgColor = isTopError 
+    ? 'linear-gradient(135deg, #fee2e2, #fecaca)' 
+    : rank <= 3 
+      ? 'linear-gradient(135deg, #fef3c7, #fde68a)'
+      : '#ffffff';
+
+  const borderColor = isTopError ? '#ef4444' : rank <= 3 ? '#fbbf24' : '#e5e7eb';
+
+  return `
+    <div style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: ${bgColor};
+      border: 1px solid ${borderColor};
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    " onmouseover="this.style.transform='translateX(4px)'" 
+       onmouseout="this.style.transform='translateX(0)'">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="
+          font-size: 20px;
+          font-weight: 700;
+          min-width: 32px;
+          text-align: center;
+        ">${medal}</span>
+        <span style="
+          font-family: 'Monaco', 'Courier New', monospace;
+          font-weight: 700;
+          color: #0f172a;
+          font-size: 15px;
+        ">${teller}</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="
+          background: ${isTopError ? '#dc2626' : '#f59e0b'};
+          color: white;
+          padding: 4px 12px;
+          border-radius: 12px;
+          font-weight: 700;
+          font-size: 14px;
+        ">${count} ${count === 1 ? 'error' : 'errors'}</span>
+        ${isTopError ? '<i class="fas fa-exclamation-triangle" style="color: #dc2626; font-size: 18px;"></i>' : ''}
+      </div>
+    </div>
+  `;
+}
+
 // 🔥 Combined Firestore listener + rankings
 function listenAndShowTellerRankings() {
   const rankingsList = document.getElementById('tellerRankingsList');
@@ -1862,5 +1916,3 @@ function listenAndShowTellerRankings() {
       rankingsList.innerHTML = html;
     });
 }
-
-window.listenAndShowTellerRankings = listenAndShowTellerRankings;

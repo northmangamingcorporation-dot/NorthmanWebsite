@@ -205,6 +205,9 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
     </div>
 
     <div style="display: flex; align-items: center; gap: 16px;">
+      <div class="task-summary" id="tellerSummary" style="color: #64748b; font-size: 14px;">
+        Showing Top <strong>10</strong>
+      </div>
       <button onclick="window.showTicketInputModal()" style="
         padding: 10px 20px;
         font-size: 14px;

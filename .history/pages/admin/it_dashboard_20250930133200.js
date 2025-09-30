@@ -196,53 +196,43 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
 
             <!-- Enhanced Top Tellers Card -->
           <div class="dashboard-card top-tellers">
-  <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <i class="fas fa-chart-bar" style="font-size: 22px; color: #f59e0b;"></i>
-      <h4 style="margin: 0; color: #92400e; font-size: 18px; font-weight: 700;">
-        Top Reported Tellers
-      </h4>
-    </div>
-
-    <div style="display: flex; align-items: center; gap: 16px;">
-      <button onclick="window.showTicketInputModal()" style="
-        padding: 10px 20px;
-        font-size: 14px;
-        font-weight: 600;
-        border: none;
-        border-radius: 10px;
-        background: linear-gradient(135deg, #10b981, #059669);
-        color: white;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
-      " onmouseover="
-        this.style.background = 'linear-gradient(135deg, #059669, #047857)';
-        this.style.transform = 'translateY(-2px)';
-        this.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)';
-      " onmouseout="
-        this.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-        this.style.transform = 'translateY(0)';
-        this.style.boxShadow = '0 4px 10px rgba(16, 185, 129, 0.3)';
-      ">
-        <i class="fas fa-paste"></i>
-        Report Teller
-      </button>
-    </div>
-  </div>
-
-  <div class="teller-ranking-content" id="tellerRankingsList" style="margin-top: 16px;">
-    <!-- Rankings will render here dynamically -->
-    <div class="loading-state" style="text-align:center; padding:20px; color:#64748b;">
-      <i class="fas fa-spinner fa-spin" style="font-size: 20px; color:#10b981;"></i>
-      <p style="margin:8px 0 0 0;">Loading rankings...</p>
-    </div>
-  </div>
-</div>
-
+            <div class="card-header">
+              <h4>
+                <i class="fas fa-chart-bar" style="font-size: 24px; color: #f59e0b;"></i>
+                <h4 style="margin: 0; color: #92400e; font-size: 18px; font-weight: 700;">
+                  Top Reported Tellers
+                </h4>
+              </h4>
+              <button onclick="window.showTicketInputModal()" style="
+                padding: 12px 28px;
+                font-size: 15px;
+                font-weight: 700;
+                border: none;
+                border-radius: 12px;
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+              " onmouseover="
+                this.style.background = 'linear-gradient(135deg, #059669, #047857)';
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.4)';
+              " onmouseout="
+                this.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+              ">
+                <i class="fas fa-paste"></i>
+                Report Teller
+              </button>
+              <div class="task-summary" id="tellerSummary">
+                <span class="summary-item">Showing Top <strong>10</strong></span>
+              </div>
+            </div>
             
             <div class="manager-task-content">
               <div class="top-tellers-list" id="tellerRankingsList">
