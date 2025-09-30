@@ -1312,7 +1312,7 @@ function renderDashboard(user = { username: "Employee", firstName: "User" }) {
               </p>
             </div>
             <i class="fas fa-arrow-right" style="color: #cbd5e1; margin-left: auto;"></i>
-          </div>` : ""}
+          </div>
         </div>
 
         <!-- Tabs Navigation -->

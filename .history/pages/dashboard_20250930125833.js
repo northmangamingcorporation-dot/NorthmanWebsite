@@ -1279,7 +1279,7 @@ function renderDashboard(user = { username: "Employee", firstName: "User" }) {
           </div>
 
           <!-- Report Human Error in Ticket Cancellation -->
-          ${user?.department === "IT" ? `<div class="action-card" onclick="window.showTicketInputModal()" style="
+          <div class="action-card" onclick="window.showTicketInputModal()" style="
             background: white;
             border: 2px solid #e2e8f0;
             border-radius: 16px;
@@ -1312,7 +1312,7 @@ function renderDashboard(user = { username: "Employee", firstName: "User" }) {
               </p>
             </div>
             <i class="fas fa-arrow-right" style="color: #cbd5e1; margin-left: auto;"></i>
-          </div>` : ""}
+          </div>
         </div>
 
         <!-- Tabs Navigation -->

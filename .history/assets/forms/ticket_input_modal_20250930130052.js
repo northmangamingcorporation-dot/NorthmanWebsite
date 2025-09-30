@@ -921,7 +921,7 @@ function initializeTicketInputForm(user) {
         department: formData.get('department'),
         rawInput: rawText,
         parsedData: parsedTicketData.data,
-        type: parsedTicketData.data.ticket_code ? 'Human Error' : (parsedTicketData.data.type || 'General'),
+        type: parsedTicketData.data.ticket_code ? 'Human E' : (parsedTicketData.data.type || 'General'),
         description: parsedTicketData.data.description || parsedTicketData.data.remarks || 'N/A',
         submittedAt: new Date().toISOString(),
         submittedBy: window.currentUser?.uid || ''
@@ -974,6 +974,7 @@ function initializeTicketInputForm(user) {
           charCounter.textContent = '0/5000';
           if (typeof loadITRequests === 'function') loadITRequests();
           if (typeof addITRequest === 'function') addITRequest({...ticketData, id: docRef.id});
+          closeModal();
         }, 2000);
 
       } catch (error) {

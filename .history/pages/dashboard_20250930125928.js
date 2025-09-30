@@ -1302,7 +1302,7 @@ function renderDashboard(user = { username: "Employee", firstName: "User" }) {
               flex-shrink: 0;
             ">
               <i class="fas fa-exclamation-circle" style="color: white; font-size: 24px;"></i>
-            </div>
+            </div>` : ""}
             <div>
               <h4 style="margin: 0 0 4px 0; color: #0f172a; font-size: 16px; font-weight: 700;">
                 Ticket Cancellation Error
@@ -1312,7 +1312,7 @@ function renderDashboard(user = { username: "Employee", firstName: "User" }) {
               </p>
             </div>
             <i class="fas fa-arrow-right" style="color: #cbd5e1; margin-left: auto;"></i>
-          </div>` : ""}
+          </div>
         </div>
 
         <!-- Tabs Navigation -->
