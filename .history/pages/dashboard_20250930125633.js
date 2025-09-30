@@ -1412,11 +1412,11 @@ function renderDashboard(user = { username: "Employee", firstName: "User" }) {
           ${renderAccomplishmentsSection()}
         </div>
 
-        ${user?.department === "IT" ? `<div class="tab-content" id="ticket-error-reports-content" style="
+        <div class="tab-content" id="ticket-error-reports-content" style="
           display: none; animation: fadeIn 0.5s ease;
         ">
           ${renderTicketErrReportSection()}
-        </div>` : ""}
+        </div>
 
 
         <!-- Hidden Action Buttons -->

@@ -1416,7 +1416,7 @@ function renderDashboard(user = { username: "Employee", firstName: "User" }) {
           display: none; animation: fadeIn 0.5s ease;
         ">
           ${renderTicketErrReportSection()}
-        </div>` : ""}
+        </div>
 
 
         <!-- Hidden Action Buttons -->

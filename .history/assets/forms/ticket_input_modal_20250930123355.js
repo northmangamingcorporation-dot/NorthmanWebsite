@@ -1473,205 +1473,6 @@ window.showTicketInputModal = showTicketInputModal;
 window.viewITRequestDetails = viewITRequestDetails;
 window.addITRequest = addITRequest;
 
-// Render individual teller ranking item
-function renderTellerRankingItem(rank, teller, count, isTopError = false) {
-  const medals = ['🥇', '🥈', '🥉'];
-  const medal = rank <= 3 ? medals[rank - 1] : `${rank}.`;
-  
-  const bgColor = isTopError 
-    ? 'linear-gradient(135deg, #fee2e2, #fecaca)' 
-    : rank <= 3 
-      ? 'linear-gradient(135deg, #fef3c7, #fde68a)'
-      : '#ffffff';
-  
-  const borderColor = isTopError ? '#ef4444' : rank <= 3 ? '#fbbf24' : '#e5e7eb';
-  
-  return `
-    <div style="
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: ${bgColor};
-      border: 1px solid ${borderColor};
-      border-radius: 8px;
-      transition: all 0.2s ease;
-    " onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='translateX(0)'">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <span style="
-          font-size: 20px;
-          font-weight: 700;
-          min-width: 32px;
-          text-align: center;
-        ">${medal}</span>
-        <span style="
-          font-family: 'Monaco', 'Courier New', monospace;
-          font-weight: 700;
-          color: #0f172a;
-          font-size: 15px;
-        ">${teller}</span>
-      </div>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span style="
-          background: ${isTopError ? '#dc2626' : '#f59e0b'};
-          color: white;
-          padding: 4px 12px;
-          border-radius: 12px;
-          font-weight: 700;
-          font-size: 14px;
-        ">${count} ${count === 1 ? 'error' : 'errors'}</span>
-        ${isTopError ? '<i class="fas fa-exclamation-triangle" style="color: #dc2626; font-size: 18px;"></i>' : ''}
-      </div>
-    </div>
-  `;
-}
-
-// Update teller rankings display
-function updateTellerRankings(tickets) {
-  const rankingsList = document.getElementById('tellerRankingsList');
-  if (!rankingsList) return;
-
-  // Count tickets per teller - extract from parsedData
-  const tellerCounts = {};
-  tickets.forEach(ticket => {
-    const teller = ticket.parsedData?.teller || ticket.teller || 'Unknown';
-    tellerCounts[teller] = (tellerCounts[teller] || 0) + 1;
-  });
-
-  // Convert to array and sort by count (descending)
-  const sortedTellers = Object.entries(tellerCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10); // Top 10 tellers
-
-  if (sortedTellers.length === 0) {
-    rankingsList.innerHTML = `
-      <p style="margin: 0; color: #92400e; font-size: 14px;">
-        No data available yet
-      </p>
-    `;
-    return;
-  }
-
-  const topCount = sortedTellers[0][1];
-  
-  let html = '';
-  sortedTellers.forEach(([teller, count], index) => {
-    const rank = index + 1;
-    const isTopError = count === topCount && topCount >= 5; // Flag if top error and has 5+ reports
-    html += renderTellerRankingItem(rank, teller, count, isTopError);
-  });
-
-  rankingsList.innerHTML = html;
-}
-
-// Render ticket row
-function renderTicketRow(ticketData) {
-  // Extract data from the correct structure
-  const ticket_code = ticketData.parsedData?.ticket_code || ticketData.ticket_code;
-  const teller = ticketData.parsedData?.teller || ticketData.teller;
-  const type = ticketData.type;
-  const employeeName = ticketData.employeeName;
-  const submittedAt = ticketData.submittedAt;
-  
-  // Format the date
-  let formattedDate = 'N/A';
-  
-  if (submittedAt) {
-    try {
-      if (submittedAt.toDate && typeof submittedAt.toDate === 'function') {
-        formattedDate = new Date(submittedAt.toDate()).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-      } else if (submittedAt instanceof Date) {
-        formattedDate = submittedAt.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-      } else if (typeof submittedAt === 'number') {
-        formattedDate = new Date(submittedAt).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-      } else if (typeof submittedAt === 'string') {
-        formattedDate = new Date(submittedAt).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-      }
-    } catch (error) {
-      console.warn('Error formatting date:', error);
-    }
-  }
-  
-  return `
-    <tr style="
-      border-bottom: 1px solid #e2e8f0; 
-      transition: background-color 0.2s;
-    " 
-    onmouseover="this.style.backgroundColor='#f8fafc'" 
-    onmouseout="this.style.backgroundColor='white'">
-      <td style="padding: 16px;">
-        <span style="
-          color: #0f172a; 
-          font-weight: 600;
-          font-family: 'Monaco', 'Courier New', monospace;
-          background: #f1f5f9;
-          padding: 4px 8px;
-          border-radius: 6px;
-          font-size: 13px;
-        ">
-          ${ticket_code || 'N/A'}
-        </span>
-      </td>
-      <td style="padding: 16px;">
-        <span style="
-          color: #dc2626;
-          font-weight: 700;
-          font-family: 'Monaco', 'Courier New', monospace;
-          background: #fee2e2;
-          padding: 6px 10px;
-          border-radius: 6px;
-          font-size: 13px;
-        ">
-          ${teller || 'N/A'}
-        </span>
-      </td>
-      <td style="padding: 16px;">
-        <span style="
-          color: #7c3aed;
-          background: #ede9fe;
-          padding: 6px 12px;
-          border-radius: 8px;
-          font-size: 13px;
-          font-weight: 500;
-        ">
-          ${type || 'N/A'}
-        </span>
-      </td>
-      <td style="padding: 16px; color: #475569; font-weight: 500;">
-        ${employeeName || 'N/A'}
-      </td>
-      <td style="padding: 16px; color: #64748b; font-size: 14px;">
-        <i class="fas fa-calendar-alt" style="margin-right: 6px; color: #94a3b8;"></i>
-        ${formattedDate}
-      </td>
-    </tr>
-  `;
-}
-
 // Load tickets from Firestore
 function loadTickets() {
   const tbody = document.getElementById("ticketsTable");
@@ -1679,7 +1480,7 @@ function loadTickets() {
     console.warn("ticketsTable not found.");
     return;
   }
-  
+  console.warn("ticketsTable found.");
   // Show loading state
   tbody.innerHTML = `
     <tr>
@@ -1693,6 +1494,7 @@ function loadTickets() {
   setTimeout(() => {
     if (!window.db) {
       console.error('Database not initialized');
+      // Show error state
       tbody.innerHTML = `
         <tr class="no-data-row">
           <td colspan="5" style="padding: 60px 20px; text-align: center; border: none;">
@@ -1723,10 +1525,9 @@ function loadTickets() {
       return;
     }
 
-    // Use real-time listener
+    // Use real-time listener like early rest
     window.db.collection('ticket_humanErr_report')
-      .orderBy('submittedAt', 'desc')
-      .limit(100)
+      .limit(50)
       .onSnapshot((snapshot) => {
         if (snapshot.empty) {
           tbody.innerHTML = `
@@ -1756,29 +1557,21 @@ function loadTickets() {
               </td>
             </tr>
           `;
-          
-          // Update rankings with empty data
-          updateTellerRankings([]);
           return;
         }
 
-        const tickets = [];
         let html = '';
-        
         snapshot.forEach((doc) => {
           const ticketData = { ...doc.data(), id: doc.id };
-          tickets.push(ticketData);
+          // Assuming you have a render function similar to renderEarlyRestRow
           html += renderTicketRow(ticketData);
         });
 
         tbody.innerHTML = html;
-        
-        // Update teller rankings
-        updateTellerRankings(tickets);
-        
         console.log(`Loaded ${snapshot.size} tickets`);
       }, (error) => {
         console.error('Error loading tickets:', error);
+        // Show error state
         tbody.innerHTML = `
           <tr class="no-data-row">
             <td colspan="5" style="padding: 60px 20px; text-align: center; border: none;">

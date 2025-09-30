@@ -1,5 +1,140 @@
 // Load Leave Requests (placeholder)
+// Load tickets from Firestore
+function loadTickets() {
+  const tbody = document.getElementById("ticketsTable");
+  if (!tbody) {
+    console.warn("ticketsTable not found.");
+    return;
+  }
+  console.log("ticketsTable found.");
+  // Show loading state
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="5" style="padding: 40px; text-align: center;">
+        <i class="fas fa-spinner fa-spin" style="font-size: 32px; color: #10b981;"></i>
+        <p style="margin-top: 16px; color: #64748b;">Loading tickets...</p>
+      </td>
+    </tr>
+  `;
 
+  setTimeout(() => {
+    if (!window.db) {
+      console.error('Database not initialized');
+      // Show error state
+      tbody.innerHTML = `
+        <tr class="no-data-row">
+          <td colspan="5" style="padding: 60px 20px; text-align: center; border: none;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+              <div style="
+                width: 80px;
+                height: 80px;
+                background: linear-gradient(135deg, #fee2e2, #fecaca);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              ">
+                <i class="fas fa-exclamation-triangle" style="font-size: 36px; color: #ef4444;"></i>
+              </div>
+              <div>
+                <p style="margin: 0 0 8px 0; color: #64748b; font-size: 16px; font-weight: 600;">
+                  Database not initialized
+                </p>
+                <p style="margin: 0; color: #94a3b8; font-size: 14px;">
+                  Please refresh the page or contact support
+                </p>
+              </div>
+            </div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    // Use real-time listener like early rest
+    window.db.collection('ticket_humanErr_report')
+      .limit(50)
+      .onSnapshot((snapshot) => {
+        if (snapshot.empty) {
+          tbody.innerHTML = `
+            <tr class="no-data-row">
+              <td colspan="5" style="padding: 60px 20px; text-align: center; border: none;">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                  <div style="
+                    width: 80px;
+                    height: 80px;
+                    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
+                    <i class="fas fa-clipboard-list" style="font-size: 36px; color: #10b981;"></i>
+                  </div>
+                  <div>
+                    <p style="margin: 0 0 8px 0; color: #64748b; font-size: 16px; font-weight: 600;">
+                      No tickets yet
+                    </p>
+                    <p style="margin: 0; color: #94a3b8; font-size: 14px;">
+                      Click "New Ticket" to paste and analyze a ticket
+                    </p>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        let html = '';
+        snapshot.forEach((doc) => {
+          const ticketData = { ...doc.data(), id: doc.id };
+          // Assuming you have a render function similar to renderEarlyRestRow
+          html += renderTicketRow(ticketData);
+        });
+
+        tbody.innerHTML = html;
+        console.log(`Loaded ${snapshot.size} tickets`);
+      }, (error) => {
+        console.error('Error loading tickets:', error);
+        // Show error state
+        tbody.innerHTML = `
+          <tr class="no-data-row">
+            <td colspan="5" style="padding: 60px 20px; text-align: center; border: none;">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                <div style="
+                  width: 80px;
+                  height: 80px;
+                  background: linear-gradient(135deg, #fee2e2, #fecaca);
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                ">
+                  <i class="fas fa-exclamation-triangle" style="font-size: 36px; color: #ef4444;"></i>
+                </div>
+                <div>
+                  <p style="margin: 0 0 8px 0; color: #64748b; font-size: 16px; font-weight: 600;">
+                    Error loading tickets
+                  </p>
+                  <p style="margin: 0; color: #94a3b8; font-size: 14px;">
+                    ${error.message || 'Please try again later'}
+                  </p>
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+  }, 500);
+}
+
+// Call loadTickets when page loads
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadTickets);
+} else {
+  loadTickets();
+}
 function loadLeaveRequests() {
   const leaveTable = document.getElementById('leaveRequestsTable');
   if (!leaveTable) return;
@@ -1373,7 +1508,7 @@ function renderDashboard(user = { username: "Employee", firstName: "User" }) {
               <i class="fas fa-trophy"></i> Accomplishments
             </button>
              <!-- ✅ New Tab for Report Human Error -->
-            ${user?.department === "IT" ? `<button class="tab-btn" data-tab="ticket-error-reports" style="
+            <button class="tab-btn" data-tab="ticket-error-reports" style="
               padding: 12px 24px;
               background: transparent;
               border: none;
@@ -1387,7 +1522,7 @@ function renderDashboard(user = { username: "Employee", firstName: "User" }) {
             " onmouseover="if(!this.classList.contains('active')) this.style.color='#3b82f6';"
               onmouseout="if(!this.classList.contains('active')) this.style.color='#64748b';">
               <i class="fas fa-exclamation-circle"></i> Ticket Cancellation Errors
-            </button>` : ""}
+            </button>
           </div>
         </div>
 
@@ -1412,11 +1547,11 @@ function renderDashboard(user = { username: "Employee", firstName: "User" }) {
           ${renderAccomplishmentsSection()}
         </div>
 
-        ${user?.department === "IT" ? `<div class="tab-content" id="ticket-error-reports-content" style="
+        <div class="tab-content" id="ticket-error-reports-content" style="
           display: none; animation: fadeIn 0.5s ease;
         ">
           ${renderTicketErrReportSection()}
-        </div>` : ""}
+        </div>
 
 
         <!-- Hidden Action Buttons -->
@@ -1577,8 +1712,7 @@ function renderITRequestsSection() {
   `;
 }
 
-
-// Render Ticket Error Report Section with Teller Rankings
+// Render Ticket Error Report Section
 function renderTicketErrReportSection() {
   return `
     <div class="ticketErrReport-section" style="
@@ -1586,7 +1720,6 @@ function renderTicketErrReportSection() {
       border-radius: 16px;
       padding: 28px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      margin-bottom: 24px;
     ">
       <div style="
         display: flex;
@@ -1637,31 +1770,6 @@ function renderTicketErrReportSection() {
         </button>
       </div>
 
-      <!-- Teller Rankings Section -->
-      <div id="tellerRankings" style="
-        background: linear-gradient(135deg, #fef3c7, #fde68a);
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 24px;
-        border: 2px solid #fbbf24;
-      ">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-          <i class="fas fa-chart-bar" style="font-size: 24px; color: #f59e0b;"></i>
-          <h4 style="margin: 0; color: #92400e; font-size: 18px; font-weight: 700;">
-            Top Reported Tellers
-          </h4>
-        </div>
-        <div id="tellerRankingsList" style="
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        ">
-          <p style="margin: 0; color: #92400e; font-size: 14px;">
-            Loading statistics...
-          </p>
-        </div>
-      </div>
-
       <div class="table-container" style="
         overflow-x: auto;
         border-radius: 12px;
@@ -1680,8 +1788,8 @@ function renderTicketErrReportSection() {
             <tr>
               <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Ticket Code</th>
               <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Teller</th>
-              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Type</th>
-              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Submitted By</th>
+              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Cancel Reason</th>
+              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Messenger</th>
               <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Date</th>
             </tr>
           </thead>
@@ -1717,6 +1825,7 @@ function renderTicketErrReportSection() {
     </div>
   `;
 }
+
 
 // Render HR Requests Section
 function renderHRRequestsSection(user) {
@@ -2320,7 +2429,7 @@ function attachAccomplishmentsSection(user) {
 async function attachDashboard(user) {
   try {
     attachAccomplishmentsSection(user);
-    window.loadTickets()
+
     const tabButtons = document.querySelectorAll('.tab-btn');
             console.log(`[DEBUG] Found ${tabButtons.length} tab buttons`);
 

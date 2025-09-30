@@ -1373,7 +1373,7 @@ function renderDashboard(user = { username: "Employee", firstName: "User" }) {
               <i class="fas fa-trophy"></i> Accomplishments
             </button>
              <!-- ✅ New Tab for Report Human Error -->
-            ${user?.department === "IT" ? `<button class="tab-btn" data-tab="ticket-error-reports" style="
+            <button class="tab-btn" data-tab="ticket-error-reports" style="
               padding: 12px 24px;
               background: transparent;
               border: none;
@@ -1387,7 +1387,7 @@ function renderDashboard(user = { username: "Employee", firstName: "User" }) {
             " onmouseover="if(!this.classList.contains('active')) this.style.color='#3b82f6';"
               onmouseout="if(!this.classList.contains('active')) this.style.color='#64748b';">
               <i class="fas fa-exclamation-circle"></i> Ticket Cancellation Errors
-            </button>` : ""}
+            </button>
           </div>
         </div>
 
@@ -1412,11 +1412,12 @@ function renderDashboard(user = { username: "Employee", firstName: "User" }) {
           ${renderAccomplishmentsSection()}
         </div>
 
-        ${user?.department === "IT" ? `<div class="tab-content" id="ticket-error-reports-content" style="
-          display: none; animation: fadeIn 0.5s ease;
+        <div class="tab-content" id="tickets-content" style="
+          display: none;
+          animation: fadeIn 0.5s ease;
         ">
-          ${renderTicketErrReportSection()}
-        </div>` : ""}
+          ${renderTicketsSection()}
+        </div>
 
 
         <!-- Hidden Action Buttons -->
@@ -1577,16 +1578,13 @@ function renderITRequestsSection() {
   `;
 }
 
-
-// Render Ticket Error Report Section with Teller Rankings
-function renderTicketErrReportSection() {
+function renderTicketsSection() {
   return `
-    <div class="ticketErrReport-section" style="
+    <div class="yi-section" style="
       background: white;
       border-radius: 16px;
       padding: 28px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     ">
       <div style="
         display: flex;
@@ -1609,7 +1607,7 @@ function renderTicketErrReportSection() {
             Paste ticket dumps, analyze automatically, and track booth errors
           </p>
         </div>
-        <button onclick="openTicketModal()" style="
+        <button onclick="openTicketModal()" class="btn primary-btn" style="
           padding: 12px 28px;
           font-size: 15px;
           font-weight: 700;
@@ -1637,31 +1635,6 @@ function renderTicketErrReportSection() {
         </button>
       </div>
 
-      <!-- Teller Rankings Section -->
-      <div id="tellerRankings" style="
-        background: linear-gradient(135deg, #fef3c7, #fde68a);
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 24px;
-        border: 2px solid #fbbf24;
-      ">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-          <i class="fas fa-chart-bar" style="font-size: 24px; color: #f59e0b;"></i>
-          <h4 style="margin: 0; color: #92400e; font-size: 18px; font-weight: 700;">
-            Top Reported Tellers
-          </h4>
-        </div>
-        <div id="tellerRankingsList" style="
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        ">
-          <p style="margin: 0; color: #92400e; font-size: 14px;">
-            Loading statistics...
-          </p>
-        </div>
-      </div>
-
       <div class="table-container" style="
         overflow-x: auto;
         border-radius: 12px;
@@ -1678,11 +1651,11 @@ function renderTicketErrReportSection() {
             border-bottom: 2px solid #e2e8f0;
           ">
             <tr>
-              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Ticket Code</th>
-              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Teller</th>
-              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Type</th>
-              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Submitted By</th>
-              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Date</th>
+              <th style="padding: 16px; text-align: left; font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase;">Ticket Code</th>
+              <th style="padding: 16px; text-align: left; font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase;">Teller</th>
+              <th style="padding: 16px; text-align: left; font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase;">Cancel Reason</th>
+              <th style="padding: 16px; text-align: left; font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase;">Messenger</th>
+              <th style="padding: 16px; text-align: left; font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase;">Date</th>
             </tr>
           </thead>
           <tbody id="ticketsTable">
@@ -1717,6 +1690,7 @@ function renderTicketErrReportSection() {
     </div>
   `;
 }
+
 
 // Render HR Requests Section
 function renderHRRequestsSection(user) {
@@ -2304,8 +2278,6 @@ function attachAccomplishmentsSection(user) {
     mountAccomplishmentTable(user);
     loadEarlyRestRequests()
     loadLeaveRequests()
-    loadTickets()
-    
   } else {
     console.warn('mountAccomplishmentTable not defined. Skipping accomplishments load.');
     // Optional: Dynamically load script if needed
@@ -2320,7 +2292,6 @@ function attachAccomplishmentsSection(user) {
 async function attachDashboard(user) {
   try {
     attachAccomplishmentsSection(user);
-    window.loadTickets()
     const tabButtons = document.querySelectorAll('.tab-btn');
             console.log(`[DEBUG] Found ${tabButtons.length} tab buttons`);
 

@@ -1816,6 +1816,5 @@ if (document.readyState === 'loading') {
 } else {
   loadTickets();
 }
-
 // Expose loadTickets globally
 window.loadTickets = loadTickets;

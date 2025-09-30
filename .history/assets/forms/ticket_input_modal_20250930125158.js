@@ -1473,6 +1473,146 @@ window.showTicketInputModal = showTicketInputModal;
 window.viewITRequestDetails = viewITRequestDetails;
 window.addITRequest = addITRequest;
 
+// Render Ticket Error Report Section with Teller Rankings
+function renderTicketErrReportSection() {
+  return `
+    <div class="ticketErrReport-section" style="
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 24px;
+    ">
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 16px;
+      ">
+        <div>
+          <h3 style="
+            margin: 0 0 4px 0;
+            color: #0f172a;
+            font-size: 24px;
+            font-weight: 700;
+          ">
+            Ticket Parsing & Booth Stats
+          </h3>
+          <p style="margin: 0; color: #64748b; font-size: 14px;">
+            Paste ticket dumps, analyze automatically, and track booth errors
+          </p>
+        </div>
+        <button onclick="openTicketModal()" style="
+          padding: 12px 28px;
+          font-size: 15px;
+          font-weight: 700;
+          border: none;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #10b981, #059669);
+          color: white;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        " onmouseover="
+          this.style.background = 'linear-gradient(135deg, #059669, #047857)';
+          this.style.transform = 'translateY(-2px)';
+          this.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.4)';
+        " onmouseout="
+          this.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+          this.style.transform = 'translateY(0)';
+          this.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+        ">
+          <i class="fas fa-paste"></i>
+          New Ticket
+        </button>
+      </div>
+
+      <!-- Teller Rankings Section -->
+      <div id="tellerRankings" style="
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+        border: 2px solid #fbbf24;
+      ">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+          <i class="fas fa-chart-bar" style="font-size: 24px; color: #f59e0b;"></i>
+          <h4 style="margin: 0; color: #92400e; font-size: 18px; font-weight: 700;">
+            Top Reported Tellers
+          </h4>
+        </div>
+        <div id="tellerRankingsList" style="
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        ">
+          <p style="margin: 0; color: #92400e; font-size: 14px;">
+            Loading statistics...
+          </p>
+        </div>
+      </div>
+
+      <div class="table-container" style="
+        overflow-x: auto;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+      ">
+        <table style="
+          width: 100%;
+          border-collapse: collapse;
+          background: white;
+          min-width: 700px;
+        ">
+          <thead style="
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-bottom: 2px solid #e2e8f0;
+          ">
+            <tr>
+              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Ticket Code</th>
+              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Teller</th>
+              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Type</th>
+              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Submitted By</th>
+              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Date</th>
+            </tr>
+          </thead>
+          <tbody id="ticketsTable">
+            <tr class="no-data-row">
+              <td colspan="5" style="padding: 60px 20px; text-align: center; border: none;">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                  <div style="
+                    width: 80px;
+                    height: 80px;
+                    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
+                    <i class="fas fa-clipboard-list" style="font-size: 36px; color: #10b981;"></i>
+                  </div>
+                  <div>
+                    <p style="margin: 0 0 8px 0; color: #64748b; font-size: 16px; font-weight: 600;">
+                      No tickets yet
+                    </p>
+                    <p style="margin: 0; color: #94a3b8; font-size: 14px;">
+                      Click "New Ticket" to paste and analyze a ticket
+                    </p>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
 // Render individual teller ranking item
 function renderTellerRankingItem(rank, teller, count, isTopError = false) {
   const medals = ['🥇', '🥈', '🥉'];
@@ -1531,10 +1671,10 @@ function updateTellerRankings(tickets) {
   const rankingsList = document.getElementById('tellerRankingsList');
   if (!rankingsList) return;
 
-  // Count tickets per teller - extract from parsedData
+  // Count tickets per teller
   const tellerCounts = {};
   tickets.forEach(ticket => {
-    const teller = ticket.parsedData?.teller || ticket.teller || 'Unknown';
+    const teller = ticket.teller || 'Unknown';
     tellerCounts[teller] = (tellerCounts[teller] || 0) + 1;
   });
 
@@ -1566,12 +1706,7 @@ function updateTellerRankings(tickets) {
 
 // Render ticket row
 function renderTicketRow(ticketData) {
-  // Extract data from the correct structure
-  const ticket_code = ticketData.parsedData?.ticket_code || ticketData.ticket_code;
-  const teller = ticketData.parsedData?.teller || ticketData.teller;
-  const type = ticketData.type;
-  const employeeName = ticketData.employeeName;
-  const submittedAt = ticketData.submittedAt;
+  const { id, ticket_code, teller, type, employeeName, submittedAt } = ticketData;
   
   // Format the date
   let formattedDate = 'N/A';
@@ -1768,6 +1903,7 @@ function loadTickets() {
         snapshot.forEach((doc) => {
           const ticketData = { ...doc.data(), id: doc.id };
           tickets.push(ticketData);
+          
           html += renderTicketRow(ticketData);
         });
 

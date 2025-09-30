@@ -295,7 +295,7 @@ function renderTicketInputModal(user = { username: "Employee", firstName: "", la
               <i class="fas fa-times" style="margin-right: 8px;"></i>
               Cancel
             </button>
-            <button type="submit" id="submitTicketInput" class="btn primary-btn" disabled style="
+            <button type="submit" id="submitTicketInput" class="btn primary-btn" style="
               padding: 12px 24px;
               font-size: 16px;
               font-weight: 600;
@@ -772,17 +772,15 @@ function initializeTicketInputForm(user) {
     rawInput.addEventListener('input', debounce((e) => {
       updateCharCounter();
       const { data, valid } = parseTicketInput(e.target.value);
-      
-      // Store parsed data with valid flag
-      let hiddenData = form.querySelector('[name="parsedTicketData"]');
-      if (!hiddenData) {
-        hiddenData = document.createElement('input');
-        hiddenData.type = 'hidden';
-        hiddenData.name = 'parsedTicketData';
+      const hiddenData = document.createElement('input');
+      hiddenData.type = 'hidden';
+      hiddenData.name = 'parsedTicketData';
+      hiddenData.value = valid ? JSON.stringify(data) : '{}';
+      if (!form.querySelector('[name="parsedTicketData"]')) {
         form.appendChild(hiddenData);
+      } else {
+        form.querySelector('[name="parsedTicketData"]').value = valid ? JSON.stringify(data) : '{}';
       }
-      hiddenData.value = JSON.stringify({ data, valid });
-      
       validateForm();
     }, 200));
 
@@ -811,32 +809,26 @@ function initializeTicketInputForm(user) {
         el.style.display = 'none';
       });
       form.querySelectorAll('input, textarea').forEach(field => {
-        if (!field.readOnly) {
-          field.style.borderColor = '#e2e8f0';
-          field.style.boxShadow = 'none';
-        }
+        field.style.borderColor = '#e2e8f0';
+        field.style.boxShadow = 'none';
       });
 
       requiredFields.forEach(field => {
         const fieldContainer = field.closest('.form-group');
-        const errorEl = fieldContainer ? fieldContainer.querySelector('.field-error') : null;
+        const errorEl = fieldContainer.querySelector('.field-error');
         
         if (!field.value.trim()) {
           isValid = false;
-          if (!field.readOnly) {
-            field.style.borderColor = '#ef4444';
-            field.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
-          }
+          field.style.borderColor = '#ef4444';
+          field.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
           if (errorEl) {
             errorEl.textContent = 'This field is required.';
             errorEl.classList.add('show');
             errorEl.style.display = 'block';
           }
         } else {
-          if (!field.readOnly) {
-            field.style.borderColor = '#3b82f6';
-            field.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-          }
+          field.style.borderColor = '#3b82f6';
+          field.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
           if (errorEl) {
             errorEl.classList.remove('show');
             errorEl.style.display = 'none';
@@ -845,17 +837,7 @@ function initializeTicketInputForm(user) {
       });
 
       const parsedDataInput = form.querySelector('[name="parsedTicketData"]');
-      let hasValidParsedData = false;
-      
-      if (parsedDataInput && parsedDataInput.value) {
-        try {
-          const parsed = JSON.parse(parsedDataInput.value);
-          hasValidParsedData = parsed.valid === true;
-          console.log('Parsed data validation:', { parsed, hasValidParsedData });
-        } catch (e) {
-          console.error('Error parsing ticket data:', e);
-        }
-      }
+      const hasValidParsedData = parsedDataInput && JSON.parse(parsedDataInput.value || '{}').valid !== false;
 
       if (isValid && rawInput.value.trim() && hasValidParsedData) {
         submitBtn.disabled = false;
@@ -863,8 +845,7 @@ function initializeTicketInputForm(user) {
         submitBtn.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)';
         submitBtn.style.opacity = '1';
         submitBtn.style.cursor = 'pointer';
-        submitBtn.title = 'Click to submit ticket';
-        console.log('Form is valid and ready to submit');
+        submitBtn.title = 'Ticket is ready to submit.';
       } else {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-times" style="color: #ef4444;"></i> Complete Form First';
@@ -872,10 +853,9 @@ function initializeTicketInputForm(user) {
         submitBtn.style.opacity = '0.6';
         submitBtn.style.cursor = 'not-allowed';
         submitBtn.title = 'Paste valid ticket details to enable submission.';
-        console.log('Form validation failed:', { isValid, hasText: rawInput.value.trim(), hasValidParsedData });
       }
 
-      return isValid && hasValidParsedData;
+      return isValid;
     }
 
     form.addEventListener('input', debounce(validateForm, 300));
@@ -895,20 +875,7 @@ function initializeTicketInputForm(user) {
       const formData = new FormData(form);
       const rawText = formData.get('ticketRaw').trim();
       const parsedDataInput = form.querySelector('[name="parsedTicketData"]');
-      
-      if (!parsedDataInput || !parsedDataInput.value) {
-        showError('No parsed data found. Please paste ticket details.', 'error');
-        return;
-      }
-      
-      let parsedTicketData;
-      try {
-        parsedTicketData = JSON.parse(parsedDataInput.value);
-      } catch (e) {
-        console.error('Error parsing ticket data:', e);
-        showError('Unable to parse ticket details. Please try again.', 'error');
-        return;
-      }
+      const parsedTicketData = JSON.parse(parsedDataInput.value || '{}');
 
       if (!parsedTicketData.valid) {
         showError('Unable to parse ticket details. Please check the format.', 'error');
@@ -1002,56 +969,63 @@ function initializeTicketInputForm(user) {
 
 // Enhanced addITRequest (updates DOM table and optionally Firestore)
 function addITRequest(ticketData) {
-  const tbody = document.getElementById("ticketsTable");
+  const tbody = document.getElementById("requestsTable");
   if (!tbody) {
-    console.warn("ticketsTable not found. Cannot update table.");
+    console.warn("requestsTable not found. Cannot update table.");
     return;
   }
 
   const noDataRow = tbody.querySelector(".no-data-row");
   if (noDataRow) noDataRow.remove();
 
-  // Extract data from parsedData
-  const ticketCode = ticketData.parsedData?.ticket_code || 'N/A';
-  const teller = ticketData.parsedData?.teller || 'N/A';
-  const cancelReason = ticketData.parsedData?.cancel_reason || ticketData.parsedData?.reason || 'N/A';
-  const messenger = ticketData.employeeName || ticketData.username || 'Unknown';
-  const date = new Date(ticketData.submittedAt || Date.now()).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
+  const type = ticketData.parsedData?.type || ticketData.type || 'Ticket';
+  const details = ticketData.description || ticketData.parsedData?.description || ticketData.parsedData?.remarks || 'N/A';
+  const date = new Date(ticketData.submittedAt || Date.now()).toLocaleString();
+  const status = ticketData.status || 'pending';
 
   const row = document.createElement("tr");
-  row.style.cssText = "transition: all 0.3s ease; border-bottom: 1px solid #f1f5f9;";
+  row.style.cssText = "transition: all 0.3s ease;";
   row.innerHTML = `
-    <td style="padding: 16px; color: #0f172a; font-weight: 600;">
+    <td style="padding: 16px; border-bottom: 1px solid #f1f5f9;">
       <div style="display: flex; align-items: center; gap: 8px;">
-        <i class="fas fa-ticket-alt" style="color: #10b981;"></i>
-        ${ticketCode}
+        <i class="fas fa-ticket-alt" style="color: #3b82f6;"></i>
+        <span style="font-weight: 600; color: #0f172a;">${type}</span>
       </div>
     </td>
-    <td style="padding: 16px; color: #475569;">${teller}</td>
-    <td style="padding: 16px; color: #475569;">
-      <div style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${cancelReason}">
-        ${cancelReason}
-      </div>
+    <td style="padding: 16px; border-bottom: 1px solid #f1f5f9; color: #475569;">${details}</td>
+    <td style="padding: 16px; border-bottom: 1px solid #f1f5f9; color: #475569;">${date}</td>
+    <td style="padding: 16px; border-bottom: 1px solid #f1f5f9;">
+      <span class="status-badge" style="
+        background: rgba(251, 191, 36, 0.15);
+        color: #d97706;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+      ">${status}</span>
     </td>
-    <td style="padding: 16px; color: #475569;">${messenger}</td>
-    <td style="padding: 16px; color: #475569;">${date}</td>
+    <td style="padding: 16px; border-bottom: 1px solid #f1f5f9;">
+      <button onclick="viewITRequestDetails('${ticketData.id || 'new'}')" style="
+        padding: 8px 16px;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 13px;
+      " onmouseover="this.style.transform='scale(1.05)'"
+         onmouseout="this.style.transform='scale(1)'">
+        <i class="fas fa-eye"></i> View
+      </button>
+    </td>
   `;
-  
-  // Add hover effect
-  row.addEventListener('mouseenter', () => {
-    row.style.background = '#f8fafc';
-  });
-  row.addEventListener('mouseleave', () => {
-    row.style.background = 'white';
-  });
-  
   tbody.insertBefore(row, tbody.firstChild);
 
-  console.log("Ticket added to table:", ticketData);
+  console.log("IT Request added to table:", ticketData);
 }
 
 // View IT Request Details
@@ -1472,350 +1446,3 @@ function initializeTicketDetailsModal() {
 window.showTicketInputModal = showTicketInputModal;
 window.viewITRequestDetails = viewITRequestDetails;
 window.addITRequest = addITRequest;
-
-// Render individual teller ranking item
-function renderTellerRankingItem(rank, teller, count, isTopError = false) {
-  const medals = ['🥇', '🥈', '🥉'];
-  const medal = rank <= 3 ? medals[rank - 1] : `${rank}.`;
-  
-  const bgColor = isTopError 
-    ? 'linear-gradient(135deg, #fee2e2, #fecaca)' 
-    : rank <= 3 
-      ? 'linear-gradient(135deg, #fef3c7, #fde68a)'
-      : '#ffffff';
-  
-  const borderColor = isTopError ? '#ef4444' : rank <= 3 ? '#fbbf24' : '#e5e7eb';
-  
-  return `
-    <div style="
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: ${bgColor};
-      border: 1px solid ${borderColor};
-      border-radius: 8px;
-      transition: all 0.2s ease;
-    " onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='translateX(0)'">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <span style="
-          font-size: 20px;
-          font-weight: 700;
-          min-width: 32px;
-          text-align: center;
-        ">${medal}</span>
-        <span style="
-          font-family: 'Monaco', 'Courier New', monospace;
-          font-weight: 700;
-          color: #0f172a;
-          font-size: 15px;
-        ">${teller}</span>
-      </div>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span style="
-          background: ${isTopError ? '#dc2626' : '#f59e0b'};
-          color: white;
-          padding: 4px 12px;
-          border-radius: 12px;
-          font-weight: 700;
-          font-size: 14px;
-        ">${count} ${count === 1 ? 'error' : 'errors'}</span>
-        ${isTopError ? '<i class="fas fa-exclamation-triangle" style="color: #dc2626; font-size: 18px;"></i>' : ''}
-      </div>
-    </div>
-  `;
-}
-
-// Update teller rankings display
-function updateTellerRankings(tickets) {
-  const rankingsList = document.getElementById('tellerRankingsList');
-  if (!rankingsList) return;
-
-  // Count tickets per teller - extract from parsedData
-  const tellerCounts = {};
-  tickets.forEach(ticket => {
-    const teller = ticket.parsedData?.teller || ticket.teller || 'Unknown';
-    tellerCounts[teller] = (tellerCounts[teller] || 0) + 1;
-  });
-
-  // Convert to array and sort by count (descending)
-  const sortedTellers = Object.entries(tellerCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10); // Top 10 tellers
-
-  if (sortedTellers.length === 0) {
-    rankingsList.innerHTML = `
-      <p style="margin: 0; color: #92400e; font-size: 14px;">
-        No data available yet
-      </p>
-    `;
-    return;
-  }
-
-  const topCount = sortedTellers[0][1];
-  
-  let html = '';
-  sortedTellers.forEach(([teller, count], index) => {
-    const rank = index + 1;
-    const isTopError = count === topCount && topCount >= 5; // Flag if top error and has 5+ reports
-    html += renderTellerRankingItem(rank, teller, count, isTopError);
-  });
-
-  rankingsList.innerHTML = html;
-}
-
-// Render ticket row
-function renderTicketRow(ticketData) {
-  // Extract data from the correct structure
-  const ticket_code = ticketData.parsedData?.ticket_code || ticketData.ticket_code;
-  const teller = ticketData.parsedData?.teller || ticketData.teller;
-  const type = ticketData.type;
-  const employeeName = ticketData.employeeName;
-  const submittedAt = ticketData.submittedAt;
-  
-  // Format the date
-  let formattedDate = 'N/A';
-  
-  if (submittedAt) {
-    try {
-      if (submittedAt.toDate && typeof submittedAt.toDate === 'function') {
-        formattedDate = new Date(submittedAt.toDate()).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-      } else if (submittedAt instanceof Date) {
-        formattedDate = submittedAt.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-      } else if (typeof submittedAt === 'number') {
-        formattedDate = new Date(submittedAt).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-      } else if (typeof submittedAt === 'string') {
-        formattedDate = new Date(submittedAt).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-      }
-    } catch (error) {
-      console.warn('Error formatting date:', error);
-    }
-  }
-  
-  return `
-    <tr style="
-      border-bottom: 1px solid #e2e8f0; 
-      transition: background-color 0.2s;
-    " 
-    onmouseover="this.style.backgroundColor='#f8fafc'" 
-    onmouseout="this.style.backgroundColor='white'">
-      <td style="padding: 16px;">
-        <span style="
-          color: #0f172a; 
-          font-weight: 600;
-          font-family: 'Monaco', 'Courier New', monospace;
-          background: #f1f5f9;
-          padding: 4px 8px;
-          border-radius: 6px;
-          font-size: 13px;
-        ">
-          ${ticket_code || 'N/A'}
-        </span>
-      </td>
-      <td style="padding: 16px;">
-        <span style="
-          color: #dc2626;
-          font-weight: 700;
-          font-family: 'Monaco', 'Courier New', monospace;
-          background: #fee2e2;
-          padding: 6px 10px;
-          border-radius: 6px;
-          font-size: 13px;
-        ">
-          ${teller || 'N/A'}
-        </span>
-      </td>
-      <td style="padding: 16px;">
-        <span style="
-          color: #7c3aed;
-          background: #ede9fe;
-          padding: 6px 12px;
-          border-radius: 8px;
-          font-size: 13px;
-          font-weight: 500;
-        ">
-          ${type || 'N/A'}
-        </span>
-      </td>
-      <td style="padding: 16px; color: #475569; font-weight: 500;">
-        ${employeeName || 'N/A'}
-      </td>
-      <td style="padding: 16px; color: #64748b; font-size: 14px;">
-        <i class="fas fa-calendar-alt" style="margin-right: 6px; color: #94a3b8;"></i>
-        ${formattedDate}
-      </td>
-    </tr>
-  `;
-}
-
-// Load tickets from Firestore
-function loadTickets() {
-  const tbody = document.getElementById("ticketsTable");
-  if (!tbody) {
-    console.warn("ticketsTable not found.");
-    return;
-  }
-  
-  // Show loading state
-  tbody.innerHTML = `
-    <tr>
-      <td colspan="5" style="padding: 40px; text-align: center;">
-        <i class="fas fa-spinner fa-spin" style="font-size: 32px; color: #10b981;"></i>
-        <p style="margin-top: 16px; color: #64748b;">Loading tickets...</p>
-      </td>
-    </tr>
-  `;
-
-  setTimeout(() => {
-    if (!window.db) {
-      console.error('Database not initialized');
-      tbody.innerHTML = `
-        <tr class="no-data-row">
-          <td colspan="5" style="padding: 60px 20px; text-align: center; border: none;">
-            <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
-              <div style="
-                width: 80px;
-                height: 80px;
-                background: linear-gradient(135deg, #fee2e2, #fecaca);
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-              ">
-                <i class="fas fa-exclamation-triangle" style="font-size: 36px; color: #ef4444;"></i>
-              </div>
-              <div>
-                <p style="margin: 0 0 8px 0; color: #64748b; font-size: 16px; font-weight: 600;">
-                  Database not initialized
-                </p>
-                <p style="margin: 0; color: #94a3b8; font-size: 14px;">
-                  Please refresh the page or contact support
-                </p>
-              </div>
-            </div>
-          </td>
-        </tr>
-      `;
-      return;
-    }
-
-    // Use real-time listener
-    window.db.collection('ticket_humanErr_report')
-      .orderBy('submittedAt', 'desc')
-      .limit(100)
-      .onSnapshot((snapshot) => {
-        if (snapshot.empty) {
-          tbody.innerHTML = `
-            <tr class="no-data-row">
-              <td colspan="5" style="padding: 60px 20px; text-align: center; border: none;">
-                <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
-                  <div style="
-                    width: 80px;
-                    height: 80px;
-                    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                  ">
-                    <i class="fas fa-clipboard-list" style="font-size: 36px; color: #10b981;"></i>
-                  </div>
-                  <div>
-                    <p style="margin: 0 0 8px 0; color: #64748b; font-size: 16px; font-weight: 600;">
-                      No tickets yet
-                    </p>
-                    <p style="margin: 0; color: #94a3b8; font-size: 14px;">
-                      Click "New Ticket" to paste and analyze a ticket
-                    </p>
-                  </div>
-                </div>
-              </td>
-            </tr>
-          `;
-          
-          // Update rankings with empty data
-          updateTellerRankings([]);
-          return;
-        }
-
-        const tickets = [];
-        let html = '';
-        
-        snapshot.forEach((doc) => {
-          const ticketData = { ...doc.data(), id: doc.id };
-          tickets.push(ticketData);
-          html += renderTicketRow(ticketData);
-        });
-
-        tbody.innerHTML = html;
-        
-        // Update teller rankings
-        updateTellerRankings(tickets);
-        
-        console.log(`Loaded ${snapshot.size} tickets`);
-      }, (error) => {
-        console.error('Error loading tickets:', error);
-        tbody.innerHTML = `
-          <tr class="no-data-row">
-            <td colspan="5" style="padding: 60px 20px; text-align: center; border: none;">
-              <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
-                <div style="
-                  width: 80px;
-                  height: 80px;
-                  background: linear-gradient(135deg, #fee2e2, #fecaca);
-                  border-radius: 50%;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                ">
-                  <i class="fas fa-exclamation-triangle" style="font-size: 36px; color: #ef4444;"></i>
-                </div>
-                <div>
-                  <p style="margin: 0 0 8px 0; color: #64748b; font-size: 16px; font-weight: 600;">
-                    Error loading tickets
-                  </p>
-                  <p style="margin: 0; color: #94a3b8; font-size: 14px;">
-                    ${error.message || 'Please try again later'}
-                  </p>
-                </div>
-              </div>
-            </td>
-          </tr>
-        `;
-      });
-  }, 500);
-}
-
-// Call loadTickets when page loads
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadTickets);
-} else {
-  loadTickets();
-}
-
-// Expose loadTickets globally
-window.loadTickets = loadTickets;

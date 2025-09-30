@@ -1387,7 +1387,7 @@ function renderDashboard(user = { username: "Employee", firstName: "User" }) {
             " onmouseover="if(!this.classList.contains('active')) this.style.color='#3b82f6';"
               onmouseout="if(!this.classList.contains('active')) this.style.color='#64748b';">
               <i class="fas fa-exclamation-circle"></i> Ticket Cancellation Errors
-            </button>` : ""}
+            </button>
           </div>
         </div>
 
@@ -1412,11 +1412,11 @@ function renderDashboard(user = { username: "Employee", firstName: "User" }) {
           ${renderAccomplishmentsSection()}
         </div>
 
-        ${user?.department === "IT" ? `<div class="tab-content" id="ticket-error-reports-content" style="
+        <div class="tab-content" id="ticket-error-reports-content" style="
           display: none; animation: fadeIn 0.5s ease;
         ">
           ${renderTicketErrReportSection()}
-        </div>` : ""}
+        </div>
 
 
         <!-- Hidden Action Buttons -->
