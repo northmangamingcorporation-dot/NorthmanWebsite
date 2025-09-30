@@ -746,7 +746,7 @@ function renderDashboard(user = { username: "Employee", firstName: "User" }) {
   const fullName = user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.username;
   const currentDate = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   return `
-    ${injectMainPageStyles()}
+    ${mountEnhanced
     ${typeof renderNav === "function" ? renderNav() : ""}
     
     <div class="container app" style="

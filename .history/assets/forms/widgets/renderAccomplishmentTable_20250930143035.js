@@ -141,16 +141,11 @@ async function loadAccomplishments(currentUser  ) {
           const accomplishment = { id: doc.id, ...doc.data() };
           console.log("Accomplishment loaded:", doc.id, accomplishment);
           accomplishments.push(accomplishment);
-          const count = snapshot.size; // total docs in collection
-          const statEl = document.getElementById("stat-accomplishments");
-          if (statEl) {
-            statEl.textContent = count.toLocaleString(); // format number nicely
-          }
         });
 
         // Render rows with animations and high-contrast text
         accomplishments.forEach(accomplishment => {
-
+          
           const createdAt = accomplishment.dateSubmitted?.toDate
             ? accomplishment.dateSubmitted.toDate().toLocaleDateString()
             : 'N/A';

@@ -1917,4 +1917,4 @@ window.mountEnhanced = mount;
 window.renderEnhancedHome = renderHome;
 window.renderEnhancedNav = renderNav;
 window.attachEnhancedActions = attachActions;
-window.injectMainPageStyles = injectMainPageStyles;
+window.

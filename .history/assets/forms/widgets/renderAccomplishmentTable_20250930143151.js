@@ -142,10 +142,10 @@ async function loadAccomplishments(currentUser  ) {
           console.log("Accomplishment loaded:", doc.id, accomplishment);
           accomplishments.push(accomplishment);
           const count = snapshot.size; // total docs in collection
-          const statEl = document.getElementById("stat-accomplishments");
-          if (statEl) {
-            statEl.textContent = count.toLocaleString(); // format number nicely
-          }
+      const statEl = document.getElementById("stat-accomplishments");
+      if (statEl) {
+        statEl.textContent = count.toLocaleString(); // format number nicely
+      }
         });
 
         // Render rows with animations and high-contrast text

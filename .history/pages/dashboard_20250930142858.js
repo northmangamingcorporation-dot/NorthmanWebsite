@@ -746,8 +746,7 @@ function renderDashboard(user = { username: "Employee", firstName: "User" }) {
   const fullName = user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.username;
   const currentDate = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   return `
-    ${injectMainPageStyles()}
-    ${typeof renderNav === "function" ? renderNav() : ""}
+    ${renderNav()}
     
     <div class="container app" style="
       max-width: 1400px;
@@ -2480,11 +2479,10 @@ async function attachDashboard(user) {
 
     // Firestore listener setup (if ordersCol exists and loadOrders doesn't handle it)
     if (ordersCol && !unsubscribe) {
-      // Example listener (uncomment/adapt if needed; assuming loadOrders sets it)
-      // unsubscribe = ordersCol.where('uniquekey', '==', user.username).onSnapshot(
-      //   (snapshot) => { /* Update UI */ },
-      //   (error) => { console.error('Firestore listener error:', error); }
-      // );
+      unsubscribe = ordersCol.where('uniquekey', '==', user.username).onSnapshot(
+        (snapshot) => { /* Update UI */ },
+        (error) => { console.error('Firestore listener error:', error); }
+      );
       console.log('Firestore listener ready (unsubscribe available for cleanup).');
     }
 
