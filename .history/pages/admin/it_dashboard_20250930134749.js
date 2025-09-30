@@ -96,7 +96,7 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
               <div class="card-header">
                 <h4>
                   <i class="fas fa-users-cog"></i>
-                  Staff Task & Teller Reported Overview 
+                  Staff Task Overview
                 </h4>
                 <div class="card-actions">
                   <button class="btn-icon" id="exportStaffBtn" title="Export Data">
@@ -193,59 +193,57 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
                 </table>
               </div>
               <div class="table-container" style="
-                    overflow-x: auto;
-                    border-radius: 12px;
-                    border: 1px solid #e2e8f0;
-                    margin-top: 10px;
-                    height: 30vh
+        overflow-x: auto;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+      ">
+        <table style="
+          width: 100%;
+          border-collapse: collapse;
+          background: white;
+          min-width: 700px;
+        ">
+          <thead style="
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-bottom: 2px solid #e2e8f0;
+          ">
+            <tr>
+              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Ticket Code</th>
+              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Teller</th>
+              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Type</th>
+              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Submitted By</th>
+              <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Date</th>
+            </tr>
+          </thead>
+          <tbody id="ticketsTable">
+            <tr class="no-data-row">
+              <td colspan="5" style="padding: 60px 20px; text-align: center; border: none;">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                  <div style="
+                    width: 80px;
+                    height: 80px;
+                    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                   ">
-                    <table style="
-                      width: 100%;
-                      border-collapse: collapse;
-                      background: white;
-                      min-width: 700px;
-                    ">
-                      <thead style="
-                        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-                        border-bottom: 2px solid #e2e8f0;
-                      ">
-                        <tr>
-                          <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Ticket Code</th>
-                          <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Teller</th>
-                          <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Type</th>
-                          <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Submitted By</th>
-                          <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Date</th>
-                        </tr>
-                      </thead>
-                      <tbody id="ticketsTable">
-                        <tr class="no-data-row">
-                          <td colspan="5" style="padding: 60px 20px; text-align: center; border: none;">
-                            <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
-                              <div style="
-                                width: 80px;
-                                height: 80px;
-                                background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-                                border-radius: 50%;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                              ">
-                                <i class="fas fa-clipboard-list" style="font-size: 36px; color: #10b981;"></i>
-                              </div>
-                              <div>
-                                <p style="margin: 0 0 8px 0; color: #64748b; font-size: 16px; font-weight: 600;">
-                                  No tickets yet
-                                </p>
-                                <p style="margin: 0; color: #94a3b8; font-size: 14px;">
-                                  Click "New Ticket" to paste and analyze a ticket
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                    <i class="fas fa-clipboard-list" style="font-size: 36px; color: #10b981;"></i>
                   </div>
+                  <div>
+                    <p style="margin: 0 0 8px 0; color: #64748b; font-size: 16px; font-weight: 600;">
+                      No tickets yet
+                    </p>
+                    <p style="margin: 0; color: #94a3b8; font-size: 14px;">
+                      Click "New Ticket" to paste and analyze a ticket
+                    </p>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
             </div>
 
             <!-- Enhanced Top Tellers Card -->

@@ -68,241 +68,116 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
           </div>
         </div>
 
-        <!-- Enhanced Dashboard Stats with better animations -->
-        <div id="dashboardSection" class="section">
-          <div class="stats-container">
-            ${["pending","approved","denied","cancelled"].map(status => `
-              <div class="stat-card enhanced ${status}">
-                <div class="stat-icon">
-                  <i class="fas fa-${getStatusIcon(status)}"></i>
-                </div>
-                <div class="stat-content">
-                  <div class="stat-label">${status.charAt(0).toUpperCase() + status.slice(1)}</div>
-                  <div id="admin-${status}" class="stat-value ${status}">
-                    <span class="number">0</span>
-                    <span class="trend" id="trend-${status}"></span>
-                  </div>
-                </div>
-                <div class="stat-progress">
-                  <div class="progress-bar" id="progress-${status}"></div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-
-          <!-- Enhanced Staff Task Overview with performance metrics -->
-          <div class="dashboard-grid">
-            <div class="dashboard-card staff-overview">
-              <div class="card-header">
-                <h4>
-                  <i class="fas fa-users-cog"></i>
-                  Staff Task & Teller Reported Overview 
-                </h4>
-                <div class="card-actions">
-                  <button class="btn-icon" id="exportStaffBtn" title="Export Data">
-                    <i class="fas fa-download"></i>
-                  </button>
-                  <select id="staffFilter" class="filter-select">
-                    <option value="all">All Staff</option>
-                    <option value="active">Active Only</option>
-                    <option value="overdue">With Overdue</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div class="enhanced-table-container">
-                <table class="enhanced-table">
-                  <thead>
-                    <tr>
-                      <th>
-                        <div class="th-content">
-                          Staff Name
-                          <i class="fas fa-sort sort-icon" data-sort="name"></i>
-                        </div>
-                      </th>
-                      <th>
-                        <div class="th-content">
-                          Position
-                          <i class="fas fa-sort sort-icon" data-sort="position"></i>
-                        </div>
-                      </th>
-                      <th>
-                        <div class="th-content">
-                          Pending
-                          <i class="fas fa-sort sort-icon" data-sort="pending"></i>
-                        </div>
-                      </th>
-                      <th>
-                        <div class="th-content">
-                          Ongoing
-                          <i class="fas fa-sort sort-icon" data-sort="ongoing"></i>
-                        </div>
-                      </th>
-                      <th>
-                        <div class="th-content">
-                          Completed
-                          <i class="fas fa-sort sort-icon" data-sort="completed"></i>
-                        </div>
-                      </th>
-                      <th>Performance</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="staffTasksTable">
-                    ${staffTasks.length > 0
-                      ? staffTasks.map(staff => `
-                          <tr class="staff-row" data-staff="${staff.name}">
-                            <td>
-                              <div class="staff-info">
-                                <img src="https://i.pravatar.cc/32?u=${staff.name}" class="staff-avatar" alt="">
-                                <span class="staff-name">${staff.name}</span>
-                              </div>
-                            </td>
-                            <td><span class="position-badge">${staff.position}</span></td>
-                            <td><span class="task-count pending">${staff.pending}</span></td>
-                            <td><span class="task-count ongoing">${staff.ongoing}</span></td>
-                            <td><span class="task-count completed">${staff.completed}</span></td>
-                            <td>
-                              <div class="performance-indicator">
-                                <div class="performance-bar">
-                                  <div class="performance-fill" style="width: ${calculatePerformance(staff)}%"></div>
-                                </div>
-                                <span class="performance-text">${calculatePerformance(staff)}%</span>
-                              </div>
-                            </td>
-                            <td>
-                              <div class="action-buttons">
-                                <button class="btn-icon view-details" data-staff="${staff.name}" title="View Details">
-                                  <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="btn-icon assign-task" data-staff="${staff.name}" title="Assign Task">
-                                  <i class="fas fa-plus"></i>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        `).join('')
-                      : `<tr><td colspan="7" class="loading-state">
-                          <div class="loading-content">
-                            <div class="loading-spinner"></div>
-                            <span>Loading staff tasks...</span>
-                          </div>
-                        </td></tr>`
-                    }
-                  </tbody>
-                </table>
-              </div>
-              <div class="table-container" style="
-                    overflow-x: auto;
-                    border-radius: 12px;
-                    border: 1px solid #e2e8f0;
-                    margin-top: 10px;
-                    height: 30vh
-                  ">
-                    <table style="
-                      width: 100%;
-                      border-collapse: collapse;
-                      background: white;
-                      min-width: 700px;
-                    ">
-                      <thead style="
-                        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-                        border-bottom: 2px solid #e2e8f0;
-                      ">
-                        <tr>
-                          <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Ticket Code</th>
-                          <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Teller</th>
-                          <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Type</th>
-                          <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Submitted By</th>
-                          <th style="text-align: left; padding: 18px 16px; color: #475569; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Date</th>
-                        </tr>
-                      </thead>
-                      <tbody id="ticketsTable">
-                        <tr class="no-data-row">
-                          <td colspan="5" style="padding: 60px 20px; text-align: center; border: none;">
-                            <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
-                              <div style="
-                                width: 80px;
-                                height: 80px;
-                                background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-                                border-radius: 50%;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                              ">
-                                <i class="fas fa-clipboard-list" style="font-size: 36px; color: #10b981;"></i>
-                              </div>
-                              <div>
-                                <p style="margin: 0 0 8px 0; color: #64748b; font-size: 16px; font-weight: 600;">
-                                  No tickets yet
-                                </p>
-                                <p style="margin: 0; color: #94a3b8; font-size: 14px;">
-                                  Click "New Ticket" to paste and analyze a ticket
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-            </div>
-
-            <!-- Enhanced Top Tellers Card -->
-          <div class="dashboard-card top-tellers">
-  <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <i class="fas fa-chart-bar" style="font-size: 22px; color: #f59e0b;"></i>
-      <h4 style="margin: 0; color: #92400e; font-size: 18px; font-weight: 700;">
-        Top Reported Tellers
+        <!-- Enhanced Staff Task Overview with performance metrics -->
+<div class="dashboard-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: stretch;">
+  
+  <!-- Staff Overview Card -->
+  <div class="dashboard-card staff-overview" style="display: flex; flex-direction: column; height: 100%;">
+    <div class="card-header">
+      <h4>
+        <i class="fas fa-users-cog"></i>
+        Staff Task Overview
       </h4>
+      <div class="card-actions">
+        <button class="btn-icon" id="exportStaffBtn" title="Export Data">
+          <i class="fas fa-download"></i>
+        </button>
+        <select id="staffFilter" class="filter-select">
+          <option value="all">All Staff</option>
+          <option value="active">Active Only</option>
+          <option value="overdue">With Overdue</option>
+        </select>
+      </div>
     </div>
 
-    <div style="display: flex; align-items: center; gap: 16px;">
-      <button onclick="window.showTicketInputModal()" style="
-        padding: 10px 20px;
-        font-size: 14px;
-        font-weight: 600;
-        border: none;
-        border-radius: 10px;
-        background: linear-gradient(135deg, #10b981, #059669);
-        color: white;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
-      " onmouseover="
-        this.style.background = 'linear-gradient(135deg, #059669, #047857)';
-        this.style.transform = 'translateY(-2px)';
-        this.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)';
-      " onmouseout="
-        this.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-        this.style.transform = 'translateY(0)';
-        this.style.boxShadow = '0 4px 10px rgba(16, 185, 129, 0.3)';
-      ">
-        <i class="fas fa-paste"></i>
-        Report Teller
-      </button>
+    <div class="enhanced-table-container" style="flex-grow: 1; overflow-y: auto; padding-bottom: 12px;">
+      <table class="enhanced-table" style="width: 100%;">
+        <thead>
+          <tr>
+            <th><div class="th-content">Staff Name <i class="fas fa-sort sort-icon" data-sort="name"></i></div></th>
+            <th><div class="th-content">Position <i class="fas fa-sort sort-icon" data-sort="position"></i></div></th>
+            <th><div class="th-content">Pending <i class="fas fa-sort sort-icon" data-sort="pending"></i></div></th>
+            <th><div class="th-content">Ongoing <i class="fas fa-sort sort-icon" data-sort="ongoing"></i></div></th>
+            <th><div class="th-content">Completed <i class="fas fa-sort sort-icon" data-sort="completed"></i></div></th>
+            <th>Performance</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="staffTasksTable">
+          <!-- Dynamic staff rows go here -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tickets sub-table -->
+    <div class="table-container" style="
+          overflow-x: auto;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+          margin-top: auto; /* Pushes to bottom */
+        ">
+      <table style="width: 100%; border-collapse: collapse; background: white; min-width: 700px;">
+        <thead style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-bottom: 2px solid #e2e8f0;">
+          <tr>
+            <th style="padding: 14px 16px; color: #475569; font-size: 13px; font-weight: 700;">Ticket Code</th>
+            <th style="padding: 14px 16px; color: #475569; font-size: 13px; font-weight: 700;">Teller</th>
+            <th style="padding: 14px 16px; color: #475569; font-size: 13px; font-weight: 700;">Type</th>
+            <th style="padding: 14px 16px; color: #475569; font-size: 13px; font-weight: 700;">Submitted By</th>
+            <th style="padding: 14px 16px; color: #475569; font-size: 13px; font-weight: 700;">Date</th>
+          </tr>
+        </thead>
+        <tbody id="ticketsTable">
+          <tr class="no-data-row">
+            <td colspan="5" style="padding: 50px 20px; text-align: center; border: none;">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                <div style="
+                  width: 70px; height: 70px;
+                  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+                  border-radius: 50%;
+                  display: flex; align-items: center; justify-content: center;
+                ">
+                  <i class="fas fa-clipboard-list" style="font-size: 30px; color: #10b981;"></i>
+                </div>
+                <p style="margin: 0; font-size: 14px; color: #64748b; font-weight: 600;">No tickets yet</p>
+                <p style="margin: 0; font-size: 13px; color: #94a3b8;">Click "New Ticket" to paste and analyze</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
-  <div class="teller-ranking-content" id="tellerRankingsList" style="margin-top: 16px;">
-    <!-- Rankings will render here dynamically -->
-    <div class="loading-state" style="text-align:center; padding:20px; color:#64748b;">
-      <i class="fas fa-spinner fa-spin" style="font-size: 20px; color:#10b981;"></i>
-      <p style="margin:8px 0 0 0;">Loading rankings...</p>
+  <!-- Top Reported Tellers Card -->
+  <div class="dashboard-card top-tellers" style="display: flex; flex-direction: column; height: 100%;">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-chart-bar" style="font-size: 20px; color: #f59e0b;"></i>
+        <h4 style="margin: 0; color: #92400e; font-size: 17px; font-weight: 700;">Top Reported Tellers</h4>
+      </div>
+      <button onclick="window.showTicketInputModal()" style="
+        padding: 8px 16px; font-size: 13px; font-weight: 600;
+        border: none; border-radius: 8px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white; cursor: pointer;
+        transition: all 0.3s ease; display: flex; align-items: center; gap: 6px;
+        box-shadow: 0 3px 8px rgba(16, 185, 129, 0.3);
+      " onmouseover="this.style.background='linear-gradient(135deg,#059669,#047857)'; this.style.transform='translateY(-2px)';"
+         onmouseout="this.style.background='linear-gradient(135deg,#10b981,#059669)'; this.style.transform='translateY(0)';">
+        <i class="fas fa-paste"></i> Report Teller
+      </button>
+    </div>
+
+    <div class="teller-ranking-content" id="tellerRankingsList" style="flex-grow: 1; margin-top: 12px; overflow-y: auto;">
+      <!-- Rankings render dynamically -->
+      <div class="loading-state" style="text-align:center; padding:20px; color:#64748b;">
+        <i class="fas fa-spinner fa-spin" style="font-size: 18px; color:#10b981;"></i>
+        <p style="margin:8px 0 0 0;">Loading rankings...</p>
+      </div>
     </div>
   </div>
 </div>
 
-            
-            <div class="manager-task-content">
-              <div class="top-tellers-list" id="tellerRankingsList">
-              </div>
-            </div>
-          </div>
 
           <!-- Quick Actions Panel -->
           <div class="dashboard-card quick-actions">

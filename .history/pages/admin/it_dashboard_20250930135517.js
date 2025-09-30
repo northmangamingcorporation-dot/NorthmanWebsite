@@ -96,7 +96,7 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
               <div class="card-header">
                 <h4>
                   <i class="fas fa-users-cog"></i>
-                  Staff Task & Teller Reported Overview 
+                  Staff Task & TOverview 
                 </h4>
                 <div class="card-actions">
                   <button class="btn-icon" id="exportStaffBtn" title="Export Data">
@@ -197,7 +197,7 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
                     border-radius: 12px;
                     border: 1px solid #e2e8f0;
                     margin-top: 10px;
-                    height: 30vh
+                    height: 50vh
                   ">
                     <table style="
                       width: 100%;

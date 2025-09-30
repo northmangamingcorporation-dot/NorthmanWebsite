@@ -1120,6 +1120,7 @@ function addITRequest(ticketData) {
   console.log("Ticket added to table:", ticketData);
 }
 
+
 // View IT Request Details
 function viewITRequestDetails(id) {
   console.log('Viewing details for ticket ID:', id);
