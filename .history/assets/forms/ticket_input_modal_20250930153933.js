@@ -973,7 +973,7 @@ function initializeTicketInputForm(user) {
           parsedPreview.classList.remove('parsed');
           charCounter.textContent = '0/5000';
           if (typeof loadITRequests === 'function') loadITRequests();
-          // if (typeof addITRequest === 'function') addITRequest({...ticketData, id: docRef.id});
+          if (typeof addITRequest === 'function') addITRequest({...ticketData, id: docRef.id});
           // ✅ Remove the success message completely after delay
           successMsg.remove();
         }, 2000);
@@ -2201,6 +2201,7 @@ function renderErrorChartModal() {
         ">
           <canvas id="errorChartCanvas"></canvas>
         </div>
+
       </div>
     </div>
   `;
