@@ -939,23 +939,6 @@ function showEarlyRestModal() {
   setTimeout(() => initializeEarlyRestForm(), 100);
 }
 
-function formatFirestoreDate(timestamp) {
-  if (!timestamp) return "N/A";
-  
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-
-  return new Intl.DateTimeFormat('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  }).format(date);
-}
-
-
 // Initialize Leave Form (Event Listeners & Validation)
 function initializeLeaveForm() {
   const modal = document.getElementById('leaveRequestModal');
@@ -1351,3 +1334,18 @@ form.addEventListener('submit', async (e) => {
 });
 }
 
+function formatFirestoreDate(timestamp) {
+  if (!timestamp) return "N/A";
+  
+  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }).format(date);
+}

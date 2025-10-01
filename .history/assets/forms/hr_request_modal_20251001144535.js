@@ -939,23 +939,6 @@ function showEarlyRestModal() {
   setTimeout(() => initializeEarlyRestForm(), 100);
 }
 
-function formatFirestoreDate(timestamp) {
-  if (!timestamp) return "N/A";
-  
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-
-  return new Intl.DateTimeFormat('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  }).format(date);
-}
-
-
 // Initialize Leave Form (Event Listeners & Validation)
 function initializeLeaveForm() {
   const modal = document.getElementById('leaveRequestModal');
@@ -1121,9 +1104,8 @@ form.addEventListener('submit', async (e) => {
         id: `LR-${Date.now()}`, // use Firestore doc ID instead of TO-timestamp
         ...leaveData,
         status: "Pending",
-        websiteLink: "https://northman-website.vercel.app/",
-        dateSubmitted: formatFirestoreDate(docRef.dateSubmitted),
-        updatedAt: formatFirestoreDate(docRef.updatedAt)
+        dateSubmitted: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
         // ✅ Notify Telegram (HR + dept head)
@@ -1304,9 +1286,8 @@ form.addEventListener('submit', async (e) => {
         id: `RD-${Date.now()}`, // use Firestore doc ID instead of TO-timestamp
         ...restData,
         status: "Pending",
-        websiteLink: "https://northman-website.vercel.app/",
-        dateSubmitted: formatFirestoreDate(docRef.dateSubmitted),
-        updatedAt: formatFirestoreDate(docRef.updatedAt)
+        dateSubmitted: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
         // ✅ Notify Telegram (HR + dept head)
@@ -1350,4 +1331,3 @@ form.addEventListener('submit', async (e) => {
   }
 });
 }
-
