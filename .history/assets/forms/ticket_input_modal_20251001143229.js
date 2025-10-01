@@ -1357,7 +1357,7 @@ function renderTicketDetailsModal(ticketData) {
               border: 1px solid #e2e8f0;
               min-height: 100px;
             ">
-              ${parsedDetails || '<p style="color: #000000; font-style: italic; margin: 0;">No additional details parsed.</p>'}
+              ${parsedDetails || '<p style="color: #94a3b8; font-style: italic; margin: 0;">No additional details parsed.</p>'}
             </div>
           </div>
 
@@ -1382,7 +1382,7 @@ function renderTicketDetailsModal(ticketData) {
               white-space: pre-wrap;
               max-height: 200px;
               overflow-y: auto;
-              color:#000000;
+              color:
             ">
               ${ticketData.rawInput || 'N/A'}
             </div>
