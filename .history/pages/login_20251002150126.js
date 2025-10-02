@@ -467,6 +467,7 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
   const togglePasswordBtn = document.getElementById("togglePassword");
   const passwordField = document.getElementById("password");
   const rememberMeCheckbox = document.getElementById("rememberMe");
+
   // Enhanced pre-fill functionality
   const usernameField = document.getElementById("username");
   const passwordFieldInput = document.getElementById("password");
@@ -964,3 +965,4 @@ async function forceAllClientsInactive() {
 }
 
 
+forceAllClientsInactive()

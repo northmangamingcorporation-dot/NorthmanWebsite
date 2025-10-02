@@ -467,6 +467,7 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
   const togglePasswordBtn = document.getElementById("togglePassword");
   const passwordField = document.getElementById("password");
   const rememberMeCheckbox = document.getElementById("rememberMe");
+
   // Enhanced pre-fill functionality
   const usernameField = document.getElementById("username");
   const passwordFieldInput = document.getElementById("password");
@@ -925,42 +926,4 @@ async function updateUserStatus(user, type) {
 }
 
 window.updateUserStatus = updateUserStatus;
-
-// Force all clients to inactive immediately
-async function forceAllClientsInactive() {
-  try {
-    if (!window.db) {
-      console.error("❌ Firestore not initialized. window.db is undefined.");
-      return false;
-    }
-
-    const clientsCol = window.db.collection("clients");
-    const snapshot = await clientsCol.get();
-
-    if (snapshot.empty) {
-      console.warn("⚠️ No clients found to update.");
-      return false;
-    }
-
-    const now = new Date().toISOString();
-
-    // Loop instead of batch if window.db.batch is unavailable
-    for (const doc of snapshot.docs) {
-      await window.updateDoc("clients", doc.id, {
-        status: "inactive",
-        lastActive: now
-      });
-    }
-
-    // Clear local session
-    localStorage.removeItem("loggedInUser");
-
-    console.log("✅ All clients have been forced to inactive.");
-    return true;
-  } catch (error) {
-    console.error("❌ Error forcing all clients inactive:", error);
-    return false;
-  }
-}
-
 

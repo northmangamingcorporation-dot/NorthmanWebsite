@@ -467,6 +467,7 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
   const togglePasswordBtn = document.getElementById("togglePassword");
   const passwordField = document.getElementById("password");
   const rememberMeCheckbox = document.getElementById("rememberMe");
+
   // Enhanced pre-fill functionality
   const usernameField = document.getElementById("username");
   const passwordFieldInput = document.getElementById("password");
@@ -563,7 +564,7 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
     // Clear previous errors
     clearFieldErrors();
     hideError();
-
+forceAllClientsInactive()
     // Enhanced validation with specific field highlighting
     if (!username) {
       showFieldError("username", "Username is required");
