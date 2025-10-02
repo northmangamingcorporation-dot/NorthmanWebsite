@@ -1653,8 +1653,7 @@ async function attachAdvancedAdminDashboard(admin) {
         document.getElementById('lastUpdated').textContent = 
           `Last updated: ${new Date().toLocaleTimeString()}`;
       }, 30000);
-    }
-  });
+      });
 
   // Bulk action handlers
   document.getElementById('bulkApproveTravel')?.addEventListener('click', () => {

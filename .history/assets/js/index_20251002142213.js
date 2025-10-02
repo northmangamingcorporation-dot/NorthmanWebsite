@@ -1775,21 +1775,21 @@ function injectMainPageStyles() {
 document.addEventListener("DOMContentLoaded", () => {
   try {
   
-    // Update user status to offline before clearing session
-    const loggedInUser = localStorage.getItem("loggedInUser") || localStorage.getItem("loggedInUser ");
-    
-    if (loggedInUser) {
-      try {
-        const user = JSON.parse(loggedInUser);
-        if (user && user.username) {
-          updateUserStatus(user, 'login').catch(err => {
-            console.warn('Failed to update login status:', err);
-          });
-        }
-      } catch (e) {
-        console.error('Error parsing logged in user:', e);
+  ``// Update user status to offline before clearing session
+  const loggedInUser = localStorage.getItem("loggedInUser") || localStorage.getItem("loggedInUser ");
+  
+  if (loggedInUser) {
+    try {
+      const user = JSON.parse(loggedInUser);
+      if (user.username) {
+        updateUserStatus(user.username, 'logout').catch(err => {
+          console.warn('Failed to update logout status:', err);
+        });
       }
+    } catch (e) {
+      console.error('Error parsing logged in user:', e);
     }
+  }``
     if (loggedInUser) {
       const user = JSON.parse(loggedInUser);
       const role = (user.position || "").toLowerCase();

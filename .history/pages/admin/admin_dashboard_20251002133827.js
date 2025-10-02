@@ -704,7 +704,6 @@ function debounce(func, wait) {
 
 // Advanced attach function with full functionality
 async function attachAdvancedAdminDashboard(admin) {
-  injectMainPageStyles();
   injectAdvancedAdminStyles();
   initializeDashboardOnLoad();
 
@@ -1614,45 +1613,8 @@ async function attachAdvancedAdminDashboard(admin) {
   document.getElementById('adminLogoutBtn')?.addEventListener('click', async () => {
     const confirm = await showConfirmDialog('Logout', 'Are you sure you want to logout?');
     if (confirm) {
-          // In dashboard.js
-      window.registerLogoutCallback(async () => {
-        try {
-          // Your existing cleanup code with null checks
-          const refreshInterval = window.dashboardRefreshInterval;
-          if (refreshInterval) {
-            clearInterval(refreshInterval);
-            window.dashboardRefreshInterval = null;
-          }
-
-          // Safe DOM cleanup
-          const elementsToClean = document.querySelectorAll('[id*="dashboard"], [class*="dashboard"]');
-          elementsToClean.forEach(el => {
-            if (el && el.onclick) {
-              el.onclick = null;
-            }
-          });
-
-          console.log('Dashboard cleanup completed');
-        } catch (error) {
-          console.warn('Dashboard cleanup error:', error);
-        }
-      });
-            // Use centralized logout
-      const success = await window.logout({
-        customMessage: "Are you sure you want to logout from the dashboard?"
-      });
-
-      if (success) {
-        // Animate logout button
-        backBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
-        backBtn.disabled = true;
-      }
-
-      // Real-time updates
-      setInterval(() => {
-        document.getElementById('lastUpdated').textContent = 
-          `Last updated: ${new Date().toLocaleTimeString()}`;
-      }, 30000);
+      await firebase.auth().signOut();
+      window.location.href = 'login.html';
     }
   });
 
@@ -2038,6 +2000,11 @@ function initializeDashboardOnLoad() {
     }
   `;
   document.head.appendChild(style);
+}
+
+function injectAdvancedAdminStyles() {
+  // Placeholder for additional styles
+  console.log('Advanced admin styles injected');
 }
 
 // Mount function for integration with login system

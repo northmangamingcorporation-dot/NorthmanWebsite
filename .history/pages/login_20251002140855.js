@@ -514,21 +514,8 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
     }
   });
 
-   // Update user status to offline before clearing session
-  const loggedInUser = localStorage.getItem("loggedInUser") || localStorage.getItem("loggedInUser ");
-  
-  if (loggedInUser) {
-    try {
-      const user = JSON.parse(loggedInUser);
-      if (user && user.username) {
-        updateUserStatus(user, 'login').catch(err => {
-          console.warn('Failed to update login status:', err);
-        });
-      }
-    } catch (e) {
-      console.error('Error parsing logged in user:', e);
-    }
-  }
+  // Check if user is already logged in with better UX
+  const loggedInUser = sessionStorage.getItem("loggedInUser") || localStorage.getItem("loggedInUser");
   if (loggedInUser) {
     try {
       const user = JSON.parse(loggedInUser);
@@ -593,9 +580,7 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
         .get();
       if (!snapshot.empty) {
         const user = snapshot.docs[0].data();
-        // Show full JSON of the logged-in user
-        console.log("Attempting login for user:", JSON.stringify(user, null, 2));
-        updateUserStatus(user, 'login')
+        console.log(`Attempting login for user: ${stringfy(clientsCol)}`);
         // Handle remember me functionality
         if (rememberMeCheckbox.checked) {
           localStorage.setItem("rememberedUsername", username);
@@ -861,68 +846,3 @@ function mountLogin(preFillUsername = "", preFillPassword = "") {
 
 // Export for global access
 window.mountLogin = mountLogin;
-
-// Update user status (online/offline) and last active timestamp
-async function updateUserStatus(user, type) {
-  try {
-    if (!user || !user.username) {
-      console.error('Invalid user object provided');
-      return false;
-    }
-
-    const status = type === 'login' ? 'active' : 'inactive';
-    const updateData = {
-      status: status,
-      lastActive: new Date().toISOString()
-    };
-
-    // If logging in, track login time separately
-    if (type === 'login') {
-      updateData.lastLogin = new Date().toISOString();
-    }
-
-    console.log(`Updating user status: ${user.username} -> ${status}`);
-
-    // Query to find the user document by username
-    const clientsCol = window.db.collection("clients");
-    const snapshot = await clientsCol.where("username", "==", user.username).get();
-
-    if (snapshot.empty) {
-      console.error(`User not found: ${user.username}`);
-      return false;
-    }
-
-    // Get the document ID
-    const docId = snapshot.docs[0].id;
-
-    // Update using window.updateDoc
-    await window.updateDoc("clients", docId, updateData);
-
-    // Also update local storage
-    const localUser = localStorage.getItem('loggedInUser') || localStorage.getItem('loggedInUser ');
-    if (localUser) {
-      try {
-        const sessionUser = JSON.parse(localUser);
-        if (sessionUser.username === user.username) {
-          sessionUser.status = status;
-          sessionUser.lastActive = updateData.lastActive;
-          if (type === 'login') {
-            sessionUser.lastLogin = updateData.lastLogin;
-          }
-          localStorage.setItem('loggedInUser', JSON.stringify(sessionUser));
-        }
-      } catch (e) {
-        console.warn('Error updating local storage:', e);
-      }
-    }
-
-    console.log(`✅ User status updated successfully: ${status}`);
-    return true;
-
-  } catch (error) {
-    console.error('Error updating user status:', error);
-    return false;
-  }
-}
-
-window.updateUserStatus = updateUserStatus;

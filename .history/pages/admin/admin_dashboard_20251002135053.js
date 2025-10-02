@@ -1614,6 +1614,7 @@ async function attachAdvancedAdminDashboard(admin) {
   document.getElementById('adminLogoutBtn')?.addEventListener('click', async () => {
     const confirm = await showConfirmDialog('Logout', 'Are you sure you want to logout?');
     if (confirm) {
+       
           // In dashboard.js
       window.registerLogoutCallback(async () => {
         try {
@@ -1647,12 +1648,14 @@ async function attachAdvancedAdminDashboard(admin) {
         backBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
         backBtn.disabled = true;
       }
+    });
+  }
 
-      // Real-time updates
-      setInterval(() => {
-        document.getElementById('lastUpdated').textContent = 
-          `Last updated: ${new Date().toLocaleTimeString()}`;
-      }, 30000);
+  // Real-time updates
+  setInterval(() => {
+    document.getElementById('lastUpdated').textContent = 
+      `Last updated: ${new Date().toLocaleTimeString()}`;
+  }, 30000);
     }
   });
 

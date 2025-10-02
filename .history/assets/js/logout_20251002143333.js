@@ -194,7 +194,7 @@ class LogoutManager {
     try {
       const user = JSON.parse(loggedInUser);
       if (user && user.username) {
-        updateUserStatus(user, 'logout').catch(err => {
+        updateUserStatus(user.username, 'login').catch(err => {
           console.warn('Failed to update login status:', err);
         });
       }

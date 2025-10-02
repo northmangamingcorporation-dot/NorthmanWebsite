@@ -1779,17 +1779,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const loggedInUser = localStorage.getItem("loggedInUser") || localStorage.getItem("loggedInUser ");
     
     if (loggedInUser) {
-      try {
-        const user = JSON.parse(loggedInUser);
-        if (user && user.username) {
-          updateUserStatus(user, 'login').catch(err => {
-            console.warn('Failed to update login status:', err);
-          });
-        }
-      } catch (e) {
-        console.error('Error parsing logged in user:', e);
+    try {
+      const user = JSON.parse(loggedInUser);
+      if (user && user.username) {
+        updateUserStatus(user.username, 'login').catch(err => {
+          console.warn('Failed to update login status:', err);
+        });
       }
+    } catch (e) {
+      console.error('Error parsing logged in user:', e);
     }
+  }
     if (loggedInUser) {
       const user = JSON.parse(loggedInUser);
       const role = (user.position || "").toLowerCase();

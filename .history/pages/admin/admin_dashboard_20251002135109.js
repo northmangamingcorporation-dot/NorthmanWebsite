@@ -1648,12 +1648,13 @@ async function attachAdvancedAdminDashboard(admin) {
         backBtn.disabled = true;
       }
 
-      // Real-time updates
-      setInterval(() => {
-        document.getElementById('lastUpdated').textContent = 
-          `Last updated: ${new Date().toLocaleTimeString()}`;
-      }, 30000);
-    }
+  }
+
+  // Real-time updates
+  setInterval(() => {
+    document.getElementById('lastUpdated').textContent = 
+      `Last updated: ${new Date().toLocaleTimeString()}`;
+  }, 30000);
   });
 
   // Bulk action handlers

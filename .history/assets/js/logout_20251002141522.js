@@ -187,21 +187,7 @@ class LogoutManager {
 
   // Enhanced session data clearing
   clearSessionData() {
-  // Update user status to offline before clearing session
-  const loggedInUser = localStorage.getItem("loggedInUser") || localStorage.getItem("loggedInUser ");
-  
-  if (loggedInUser) {
-    try {
-      const user = JSON.parse(loggedInUser);
-      if (user && user.username) {
-        updateUserStatus(user, 'logout').catch(err => {
-          console.warn('Failed to update login status:', err);
-        });
-      }
-    } catch (e) {
-      console.error('Error parsing logged in user:', e);
-    }
-  }
+    updateUserStatus(user, 'login')
     // Clear session storage
     const sessionKeys = [
       'loggedInUser',

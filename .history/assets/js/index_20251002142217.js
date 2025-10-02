@@ -1781,9 +1781,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (loggedInUser) {
       try {
         const user = JSON.parse(loggedInUser);
-        if (user && user.username) {
-          updateUserStatus(user, 'login').catch(err => {
-            console.warn('Failed to update login status:', err);
+        if (user.username) {
+          updateUserStatus(user.username, 'logout').catch(err => {
+            console.warn('Failed to update logout status:', err);
           });
         }
       } catch (e) {

@@ -870,7 +870,7 @@ async function updateUserStatus(user, type) {
       return false;
     }
 
-    const status = type === 'login' ? 'active' : 'inactive';
+    const status = type === 'login' ? 'active' : 'inactiv';
     const updateData = {
       status: status,
       lastActive: new Date().toISOString()

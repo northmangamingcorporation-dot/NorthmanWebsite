@@ -1654,7 +1654,7 @@ async function attachAdvancedAdminDashboard(admin) {
           `Last updated: ${new Date().toLocaleTimeString()}`;
       }, 30000);
     }
-  });
+      });
 
   // Bulk action handlers
   document.getElementById('bulkApproveTravel')?.addEventListener('click', () => {

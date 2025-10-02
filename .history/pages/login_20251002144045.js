@@ -862,15 +862,14 @@ function mountLogin(preFillUsername = "", preFillPassword = "") {
 // Export for global access
 window.mountLogin = mountLogin;
 
-// Update user status (online/offline) and last active timestamp
-async function updateUserStatus(user, type) {
+// Update user status (online/offline) and last active timestampasync function updateUserStatus(user, type = 'login') {
   try {
     if (!user || !user.username) {
       console.error('Invalid user object provided');
       return false;
     }
 
-    const status = type === 'login' ? 'active' : 'inactive';
+    const status = type === 'login' ? 'active' : 'offline';
     const updateData = {
       status: status,
       lastActive: new Date().toISOString()
