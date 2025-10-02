@@ -1014,6 +1014,7 @@ function addITRequest(ticketData) {
   // Extract data from the correct structure
   const ticket_code = ticketData.parsedData?.ticket_code || ticketData.ticket_code || 'N/A';
   const teller = ticketData.parsedData?.teller || ticketData.teller || 'N/A';
+  const teller = ticketData.parsedData?.teller || ticketData.teller || 'N/A';
   const type = ticketData.type || 'N/A';
   const employeeName = ticketData.employeeName || ticketData.username || 'Unknown';
   const submittedAt = ticketData.submittedAt;

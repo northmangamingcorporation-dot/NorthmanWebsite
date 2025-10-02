@@ -1350,3 +1350,32 @@ form.addEventListener('submit', async (e) => {
   }
 });
 }
+
+async function deleteAllDocsFromCollection(collectionName) {
+  if (!window.db) {
+    console.error("Database not initialized");
+    return;
+  }
+
+  try {
+    const snapshot = await window.db.collection(collectionName).get();
+    if (snapshot.empty) {
+      console.log(`No documents found in ${collectionName}`);
+      return;
+    }
+
+    const batch = window.db.batch();
+    snapshot.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+    console.log(`All documents from "${collectionName}" have been deleted.`);
+  } catch (error) {
+    console.error(`Error deleting documents from ${collectionName}:`, error);
+  }
+}
+
+// Usage
+deleteAllDocsFromCollection("leave_requests");
+deleteAllDocsFromCollection("early_rest_requests");

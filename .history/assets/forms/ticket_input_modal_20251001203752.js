@@ -1332,10 +1332,10 @@ function renderTicketDetailsModal(ticketData) {
               gap: 16px;
             ">
               <div style="padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <strong style="color: #3b82f6;">Name:</strong>  <p style="color:#000000">${employeeName}</p>
+                <strong style="color: #3b82f6;">Name:</strong> ${employeeName}
               </div>
               <div style="padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <strong style="color: #3b82f6;">Department:</strong> <p style="color:#000000">${department}</p>
+                <strong style="color: #3b82f6;">Department:</strong> <${department}
               </div>
             </div>
           </div>
@@ -1357,9 +1357,7 @@ function renderTicketDetailsModal(ticketData) {
               border: 1px solid #e2e8f0;
               min-height: 100px;
             ">
-               ${parsedDetails 
-                  ? `<p style="color:#000000; margin:0;">${parsedDetails}</p>` 
-                  : `<p style="color:#000000; font-style:italic; margin:0;">No additional details parsed.</p>`}
+              ${parsedDetails || '<p style="color: #000000; font-style: italic; margin: 0;">No additional details parsed.</p>'}
             </div>
           </div>
 

@@ -1641,6 +1641,7 @@ function renderTicketRow(ticketData) {
   // Extract data from the correct structure
   const ticket_code = ticketData.parsedData?.ticket_code || ticketData.ticket_code;
   const teller = ticketData.parsedData?.teller || ticketData.teller;
+  const reason = ticketData.parsedData?.reason || ticketData.reason || 'N/A';
   const type = ticketData.type;
   const employeeName = ticketData.employeeName;
   const submittedAt = ticketData.submittedAt;

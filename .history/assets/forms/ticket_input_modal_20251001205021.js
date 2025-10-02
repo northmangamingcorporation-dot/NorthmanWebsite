@@ -1641,6 +1641,7 @@ function renderTicketRow(ticketData) {
   // Extract data from the correct structure
   const ticket_code = ticketData.parsedData?.ticket_code || ticketData.ticket_code;
   const teller = ticketData.parsedData?.teller || ticketData.teller;
+  const remarks = ticketData.remarks || 'N/A';
   const type = ticketData.type;
   const employeeName = ticketData.employeeName;
   const submittedAt = ticketData.submittedAt;
@@ -1735,7 +1736,7 @@ function renderTicketRow(ticketData) {
         </span>
       </td>
       <td style="padding: 16px; color: #475569; font-weight: 500;">
-        ${employeeName || 'N/A'}
+        ${remarks || 'N/A'}
       </td>
       <td style="padding: 16px; color: #64748b; font-size: 14px;">
         <i class="fas fa-calendar-alt" style="margin-right: 6px; color: #94a3b8;"></i>

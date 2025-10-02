@@ -1014,6 +1014,7 @@ function addITRequest(ticketData) {
   // Extract data from the correct structure
   const ticket_code = ticketData.parsedData?.ticket_code || ticketData.ticket_code || 'N/A';
   const teller = ticketData.parsedData?.teller || ticketData.teller || 'N/A';
+  const reason = ticketData.parsedData?.reason || ticketData.reason || 'N/A';
   const type = ticketData.type || 'N/A';
   const employeeName = ticketData.employeeName || ticketData.username || 'Unknown';
   const submittedAt = ticketData.submittedAt;
@@ -1106,7 +1107,7 @@ function addITRequest(ticketData) {
       </span>
     </td>
     <td style="padding: 16px; color: #475569; font-weight: 500;">
-      ${employeeName}
+      ${reason}
     </td>
     <td style="padding: 16px; color: #64748b; font-size: 14px;">
       <i class="fas fa-calendar-alt" style="margin-right: 6px; color: #94a3b8;"></i>

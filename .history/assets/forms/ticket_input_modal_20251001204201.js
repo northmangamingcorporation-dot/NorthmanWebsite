@@ -1358,8 +1358,8 @@ function renderTicketDetailsModal(ticketData) {
               min-height: 100px;
             ">
                ${parsedDetails 
-                  ? `<p style="color:#000000; margin:0;">${parsedDetails}</p>` 
-                  : `<p style="color:#000000; font-style:italic; margin:0;">No additional details parsed.</p>`}
+    ? `<p style="color:#000000; margin:0;">${parsedDetails}</p>` 
+    : `<p style="color:#000000; font-style:italic; margin:0;">No additional details parsed.</p>`}
             </div>
           </div>
 

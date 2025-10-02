@@ -1784,13 +1784,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (role === "it manager") {
       window.mountITAdminDashboard(user);
-      } else if (role === "admin head") {
-        window.mountAdminDashboard(user);
-      } else if (role === "human resources officer") {
-        window.mountHRDashboard(user);
-      } else {
-        window.mountDashboard(user);
-      }
+    } else if (role === "admin head") {
+      window.mountAdminDashboard(user);
+    } else if (role === "human resources officer") {
+      window.mountHRDashboard(user);
+    } else {
+      window.mountDashboard(user);
+    }
     } else {
       // No session → guest home
       mount(renderHome());
