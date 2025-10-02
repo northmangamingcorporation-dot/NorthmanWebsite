@@ -381,9 +381,9 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
                   </div>
             </div>
 
-           <!-- Enhanced Top Tellers Card with Dynamic Filters -->
-<div class="dashboard-card top-tellers">
-  <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <!-- Enhanced Top Tellers Card -->
+          <div class="dashboard-card top-tellers">
+  <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
     <div style="display: flex; align-items: center; gap: 10px;">
       <i class="fas fa-chart-bar" style="font-size: 22px; color: #f59e0b;"></i>
       <h4 style="margin: 0; color: #92400e; font-size: 18px; font-weight: 700;">
@@ -421,31 +421,7 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
     </div>
   </div>
 
-  <!-- Filter Buttons -->
-  <div class="filter-container">
-    <button class="filter-btn active" data-filter="today" onclick="updateFilter('today')">
-      <i class="fas fa-clock" style="font-size: 12px;"></i>
-      Today
-    </button>
-
-    <button class="filter-btn" data-filter="week" onclick="updateFilter('week')">
-      <i class="fas fa-calendar-week" style="font-size: 12px;"></i>
-      Last 7 Days
-    </button>
-
-    <button class="filter-btn" data-filter="month" onclick="updateFilter('month')">
-      <i class="fas fa-calendar-alt" style="font-size: 12px;"></i>
-      Last 30 Days
-    </button>
-
-    <button class="filter-btn" data-filter="custom" onclick="showCustomDatePicker()">
-      <i class="fas fa-calendar-day" style="font-size: 12px;"></i>
-      Custom Range
-    </button>
-  </div>
-
-  <!-- Rankings List -->
-  <div class="teller-ranking-content" id="tellerRankingsList">
+  <div class="teller-ranking-content" id="tellerRankingsList" style="margin-top: 16px;">
     <!-- Rankings will render here dynamically -->
     <div class="loading-state" style="text-align:center; padding:20px; color:#64748b;">
       <i class="fas fa-spinner fa-spin" style="font-size: 20px; color:#10b981;"></i>
@@ -1152,9 +1128,6 @@ async function attachITAdminDashboard(admin) {
   initializeQuickActions();
   listenAndShowTellerRankings()
   loadTickets()
-  loadLeaveRequests();
-  loadRestRequests();
-  initializeApprovalTabs();
   
   const ordersCol = window.db.collection("it_service_orders");
   const tasksCol = window.db.collection("ITdepartment_tasks");
@@ -2012,74 +1985,6 @@ function injectEnhancedITAdminStyles() {
       --radius-lg: 16px;
       --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
-/* Staff Approval Section */
-.staff-approvals {
-  background: linear-gradient(145deg, #ffffff, #f0fdf4);
-  border-left: 4px solid #10b981;
-}
-
-.approval-tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #e2e8f0;
-  padding-bottom: 0;
-}
-
-.approval-tab {
-  padding: 12px 24px;
-  border: none;
-  background: transparent;
-  color: #64748b;
-  font-weight: 600;
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.approval-tab.active {
-  border-bottom-color: #10b981;
-  color: #10b981;
-}
-
-.approval-tab:hover {
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.05);
-}
-
-.approval-content {
-  display: none;
-}
-
-.approval-content.active {
-  display: block;
-}
-
-.approve-leave-btn,
-.approve-rest-btn {
-  background: #10b981;
-  color: white;
-}
-
-.approve-leave-btn:hover,
-.approve-rest-btn:hover {
-  background: #059669;
-}
-
-.deny-leave-btn,
-.deny-rest-btn {
-  background: #ef4444;
-  color: white;
-}
-
-.deny-leave-btn:hover,
-.deny-rest-btn:hover {
-  background: #dc2626;
-}
 
     /* Enhanced Container */
     .container.app {

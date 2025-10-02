@@ -2320,20 +2320,6 @@ function injectStyles() {
   document.head.appendChild(style);
 }
 
-function normalizeDate(value) {
-  if (!value) return null;
-
-  if (value instanceof firebase.firestore.Timestamp) {
-    return value.toDate();
-  } else if (typeof value === "string") {
-    return new Date(value);
-  } else if (value instanceof Date) {
-    return value;
-  } else {
-    return null;
-  }
-}
-
 
 // Combined Firestore listener + rankings with smooth updates and filtering
 function listenAndShowTellerRankings() {
@@ -2357,20 +2343,7 @@ function listenAndShowTellerRankings() {
       }
 
       // Get the most recent data timestamp for reference
-      const rawSubmittedAt = snapshot.docs[0]?.data().submittedAt;
-
-      let lastDataDate;
-      if (rawSubmittedAt instanceof firebase.firestore.Timestamp) {
-        lastDataDate = rawSubmittedAt.toDate();
-      } else if (typeof rawSubmittedAt === "string") {
-        lastDataDate = new Date(rawSubmittedAt);
-      } else if (rawSubmittedAt instanceof Date) {
-        lastDataDate = rawSubmittedAt;
-      } else {
-        lastDataDate = null; // no valid date
-      }
-
-      console.log("Last data date:", lastDataDate);
+      const lastDataDate = snapshot.docs[0]?.data().submittedAt?.toDate();
       
       // Get date range based on current filter
       const { startDate, endDate } = getDateRange(currentFilter, lastDataDate);
@@ -2379,7 +2352,7 @@ function listenAndShowTellerRankings() {
       const tellerCounts = {};
       snapshot.forEach((doc) => {
         const ticket = doc.data();
-        const submittedAt = normalizeDate(ticket.submittedAt);
+        const submittedAt = ticket.submittedAt?.toDate();
         
         // Apply date filter
         if (startDate && endDate) {

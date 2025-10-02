@@ -2359,18 +2359,11 @@ function listenAndShowTellerRankings() {
       // Get the most recent data timestamp for reference
       const rawSubmittedAt = snapshot.docs[0]?.data().submittedAt;
 
-      let lastDataDate;
-      if (rawSubmittedAt instanceof firebase.firestore.Timestamp) {
-        lastDataDate = rawSubmittedAt.toDate();
-      } else if (typeof rawSubmittedAt === "string") {
-        lastDataDate = new Date(rawSubmittedAt);
-      } else if (rawSubmittedAt instanceof Date) {
-        lastDataDate = rawSubmittedAt;
-      } else {
-        lastDataDate = null; // no valid date
-      }
+      const submittedAt = normalizeDate(ticket.submittedAt);
+
 
       console.log("Last data date:", lastDataDate);
+
       
       // Get date range based on current filter
       const { startDate, endDate } = getDateRange(currentFilter, lastDataDate);
@@ -2379,7 +2372,7 @@ function listenAndShowTellerRankings() {
       const tellerCounts = {};
       snapshot.forEach((doc) => {
         const ticket = doc.data();
-        const submittedAt = normalizeDate(ticket.submittedAt);
+        const submittedAt = ticket.submittedAt?.toDate();
         
         // Apply date filter
         if (startDate && endDate) {

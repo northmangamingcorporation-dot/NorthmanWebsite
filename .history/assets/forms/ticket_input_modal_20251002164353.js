@@ -2151,195 +2151,8 @@ function getDateRange(filterType, lastDataDate) {
   return { startDate, endDate };
 }
 
-// Inject styles dynamically
-function injectStyles() {
-  const styleId = 'teller-rankings-styles';
-  
-  // Check if styles already exist
-  if (document.getElementById(styleId)) return;
-  
-  const style = document.createElement('style');
-  style.id = styleId;
-  style.textContent = `
-    .filter-btn {
-      padding: 8px 16px;
-      border: 2px solid transparent;
-      border-radius: 8px;
-      background: white;
-      color: #64748b;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .filter-btn.active {
-      background: linear-gradient(135deg, #10b981, #059669) !important;
-      color: white !important;
-      border-color: #10b981 !important;
-      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-    }
-
-    .filter-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .filter-container {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-      padding: 8px;
-      background: #f8fafc;
-      border-radius: 12px;
-      flex-wrap: wrap;
-    }
-
-    @keyframes fadeOutScale {
-      from { opacity: 1; transform: scale(1); }
-      to { opacity: 0; transform: scale(0.95); }
-    }
-
-    @keyframes fadeInScale {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-
-    .custom-date-modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      animation: fadeIn 0.2s ease;
-    }
-
-    .custom-date-modal {
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      max-width: 400px;
-      width: 90%;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      animation: scaleIn 0.3s ease;
-    }
-
-    .custom-date-modal h3 {
-      margin: 0 0 20px 0;
-      color: #1e293b;
-      font-size: 20px;
-    }
-
-    .date-input-group {
-      margin-bottom: 16px;
-    }
-
-    .date-input-group label {
-      display: block;
-      margin-bottom: 6px;
-      color: #475569;
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    .date-input-group input[type="date"] {
-      width: 100%;
-      padding: 10px;
-      border: 2px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: border-color 0.2s ease;
-    }
-
-    .date-input-group input[type="date"]:focus {
-      outline: none;
-      border-color: #10b981;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 24px;
-    }
-
-    .modal-btn {
-      flex: 1;
-      padding: 12px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .modal-btn-cancel {
-      border: 2px solid #e2e8f0;
-      background: white;
-      color: #64748b;
-    }
-
-    .modal-btn-cancel:hover {
-      background: #f8fafc;
-    }
-
-    .modal-btn-apply {
-      border: none;
-      background: linear-gradient(135deg, #10b981, #059669);
-      color: white;
-    }
-
-    .modal-btn-apply:hover {
-      background: linear-gradient(135deg, #059669, #047857);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes scaleIn {
-      from { opacity: 0; transform: scale(0.9); }
-      to { opacity: 1; transform: scale(1); }
-    }
-  `;
-  
-  document.head.appendChild(style);
-}
-
-function normalizeDate(value) {
-  if (!value) return null;
-
-  if (value instanceof firebase.firestore.Timestamp) {
-    return value.toDate();
-  } else if (typeof value === "string") {
-    return new Date(value);
-  } else if (value instanceof Date) {
-    return value;
-  } else {
-    return null;
-  }
-}
-
-
 // Combined Firestore listener + rankings with smooth updates and filtering
 function listenAndShowTellerRankings() {
-  // Inject styles on initialization
-  injectStyles();
-  
   const rankingsList = document.getElementById('tellerRankingsList');
   if (!rankingsList || !window.db) return;
 
@@ -2357,20 +2170,7 @@ function listenAndShowTellerRankings() {
       }
 
       // Get the most recent data timestamp for reference
-      const rawSubmittedAt = snapshot.docs[0]?.data().submittedAt;
-
-      let lastDataDate;
-      if (rawSubmittedAt instanceof firebase.firestore.Timestamp) {
-        lastDataDate = rawSubmittedAt.toDate();
-      } else if (typeof rawSubmittedAt === "string") {
-        lastDataDate = new Date(rawSubmittedAt);
-      } else if (rawSubmittedAt instanceof Date) {
-        lastDataDate = rawSubmittedAt;
-      } else {
-        lastDataDate = null; // no valid date
-      }
-
-      console.log("Last data date:", lastDataDate);
+      const lastDataDate = snapshot.docs[0]?.data().submittedAt?.toDate();
       
       // Get date range based on current filter
       const { startDate, endDate } = getDateRange(currentFilter, lastDataDate);
@@ -2379,7 +2179,7 @@ function listenAndShowTellerRankings() {
       const tellerCounts = {};
       snapshot.forEach((doc) => {
         const ticket = doc.data();
-        const submittedAt = normalizeDate(ticket.submittedAt);
+        const submittedAt = ticket.submittedAt?.toDate();
         
         // Apply date filter
         if (startDate && endDate) {
@@ -2538,7 +2338,7 @@ function applyCustomDateRange() {
   }
   
   // Close modal
-  document.querySelector('.custom-date-modal-overlay').remove();
+  document.querySelector('div[style*="position: fixed"]').remove();
   
   // Update filter
   updateFilter('custom');
@@ -2548,7 +2348,6 @@ function applyCustomDateRange() {
 window.updateFilter = updateFilter;
 window.showCustomDatePicker = showCustomDatePicker;
 window.applyCustomDateRange = applyCustomDateRange;
-window.injectStyles = injectStyles;
 window.listenAndShowTellerRankings = listenAndShowTellerRankings;
 
 // global chart instance

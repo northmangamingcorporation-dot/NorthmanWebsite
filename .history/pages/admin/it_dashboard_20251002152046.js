@@ -381,9 +381,9 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
                   </div>
             </div>
 
-           <!-- Enhanced Top Tellers Card with Dynamic Filters -->
-<div class="dashboard-card top-tellers">
-  <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <!-- Enhanced Top Tellers Card -->
+          <div class="dashboard-card top-tellers">
+  <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
     <div style="display: flex; align-items: center; gap: 10px;">
       <i class="fas fa-chart-bar" style="font-size: 22px; color: #f59e0b;"></i>
       <h4 style="margin: 0; color: #92400e; font-size: 18px; font-weight: 700;">
@@ -421,31 +421,7 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
     </div>
   </div>
 
-  <!-- Filter Buttons -->
-  <div class="filter-container">
-    <button class="filter-btn active" data-filter="today" onclick="updateFilter('today')">
-      <i class="fas fa-clock" style="font-size: 12px;"></i>
-      Today
-    </button>
-
-    <button class="filter-btn" data-filter="week" onclick="updateFilter('week')">
-      <i class="fas fa-calendar-week" style="font-size: 12px;"></i>
-      Last 7 Days
-    </button>
-
-    <button class="filter-btn" data-filter="month" onclick="updateFilter('month')">
-      <i class="fas fa-calendar-alt" style="font-size: 12px;"></i>
-      Last 30 Days
-    </button>
-
-    <button class="filter-btn" data-filter="custom" onclick="showCustomDatePicker()">
-      <i class="fas fa-calendar-day" style="font-size: 12px;"></i>
-      Custom Range
-    </button>
-  </div>
-
-  <!-- Rankings List -->
-  <div class="teller-ranking-content" id="tellerRankingsList">
+  <div class="teller-ranking-content" id="tellerRankingsList" style="margin-top: 16px;">
     <!-- Rankings will render here dynamically -->
     <div class="loading-state" style="text-align:center; padding:20px; color:#64748b;">
       <i class="fas fa-spinner fa-spin" style="font-size: 20px; color:#10b981;"></i>
@@ -1152,9 +1128,6 @@ async function attachITAdminDashboard(admin) {
   initializeQuickActions();
   listenAndShowTellerRankings()
   loadTickets()
-  loadLeaveRequests();
-  loadRestRequests();
-  initializeApprovalTabs();
   
   const ordersCol = window.db.collection("it_service_orders");
   const tasksCol = window.db.collection("ITdepartment_tasks");

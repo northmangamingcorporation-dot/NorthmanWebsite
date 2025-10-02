@@ -2320,20 +2320,6 @@ function injectStyles() {
   document.head.appendChild(style);
 }
 
-function normalizeDate(value) {
-  if (!value) return null;
-
-  if (value instanceof firebase.firestore.Timestamp) {
-    return value.toDate();
-  } else if (typeof value === "string") {
-    return new Date(value);
-  } else if (value instanceof Date) {
-    return value;
-  } else {
-    return null;
-  }
-}
-
 
 // Combined Firestore listener + rankings with smooth updates and filtering
 function listenAndShowTellerRankings() {
@@ -2371,6 +2357,7 @@ function listenAndShowTellerRankings() {
       }
 
       console.log("Last data date:", lastDataDate);
+
       
       // Get date range based on current filter
       const { startDate, endDate } = getDateRange(currentFilter, lastDataDate);
@@ -2379,7 +2366,7 @@ function listenAndShowTellerRankings() {
       const tellerCounts = {};
       snapshot.forEach((doc) => {
         const ticket = doc.data();
-        const submittedAt = normalizeDate(ticket.submittedAt);
+        const submittedAt = ticket.submittedAt?.toDate();
         
         // Apply date filter
         if (startDate && endDate) {

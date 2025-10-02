@@ -2320,20 +2320,46 @@ function injectStyles() {
   document.head.appendChild(style);
 }
 
-function normalizeDate(value) {
-  if (!value) return null;
+// State management for filters
+let currentFilter = 'today';
+let customStartDate = null;
+let customEndDate = null;
 
-  if (value instanceof firebase.firestore.Timestamp) {
-    return value.toDate();
-  } else if (typeof value === "string") {
-    return new Date(value);
-  } else if (value instanceof Date) {
-    return value;
-  } else {
-    return null;
+// Get date range based on filter type
+function getDateRange(filterType, lastDataDate) {
+  const now = new Date();
+  let startDate, endDate;
+
+  switch(filterType) {
+    case 'today':
+      startDate = new Date(now.setHours(0, 0, 0, 0));
+      endDate = new Date(now.setHours(23, 59, 59, 999));
+      break;
+    
+    case 'week':
+      endDate = lastDataDate || new Date();
+      startDate = new Date(endDate);
+      startDate.setDate(startDate.getDate() - 7);
+      break;
+    
+    case 'month':
+      endDate = lastDataDate || new Date();
+      startDate = new Date(endDate);
+      startDate.setMonth(startDate.getMonth() - 1);
+      break;
+    
+    case 'custom':
+      startDate = customStartDate;
+      endDate = customEndDate;
+      break;
+    
+    default:
+      startDate = null;
+      endDate = null;
   }
-}
 
+  return { startDate, endDate };
+}
 
 // Combined Firestore listener + rankings with smooth updates and filtering
 function listenAndShowTellerRankings() {
@@ -2357,20 +2383,7 @@ function listenAndShowTellerRankings() {
       }
 
       // Get the most recent data timestamp for reference
-      const rawSubmittedAt = snapshot.docs[0]?.data().submittedAt;
-
-      let lastDataDate;
-      if (rawSubmittedAt instanceof firebase.firestore.Timestamp) {
-        lastDataDate = rawSubmittedAt.toDate();
-      } else if (typeof rawSubmittedAt === "string") {
-        lastDataDate = new Date(rawSubmittedAt);
-      } else if (rawSubmittedAt instanceof Date) {
-        lastDataDate = rawSubmittedAt;
-      } else {
-        lastDataDate = null; // no valid date
-      }
-
-      console.log("Last data date:", lastDataDate);
+      const lastDataDate = snapshot.docs[0]?.data().submittedAt?.toDate();
       
       // Get date range based on current filter
       const { startDate, endDate } = getDateRange(currentFilter, lastDataDate);
@@ -2379,7 +2392,7 @@ function listenAndShowTellerRankings() {
       const tellerCounts = {};
       snapshot.forEach((doc) => {
         const ticket = doc.data();
-        const submittedAt = normalizeDate(ticket.submittedAt);
+        const submittedAt = ticket.submittedAt?.toDate();
         
         // Apply date filter
         if (startDate && endDate) {

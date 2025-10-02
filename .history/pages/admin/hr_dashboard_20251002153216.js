@@ -1259,6 +1259,150 @@ function createRestDayRequestRow(id, data) {
   
   return row;
 }
+2. Update IT Admin Dashboard - Show only pending dept approvals
+javascript// Update createLeaveRequestRow in dashboard.js
+function createLeaveRequestRow(docId, request) {
+  const row = document.createElement('tr');
+  row.className = 'request-row';
+  
+  const startDate = request.startDate || '-';
+  const endDate = request.endDate || '-';
+  const deptStatus = request.departmentApproval || 'pending';
+  const hrStatus = request.hrApproval || 'pending';
+  const finalStatus = request.status || 'pending';
+
+  row.innerHTML = `
+    <td>
+      <div class="user-info">
+        <img src="https://i.pravatar.cc/32?u=${request.employeeName}" class="user-avatar" alt="">
+        <span class="user-name">${request.employeeName || '-'}</span>
+      </div>
+    </td>
+    <td><span class="department-badge">${request.department || '-'}</span></td>
+    <td><span class="type-badge ${request.type}">${formatLeaveType(request.type)}</span></td>
+    <td>${formatDate(startDate)}</td>
+    <td>${formatDate(endDate)}</td>
+    <td><span class="task-count completed">${request.totalDays || 0}</span></td>
+    <td>
+      <div class="description-text" title="${request.reason || '-'}">
+        ${truncateText(request.reason || '-', 40)}
+      </div>
+    </td>
+    <td>
+      <span class="status-badge ${finalStatus.toLowerCase()}">${finalStatus}</span>
+      <div style="font-size: 11px; margin-top: 4px; color: #64748b;">
+        Dept: <span class="status-badge ${deptStatus}" style="font-size: 10px; padding: 2px 6px;">${deptStatus}</span><br>
+        HR: <span class="status-badge ${hrStatus}" style="font-size: 10px; padding: 2px 6px;">${hrStatus}</span>
+      </div>
+    </td>
+    <td>
+      <div class="action-buttons">
+        ${deptStatus === 'pending' ? `
+          <button class="btn-icon approve-leave-btn" data-id="${docId}" title="Approve">
+            <i class="fas fa-check"></i>
+          </button>
+          <button class="btn-icon deny-leave-btn" data-id="${docId}" title="Deny">
+            <i class="fas fa-times"></i>
+          </button>
+        ` : ''}
+        <button class="btn-icon view-btn" data-id="${docId}" title="View Details">
+          <i class="fas fa-eye"></i>
+        </button>
+      </div>
+    </td>
+  `;
+
+  // Add event listeners
+  if (deptStatus === 'pending') {
+    row.querySelector('.approve-leave-btn')?.addEventListener('click', () => {
+      handleLeaveApproval(docId, 'approved', request);
+    });
+
+    row.querySelector('.deny-leave-btn')?.addEventListener('click', () => {
+      handleLeaveApproval(docId, 'denied', request);
+    });
+  }
+
+  row.querySelector('.view-btn')?.addEventListener('click', () => {
+    showLeaveDetails(request);
+  });
+
+  return row;
+}
+
+// Update createRestRequestRow in dashboard.js
+function createRestRequestRow(docId, request) {
+  const row = document.createElement('tr');
+  row.className = 'request-row';
+  
+  const deptStatus = request.departmentApproval || 'pending';
+  const hrStatus = request.hrApproval || 'pending';
+  const finalStatus = request.status || 'pending';
+
+  row.innerHTML = `
+    <td>
+      <div class="user-info">
+        <img src="https://i.pravatar.cc/32?u=${request.employeeName}" class="user-avatar" alt="">
+        <span class="user-name">${request.employeeName || '-'}</span>
+      </div>
+    </td>
+    <td><span class="department-badge">${request.department || '-'}</span></td>
+    <td><span class="type-badge">${request.type || '-'}</span></td>
+    <td>${formatDate(request.date || '-')}</td>
+    <td>
+      <div class="description-text" title="${request.reason || '-'}">
+        ${truncateText(request.reason || '-', 40)}
+      </div>
+    </td>
+    <td>
+      <span class="status-badge ${finalStatus.toLowerCase()}">${finalStatus}</span>
+      <div style="font-size: 11px; margin-top: 4px; color: #64748b;">
+        Dept: <span class="status-badge ${deptStatus}" style="font-size: 10px; padding: 2px 6px;">${deptStatus}</span><br>
+        HR: <span class="status-badge ${hrStatus}" style="font-size: 10px; padding: 2px 6px;">${hrStatus}</span>
+      </div>
+    </td>
+    <td>
+      <div class="action-buttons">
+        ${deptStatus === 'pending' ? `
+          <button class="btn-icon approve-rest-btn" data-id="${docId}" title="Approve">
+            <i class="fas fa-check"></i>
+          </button>
+          <button class="btn-icon deny-rest-btn" data-id="${docId}" title="Deny">
+            <i class="fas fa-times"></i>
+          </button>
+        ` : ''}
+        <button class="btn-icon view-btn" data-id="${docId}" title="View Details">
+          <i class="fas fa-eye"></i>
+        </button>
+      </div>
+    </td>
+  `;
+
+  // Add event listeners
+  if (deptStatus === 'pending') {
+    row.querySelector('.approve-rest-btn')?.addEventListener('click', () => {
+      handleRestApproval(docId, 'approved', request);
+    });
+
+    row.querySelector('.deny-rest-btn')?.addEventListener('click', () => {
+      handleRestApproval(docId, 'denied', request);
+    });
+  }
+
+  row.querySelector('.view-btn')?.addEventListener('click', () => {
+    showRestDetails(request);
+  });
+
+  return row;
+}
+Updated Flow:
+
+Employee submits → departmentApproval: 'pending', hrApproval: 'pending', status: 'pending'
+Department Head approves first → departmentApproval: 'approved' (HR buttons now appear)
+HR can now approve → hrApproval: 'approved', status: 'approved'
+If Dept denies → departmentApproval: 'denied', status: 'denied' (HR never sees it)
+If Dept approves but HR denies → hrApproval: 'denied', status: 'denied'
+RetryClaude does not have the ability to run the code it generates yet.Claude can make mistakes. Please double-check responses. Sonnet 4.5
 // Load Employees
 async function loadEmployees() {
   try {
@@ -1433,29 +1577,16 @@ function filterEmployees() {
   });
 }
 
-// Update handleApproveLeave function
+// Action Handlers
 async function handleApproveLeave(id) {
   if (!confirm('Are you sure you want to approve this leave request?')) return;
   
   try {
-    const docRef = window.db.collection('leave_requests').doc(id);
-    const doc = await docRef.get();
-    const data = doc.data();
-
-    // Check if department has approved first
-    if (data.departmentApproval !== 'approved') {
-      alert('This request must be approved by the department head first.');
-      return;
-    }
-
-    const updateData = {
-      hrApproval: 'approved',
-      hrApprovedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      hrApprovedBy: window.currentUser?.username || 'HR',
-      status: 'approved' // Final approval - set overall status to approved
-    };
-
-    await docRef.update(updateData);
+    await window.db.collection('leave_requests').doc(id).update({
+      status: 'approved',
+      approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      approvedBy: window.currentUser?.username || 'HR'
+    });
     
     alert('Leave request approved successfully!');
     await loadLeaveRequests();
@@ -1467,21 +1598,19 @@ async function handleApproveLeave(id) {
   }
 }
 
-// Update handleDenyLeave function
 async function handleDenyLeave(id) {
   const reason = prompt('Please provide a reason for denial:');
   if (!reason) return;
   
   try {
     await window.db.collection('leave_requests').doc(id).update({
-      hrApproval: 'denied',
-      status: 'denied', // HR denial sets final status to denied
-      hrDeniedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      hrDeniedBy: window.currentUser?.username || 'HR',
-      hrDenialReason: reason
+      status: 'denied',
+      deniedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      deniedBy: window.currentUser?.username || 'HR',
+      denialReason: reason
     });
     
-    alert('Leave request denied by HR.');
+    alert('Leave request denied.');
     await loadLeaveRequests();
     await loadHRStats();
     await loadRecentLeaveList();
@@ -1491,29 +1620,15 @@ async function handleDenyLeave(id) {
   }
 }
 
-// Update handleApproveRestDay function
 async function handleApproveRestDay(id) {
   if (!confirm('Are you sure you want to approve this rest day request?')) return;
   
   try {
-    const docRef = window.db.collection('early_rest_requests').doc(id);
-    const doc = await docRef.get();
-    const data = doc.data();
-
-    // Check if department has approved first
-    if (data.departmentApproval !== 'approved') {
-      alert('This request must be approved by the department head first.');
-      return;
-    }
-
-    const updateData = {
-      hrApproval: 'approved',
-      hrApprovedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      hrApprovedBy: window.currentUser?.username || 'HR',
-      status: 'approved' // Final approval
-    };
-
-    await docRef.update(updateData);
+    await window.db.collection('early_rest_requests').doc(id).update({
+      status: 'approved',
+      approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      approvedBy: window.currentUser?.username || 'HR'
+    });
     
     alert('Rest day request approved successfully!');
     await loadRestDayRequests();
@@ -1524,21 +1639,19 @@ async function handleApproveRestDay(id) {
   }
 }
 
-// Update handleDenyRestDay function
 async function handleDenyRestDay(id) {
   const reason = prompt('Please provide a reason for denial:');
   if (!reason) return;
   
   try {
     await window.db.collection('early_rest_requests').doc(id).update({
-      hrApproval: 'denied',
       status: 'denied',
-      hrDeniedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      hrDeniedBy: window.currentUser?.username || 'HR',
-      hrDenialReason: reason
+      deniedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      deniedBy: window.currentUser?.username || 'HR',
+      denialReason: reason
     });
     
-    alert('Rest day request denied by HR.');
+    alert('Rest day request denied.');
     await loadRestDayRequests();
     await loadHRStats();
   } catch (error) {
@@ -1546,6 +1659,7 @@ async function handleDenyRestDay(id) {
     alert('Error denying rest day request');
   }
 }
+
 // Mount HR Dashboard
 async function mountHRDashboard(user) {
   mount(renderHRDashboard(user));

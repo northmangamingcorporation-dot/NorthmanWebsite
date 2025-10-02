@@ -1098,7 +1098,6 @@ form.addEventListener('submit', async (e) => {
     endDate: formData.get('endDate'),
     totalDays: parseInt(formData.get('totalDays')),
     reason: formData.get('reason').trim(),
-    departmentApproval: 'pending',
     status: 'pending',
     submittedAt: new Date().toISOString(),
     submittedBy: window.currentUser?.uid || ''
@@ -1283,7 +1282,7 @@ form.addEventListener('submit', async (e) => {
     type: formData.get('requestType'),
     date: formData.get('requestDate'),
     reason: formData.get('reason').trim(),
-    departmentApproval: 'pending',
+    De: 'pending',
     status: 'pending',
     submittedAt: new Date().toISOString(),
     submittedBy: window.currentUser?.uid || ''

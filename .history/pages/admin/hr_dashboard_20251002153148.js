@@ -1203,7 +1203,7 @@ async function loadRestDayRequests() {
   }
 }
 
-// Update createRestDayRequestRow in hr_dashboard.js
+// Create Rest Day Request Row
 function createRestDayRequestRow(id, data) {
   const row = document.createElement('tr');
   row.className = 'restday-request-row';
@@ -1211,9 +1211,6 @@ function createRestDayRequestRow(id, data) {
   row.dataset.status = data.status || 'pending';
   row.dataset.employee = data.employeeName || '';
   row.dataset.department = data.department || '';
-  
-  const deptStatus = data.departmentApproval || 'pending';
-  const hrStatus = data.hrApproval || 'pending';
   
   row.innerHTML = `
     <td>
@@ -1226,29 +1223,15 @@ function createRestDayRequestRow(id, data) {
     <td><span class="hr-type-badge">${data.type || 'N/A'}</span></td>
     <td>${data.date || 'N/A'}</td>
     <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${data.reason || ''}">${data.reason || 'N/A'}</td>
+    <td><span class="hr-status-badge ${data.status || 'pending'}">${data.status || 'pending'}</span></td>
     <td>
-      <span class="hr-status-badge ${data.status || 'pending'}">${data.status || 'pending'}</span>
-      <div style="font-size: 11px; margin-top: 4px;">
-        <div>Dept: <span class="hr-status-badge ${deptStatus}" style="font-size: 10px; padding: 2px 6px;">${deptStatus}</span></div>
-        <div>HR: <span class="hr-status-badge ${hrStatus}" style="font-size: 10px; padding: 2px 6px;">${hrStatus}</span></div>
-      </div>
-    </td>
-    <td>
-      ${deptStatus === 'approved' && hrStatus === 'pending' ? `
+      ${data.status === 'pending' ? `
         <button class="hr-action-btn approve" onclick="handleApproveRestDay('${id}')">
           <i class="fas fa-check"></i> Approve
         </button>
         <button class="hr-action-btn deny" onclick="handleDenyRestDay('${id}')">
           <i class="fas fa-times"></i> Deny
         </button>
-      ` : deptStatus === 'pending' ? `
-        <span style="color: #f59e0b; font-size: 12px; font-weight: 600;">
-          <i class="fas fa-clock"></i> Awaiting Dept Approval
-        </span>
-      ` : deptStatus === 'denied' ? `
-        <span style="color: #ef4444; font-size: 12px; font-weight: 600;">
-          <i class="fas fa-times-circle"></i> Denied by Dept
-        </span>
       ` : `
         <button class="hr-action-btn view" onclick="viewRestDayDetails('${id}')">
           <i class="fas fa-eye"></i> View
@@ -1259,6 +1242,7 @@ function createRestDayRequestRow(id, data) {
   
   return row;
 }
+
 // Load Employees
 async function loadEmployees() {
   try {
@@ -1433,29 +1417,16 @@ function filterEmployees() {
   });
 }
 
-// Update handleApproveLeave function
+// Action Handlers
 async function handleApproveLeave(id) {
   if (!confirm('Are you sure you want to approve this leave request?')) return;
   
   try {
-    const docRef = window.db.collection('leave_requests').doc(id);
-    const doc = await docRef.get();
-    const data = doc.data();
-
-    // Check if department has approved first
-    if (data.departmentApproval !== 'approved') {
-      alert('This request must be approved by the department head first.');
-      return;
-    }
-
-    const updateData = {
-      hrApproval: 'approved',
-      hrApprovedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      hrApprovedBy: window.currentUser?.username || 'HR',
-      status: 'approved' // Final approval - set overall status to approved
-    };
-
-    await docRef.update(updateData);
+    await window.db.collection('leave_requests').doc(id).update({
+      status: 'approved',
+      approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      approvedBy: window.currentUser?.username || 'HR'
+    });
     
     alert('Leave request approved successfully!');
     await loadLeaveRequests();
@@ -1467,21 +1438,19 @@ async function handleApproveLeave(id) {
   }
 }
 
-// Update handleDenyLeave function
 async function handleDenyLeave(id) {
   const reason = prompt('Please provide a reason for denial:');
   if (!reason) return;
   
   try {
     await window.db.collection('leave_requests').doc(id).update({
-      hrApproval: 'denied',
-      status: 'denied', // HR denial sets final status to denied
-      hrDeniedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      hrDeniedBy: window.currentUser?.username || 'HR',
-      hrDenialReason: reason
+      status: 'denied',
+      deniedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      deniedBy: window.currentUser?.username || 'HR',
+      denialReason: reason
     });
     
-    alert('Leave request denied by HR.');
+    alert('Leave request denied.');
     await loadLeaveRequests();
     await loadHRStats();
     await loadRecentLeaveList();
@@ -1491,29 +1460,15 @@ async function handleDenyLeave(id) {
   }
 }
 
-// Update handleApproveRestDay function
 async function handleApproveRestDay(id) {
   if (!confirm('Are you sure you want to approve this rest day request?')) return;
   
   try {
-    const docRef = window.db.collection('early_rest_requests').doc(id);
-    const doc = await docRef.get();
-    const data = doc.data();
-
-    // Check if department has approved first
-    if (data.departmentApproval !== 'approved') {
-      alert('This request must be approved by the department head first.');
-      return;
-    }
-
-    const updateData = {
-      hrApproval: 'approved',
-      hrApprovedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      hrApprovedBy: window.currentUser?.username || 'HR',
-      status: 'approved' // Final approval
-    };
-
-    await docRef.update(updateData);
+    await window.db.collection('early_rest_requests').doc(id).update({
+      status: 'approved',
+      approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      approvedBy: window.currentUser?.username || 'HR'
+    });
     
     alert('Rest day request approved successfully!');
     await loadRestDayRequests();
@@ -1524,21 +1479,19 @@ async function handleApproveRestDay(id) {
   }
 }
 
-// Update handleDenyRestDay function
 async function handleDenyRestDay(id) {
   const reason = prompt('Please provide a reason for denial:');
   if (!reason) return;
   
   try {
     await window.db.collection('early_rest_requests').doc(id).update({
-      hrApproval: 'denied',
       status: 'denied',
-      hrDeniedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      hrDeniedBy: window.currentUser?.username || 'HR',
-      hrDenialReason: reason
+      deniedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      deniedBy: window.currentUser?.username || 'HR',
+      denialReason: reason
     });
     
-    alert('Rest day request denied by HR.');
+    alert('Rest day request denied.');
     await loadRestDayRequests();
     await loadHRStats();
   } catch (error) {
@@ -1546,6 +1499,7 @@ async function handleDenyRestDay(id) {
     alert('Error denying rest day request');
   }
 }
+
 // Mount HR Dashboard
 async function mountHRDashboard(user) {
   mount(renderHRDashboard(user));

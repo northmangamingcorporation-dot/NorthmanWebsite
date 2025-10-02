@@ -1546,11 +1546,6 @@ async function handleDenyRestDay(id) {
     alert('Error denying rest day request');
   }
 }
-// Mount HR Dashboard
-async function mountHRDashboard(user) {
-  mount(renderHRDashboard(user));
-  await attachHRDashboard(user);
-}
 
 // Export functions
 window.mountHRDashboard = mountHRDashboard;
