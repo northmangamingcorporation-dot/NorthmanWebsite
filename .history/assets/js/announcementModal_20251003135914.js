@@ -1608,7 +1608,7 @@ window.stopAnnouncementListener = null;
 window.showAnnouncementModal = showAnnouncementModal;
 window.checkAnnouncementDatabases = checkAnnouncementDatabases;
 
-// Add initialization function at the end of the file
+c// Add initialization function at the end of the file
 function initializeAnnouncementSystem(user) {
   if (!user || !user.department) {
     console.error('User object required to initialize announcement system');

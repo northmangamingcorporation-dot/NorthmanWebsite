@@ -519,7 +519,6 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
   if (loggedInUser) {
     try {
       const user = JSON.parse(loggedInUser);
-      initializeAnnouncementSystem(user);
       if (user && user.username) {
         updateUserStatus(user, 'login').catch(err => {
           console.warn('Failed to update login status:', err);
@@ -664,8 +663,18 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
     const role = (user.position || "").toLowerCase();
     window.currentUser = user
     console.log(`Redirecting user ${user.username} with role: ${role}`);
-    // Initialize system
-    initializeAnnouncementSystem(user);
+    // After user logs in, initialize the system
+  firebase.auth().onAuthStateChanged(async (firebaseUser) => {
+    if (firebaseUser) {
+      const userDoc = await db.collection('users').doc(firebaseUser.uid).get();
+      const userData = userDoc.data();
+      
+      window.currentUser = userData;
+      
+      // Initialize real-time announcements
+      initializeAnnouncementSystem(userData);
+    }
+  });
 
     if (role === "it manager") {
       window.mountITAdminDashboard(user);

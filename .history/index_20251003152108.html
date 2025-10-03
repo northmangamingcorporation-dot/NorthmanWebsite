@@ -78,35 +78,14 @@
       display: none !important;
     }
     /* Hide all scrollbars (cross-browser) */
-/* Base: hide scrollbar */
-.scroll-container {
-  overflow: auto;
-  scrollbar-width: none;     /* Firefox */
-  -ms-overflow-style: none;  /* IE & Edge */
-}
+    * {
+      scrollbar-width: none;     /* Firefox */
+      -ms-overflow-style: none;  /* IE & Edge */
+    }
 
-.scroll-container::-webkit-scrollbar {
-  width: 0; /* Chrome, Safari, Opera */
-}
-
-/* Show scrollbar only on hover */
-.scroll-container:hover {
-  scrollbar-width: thin; /* Firefox */
-}
-
-.scroll-container:hover::-webkit-scrollbar {
-  width: 8px;
-}
-
-.scroll-container:hover::-webkit-scrollbar-thumb {
-  background: rgba(100, 100, 100, 0.5);
-  border-radius: 4px;
-}
-
-.scroll-container:hover::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+    *::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
 
   </style>
 </head>

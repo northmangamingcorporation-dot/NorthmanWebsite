@@ -743,7 +743,6 @@ function determinePriority(status) {
   document.head.appendChild(style);
 })();
 
-
 // Icons map
 const ICONS = {
   accomplishments: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
@@ -780,13 +779,6 @@ const DEPARTMENT_COLLECTIONS = {
 
 // Collection configurations
 const COLLECTIONS = {
-  accomplishments: {
-    statusField: 'status',
-    showStatuses: ['pending', 'under_review', 'needs_revision'],
-    name: 'ACCOMPLISHMENTS',
-    icon: 'accomplishments',
-    allowQuickActions: true
-  },
   accomplishments: {
     statusField: 'status',
     showStatuses: ['pending', 'under_review', 'needs_revision'],
@@ -1497,25 +1489,25 @@ async function showAnnouncementModal(user) {
         }
       });
 
-      nextBtn.addEventListener('click', async function() {
+      nextBtn.addEventListener('click', function() {
         if (!isProcessing) {
-            if (currentIndex < announcements.length - 1) {
-            currentIndex++;
-            render();
-            } else {
-            // Mark as viewed before closing
-            isProcessing = true;
-            const currentAnnouncement = announcements[currentIndex];
-            
-            await markAnnouncementAsViewed(
-                user.username || user.email,
-                currentAnnouncement.id,
-                currentAnnouncement.collectionName
-            );
-            
-            close();
-            }
-        }
+    if (currentIndex < announcements.length - 1) {
+      currentIndex++;
+      render();
+    } else {
+      // Mark as viewed before closing
+      isProcessing = true;
+      const currentAnnouncement = announcements[currentIndex];
+      
+      await markAnnouncementAsViewed(
+        user.username || user.email,
+        currentAnnouncement.id,
+        currentAnnouncement.collectionName
+      );
+      
+      close();
+    }
+  }
       });
 
       // Progress dots navigation
@@ -1547,90 +1539,22 @@ async function showAnnouncementModal(user) {
     }
   }
 }
-// Add real-time listener function
-function startAnnouncementListener(user) {
-  if (!window.db || !user || !user.department) {
-    console.error('Cannot start listener: Missing database or user info');
-    return null;
-  }
 
-  const userDept = user.department;
-  const deptConfig = DEPARTMENT_COLLECTIONS[userDept];
-  
-  if (!deptConfig) {
-    console.warn(`No configuration found for department: ${userDept}`);
-    return null;
-  }
-
-  const listeners = [];
-  
-  // Set up listeners for each collection
-  deptConfig.collections.forEach(function(collectionName) {
-    const config = COLLECTIONS[collectionName];
-    if (!config) return;
-    
-    const unsubscribe = window.db.collection(collectionName)
-      .where(config.statusField, 'in', config.showStatuses)
-      .onSnapshot(async function(snapshot) {
-        // Check if there are new announcements
-        const hasNewAnnouncements = snapshot.docChanges().some(function(change) {
-          return change.type === 'added';
-        });
-        
-        if (hasNewAnnouncements) {
-          // Check if modal is already open
-          const modalExists = document.getElementById('announcementModalOverlay');
-          if (!modalExists) {
-            // Small delay to avoid race conditions
-            setTimeout(function() {
-              showAnnouncementModal(user);
-            }, 500);
-          }
-        }
-      }, function(error) {
-        console.error(`Error in ${collectionName} listener:`, error);
-      });
-    
-    listeners.push(unsubscribe);
-  });
-  
-  // Return cleanup function
-  return function() {
-    listeners.forEach(function(unsubscribe) {
-      unsubscribe();
-    });
-  };
-}
-
-// Store cleanup function globally
-window.stopAnnouncementListener = null;
 // Expose globally
 window.showAnnouncementModal = showAnnouncementModal;
 window.checkAnnouncementDatabases = checkAnnouncementDatabases;
 
-// Add initialization function at the end of the file
-function initializeAnnouncementSystem(user) {
-  if (!user || !user.department) {
-    console.error('User object required to initialize announcement system');
-    return;
-  }
-  
-  // Show initial announcements
-  showAnnouncementModal(user);
-  
-  // Start real-time listener
-  if (window.stopAnnouncementListener) {
-    window.stopAnnouncementListener();
-  }
-  
-  window.stopAnnouncementListener = startAnnouncementListener(user);
-  console.log('Real-time announcement listener started for', user.department);
-}
-
-// Expose functions globally
-window.initializeAnnouncementSystem = initializeAnnouncementSystem;
-window.startAnnouncementListener = startAnnouncementListener;
-
 console.log('Advanced Department-Based Announcement Modal System loaded.');
-console.log('Usage: initializeAnnouncementSystem(userObject) - for real-time updates');
-console.log('Or: showAnnouncementModal(userObject) - for one-time check');
+console.log('Usage: showAnnouncementModal(userObject)');
+console.log('Example: showAnnouncementModal({ firstName: "John", lastName: "Doe", department: "IT", username: "jdoe", email: "john@example.com" })');
+
+// Example auto-load on page ready (if user is already logged in)
+// Uncomment this if you want to auto-show on page load
+/*
+document.addEventListener('DOMContentLoaded', function() {
+  // Check if user is logged in (adjust this based on your auth system)
+  if (window.currentUser && window.currentUser.department) {
+    showAnnouncementModal(window.currentUser);
+  }
+});
+*/

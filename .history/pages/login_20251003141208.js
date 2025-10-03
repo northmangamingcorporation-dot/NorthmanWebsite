@@ -515,11 +515,10 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
 
    // Update user status to offline before clearing session
   const loggedInUser = localStorage.getItem("loggedInUser") || localStorage.getItem("loggedInUser ");
-  
+  initializeAnnouncementSystem(user);
   if (loggedInUser) {
     try {
       const user = JSON.parse(loggedInUser);
-      initializeAnnouncementSystem(user);
       if (user && user.username) {
         updateUserStatus(user, 'login').catch(err => {
           console.warn('Failed to update login status:', err);

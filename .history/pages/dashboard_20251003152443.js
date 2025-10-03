@@ -1814,7 +1814,6 @@ function renderTicketErrReportSection() {
         overflow-x: auto;
         border-radius: 12px;
         border: 1px solid #e2e8f0;
-        max-height: 700px;
       ">
         <table style="
           width: 100%;

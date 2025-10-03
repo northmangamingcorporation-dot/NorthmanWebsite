@@ -941,9 +941,9 @@ function renderHRStyles() {
 }
 
 // Initialize HR Dashboard
-async function attachHRDashboard(user) {
+async function attachHRDashboard() {
   injectHREventHandlers();
-  showAnnouncementModal(user);
+  showAnnouncementModal(admin);
   // Load initial data
   await loadHRStats();
   await loadLeaveRequests();
