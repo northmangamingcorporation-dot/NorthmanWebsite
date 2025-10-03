@@ -1154,7 +1154,7 @@ async function attachITAdminDashboard(admin) {
   loadLeaveRequests();
   loadRestRequests();
   initializeApprovalTabs();
-  showAnnouncementModal(admin);
+  showAnnouncementModal();
   
   const ordersCol = window.db.collection("it_service_orders");
   const tasksCol = window.db.collection("ITdepartment_tasks");

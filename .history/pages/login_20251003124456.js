@@ -661,7 +661,7 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
   // Enhanced helper functions
   function redirectToUserDashboard(user) {
     const role = (user.position || "").toLowerCase();
-    window.currentUser = user
+    window.currentUser = sessionUser
     console.log(`Redirecting user ${user.username} with role: ${role}`);
     
     if (role === "it manager") {

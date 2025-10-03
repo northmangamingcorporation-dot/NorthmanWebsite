@@ -707,7 +707,7 @@ async function attachAdvancedAdminDashboard(admin) {
   injectMainPageStyles();
   injectAdvancedAdminStyles();
   initializeDashboardOnLoad();
-  showAnnouncementModal(admin);
+showAnnouncementModal(user);
   let unsubscribeTravel = null;
   let unsubscribeDrivers = null;
   let unsubscribeUsers = null;

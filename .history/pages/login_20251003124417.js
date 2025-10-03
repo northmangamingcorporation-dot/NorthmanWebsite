@@ -661,7 +661,7 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
   // Enhanced helper functions
   function redirectToUserDashboard(user) {
     const role = (user.position || "").toLowerCase();
-    window.currentUser = user
+    
     console.log(`Redirecting user ${user.username} with role: ${role}`);
     
     if (role === "it manager") {
@@ -901,8 +901,8 @@ async function updateUserStatus(user, type) {
     const localUser = localStorage.getItem('loggedInUser') || localStorage.getItem('loggedInUser ');
     if (localUser) {
       try {
-        const sessionUser = JSON.parse(localUser);
-        window.currentUser = sessionUser 
+        const  = JSON.parse(localUser);
+        window.currentUser = 
         if (sessionUser.username === user.username) {
           sessionUser.status = status;
           sessionUser.lastActive = updateData.lastActive;

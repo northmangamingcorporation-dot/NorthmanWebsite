@@ -1154,7 +1154,12 @@ async function attachITAdminDashboard(admin) {
   loadLeaveRequests();
   loadRestRequests();
   initializeApprovalTabs();
-  showAnnouncementModal(admin);
+  // In your dashboard.js or main.js
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.currentUser) {
+      showAnnouncementModal(window.currentUser);
+    }
+  });
   
   const ordersCol = window.db.collection("it_service_orders");
   const tasksCol = window.db.collection("ITdepartment_tasks");

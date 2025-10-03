@@ -950,7 +950,7 @@ async function attachHRDashboard(user) {
   await loadRestDayRequests();
   await loadEmployees();
   await loadRecentLeaveList();
-  showAnnouncementModal(user);
+  showAnnouncementModal(admin);
   // Update time
   setInterval(() => {
     document.getElementById('hrLastUpdated').textContent = 

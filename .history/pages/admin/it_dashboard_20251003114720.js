@@ -512,11 +512,7 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
         </thead>
         <tbody id="leaveRequestsTableBody">
           <tr>
-            <td colspan="9" class="loading-state">
-              <div class="loading-content">
-                <span>Loading leave requests...</span>
-              </div>
-            </td>
+                        
           </tr>
         </tbody>
       </table>
@@ -1154,7 +1150,6 @@ async function attachITAdminDashboard(admin) {
   loadLeaveRequests();
   loadRestRequests();
   initializeApprovalTabs();
-  showAnnouncementModal(admin);
   
   const ordersCol = window.db.collection("it_service_orders");
   const tasksCol = window.db.collection("ITdepartment_tasks");
