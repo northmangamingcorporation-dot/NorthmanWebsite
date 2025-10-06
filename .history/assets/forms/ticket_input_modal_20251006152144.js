@@ -1997,6 +1997,7 @@ function filterTicketsByDate() {
     const dateInput = document.getElementById('ticketDateFilter');
     const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
     dateInput.value = today; // Set today's date in the input
+
   });
 
 

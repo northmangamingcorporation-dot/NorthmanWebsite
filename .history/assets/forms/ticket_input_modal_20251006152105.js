@@ -1805,6 +1805,7 @@ function loadTickets(selectedDate = null) {
       return;
     }
 
+    
     // Determine which date to use (selected date or today)
     const targetDate = selectedDate ? new Date(selectedDate + 'T00:00:00') : new Date();
 
@@ -1871,11 +1872,6 @@ function loadTickets(selectedDate = null) {
         // Remove no-data row if exists
         const noDataRow = tbody.querySelector('.no-data-row');
         if (noDataRow) noDataRow.remove();
-
-        const dateInput = document.getElementById('ticketDateFilter');
-        const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
-        dateInput.value = today; // Set today's date in the input
-        updateTicketsDateDisplay(today); // Also show formatted date text
 
         // Track all tickets for rankings
         const allTickets = [];
@@ -1991,14 +1987,6 @@ function filterTicketsByDate() {
   
   console.log('Filtering tickets for:', selectedDate || 'today');
 }
-
-// ✅ Automatically show today's date on page load
-  document.addEventListener('DOMContentLoaded', () => {
-    const dateInput = document.getElementById('ticketDateFilter');
-    const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
-    dateInput.value = today; // Set today's date in the input
-  });
-
 
   // ✅ Function to display formatted date
   function updateTicketsDateDisplay(selectedDate = null) {
