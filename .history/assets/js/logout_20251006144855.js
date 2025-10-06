@@ -244,6 +244,11 @@ class LogoutManager {
 
     // Clear any cookies if needed
     this.clearAuthCookies();
+    if (typeof closeAllModals === "undefined") {
+      window.closeAllModals = function() {
+          document.querySelectorAll(".modal-overlay").forEach(el => el.remove());
+      };
+    }
     console.log('Session data cleared successfully');
   }
 

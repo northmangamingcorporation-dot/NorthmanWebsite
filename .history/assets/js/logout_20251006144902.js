@@ -244,6 +244,7 @@ class LogoutManager {
 
     // Clear any cookies if needed
     this.clearAuthCookies();
+  
     console.log('Session data cleared successfully');
   }
 
