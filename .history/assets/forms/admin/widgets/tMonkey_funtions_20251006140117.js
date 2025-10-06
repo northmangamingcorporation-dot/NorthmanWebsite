@@ -401,10 +401,10 @@ function closeCodeViewer() {
     setTimeout(() => modal.remove(), 300);
   }
   if (typeof closeAllModals === "undefined") {
-    window.closeAllModals = function() {
-        document.querySelectorAll(".modal-overlay").forEach(el => el.remove());
-    };
-    }
+  window.closeAllModals = function() {
+    document.querySelectorAll(".modal-overlay").forEach(el => el.remove());
+  };
+}
 }
 
 // ============================================================================

@@ -400,11 +400,7 @@ function closeCodeViewer() {
     modal.style.animation = 'fadeOut 0.3s ease';
     setTimeout(() => modal.remove(), 300);
   }
-  if (typeof closeAllModals === "undefined") {
-    window.closeAllModals = function() {
-        document.querySelectorAll(".modal-overlay").forEach(el => el.remove());
-    };
-    }
+  globalModal.hide()
 }
 
 // ============================================================================

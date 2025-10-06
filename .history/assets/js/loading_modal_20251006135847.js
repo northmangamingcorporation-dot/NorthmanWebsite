@@ -430,3 +430,4 @@ if (window._modalKeydownHandler) {
   document.removeEventListener("keydown", window._modalKeydownHandler);
   window._modalKeydownHandler = null;
 }
+
