@@ -73,11 +73,18 @@
   </script>
   
   <style>
+    /* Advanced Adaptive Color System */
+    * {
+      transition: background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                  color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                  border-color 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
     #quickAcces-8542 {
       display: none !important;
     }
 
-    /* Hide all scrollbars (cross-browser) */
+    /* Scrollbar Styling */
     .scroll-container {
       overflow: auto;
       scrollbar-width: none;
@@ -105,283 +112,427 @@
       background: transparent;
     }
 
-    /* Adaptive Text Color System - Only affects text colors */
-    body {
-      transition: color 0.5s ease;
+    /* Animated Background Grid */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 50px 50px;
+      animation: moveGrid 20s linear infinite;
+      pointer-events: none;
+      z-index: -1;
+      opacity: 0.3;
     }
 
-    /* Light mode - Default text colors */
+    @keyframes moveGrid {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(50px, 50px); }
+    }
+
+    /* Light mode - Default */
     body.light {
-      color: #667eea;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #2d3748;
     }
 
-    body.light h1,
-    body.light h2,
-    body.light h3,
-    body.light h4,
-    body.light h5,
-    body.light h6 {
-      color: #764ba2;
+    body.light #root,
+    body.light .container,
+    body.light .card {
+      background: rgba(255, 255, 255, 0.95);
+      color: #2d3748;
     }
 
-    body.light p,
-    body.light span,
-    body.light div,
-    body.light label {
-      color: inherit;
+    body.light .modal-content,
+    body.light .form-container {
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid rgba(102, 126, 234, 0.2);
     }
 
-    body.light a {
-      color: #5a67d8;
+    body.light button,
+    body.light .btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
     }
 
-    body.light a:hover {
-      color: #4c51bf;
+    body.light button:hover,
+    body.light .btn:hover {
+      background: linear-gradient(135deg, #5568d3, #6a4091);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
 
-    /* Dark mode - Default text colors */
+    body.light input,
+    body.light select,
+    body.light textarea {
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid rgba(102, 126, 234, 0.3);
+      color: #2d3748;
+    }
+
+    body.light input:focus,
+    body.light select:focus,
+    body.light textarea:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    /* Dark mode - Default */
     body.dark {
-      color: #4299e1;
+      background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+      color: #e2e8f0;
     }
 
-    body.dark h1,
-    body.dark h2,
-    body.dark h3,
-    body.dark h4,
-    body.dark h5,
-    body.dark h6 {
-      color: #63b3ed;
+    body.dark #root,
+    body.dark .container,
+    body.dark .card {
+      background: rgba(26, 32, 46, 0.95);
+      color: #e2e8f0;
     }
 
-    body.dark p,
-    body.dark span,
-    body.dark div,
-    body.dark label {
-      color: inherit;
+    body.dark .modal-content,
+    body.dark .form-container {
+      background: rgba(26, 32, 46, 0.98);
+      border: 1px solid rgba(66, 153, 225, 0.3);
     }
 
-    body.dark a {
-      color: #90cdf4;
+    body.dark button,
+    body.dark .btn {
+      background: linear-gradient(135deg, #4299e1, #3182ce);
+      color: white;
+      border: none;
     }
 
-    body.dark a:hover {
-      color: #bee3f8;
+    body.dark button:hover,
+    body.dark .btn:hover {
+      background: linear-gradient(135deg, #3182ce, #2c5282);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(66, 153, 225, 0.4);
+    }
+
+    body.dark input,
+    body.dark select,
+    body.dark textarea {
+      background: rgba(45, 55, 72, 0.9);
+      border: 2px solid rgba(66, 153, 225, 0.3);
+      color: #e2e8f0;
+    }
+
+    body.dark input:focus,
+    body.dark select:focus,
+    body.dark textarea:focus {
+      border-color: #4299e1;
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
     }
 
     /* iOS Light */
     body.light.ios {
-      color: #ff6b6b;
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
     }
 
-    body.light.ios h1,
-    body.light.ios h2,
-    body.light.ios h3,
-    body.light.ios h4,
-    body.light.ios h5,
-    body.light.ios h6 {
-      color: #ee5a6f;
+    body.light.ios button,
+    body.light.ios .btn {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
     }
 
-    body.light.ios a {
-      color: #fa5252;
+    body.light.ios input:focus,
+    body.light.ios select:focus,
+    body.light.ios textarea:focus {
+      border-color: #ff6b6b;
+      box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
     }
 
     /* iOS Dark */
     body.dark.ios {
-      color: #ff6b6b;
+      background: linear-gradient(135deg, #8b0000 0%, #5c0000 100%);
     }
 
-    body.dark.ios h1,
-    body.dark.ios h2,
-    body.dark.ios h3,
-    body.dark.ios h4,
-    body.dark.ios h5,
-    body.dark.ios h6 {
-      color: #ff8787;
+    body.dark.ios #root,
+    body.dark.ios .container,
+    body.dark.ios .card {
+      background: rgba(40, 0, 0, 0.95);
     }
 
-    body.dark.ios a {
-      color: #ffa8a8;
+    body.dark.ios button,
+    body.dark.ios .btn {
+      background: linear-gradient(135deg, #c92a2a, #a61e1e);
+    }
+
+    body.dark.ios input:focus,
+    body.dark.ios select:focus,
+    body.dark.ios textarea:focus {
+      border-color: #ff6b6b;
+      box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
     }
 
     /* Android Light */
     body.light.android {
-      color: #48bb78;
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
     }
 
-    body.light.android h1,
-    body.light.android h2,
-    body.light.android h3,
-    body.light.android h4,
-    body.light.android h5,
-    body.light.android h6 {
-      color: #38a169;
+    body.light.android button,
+    body.light.android .btn {
+      background: linear-gradient(135deg, #48bb78, #38a169);
     }
 
-    body.light.android a {
-      color: #2f855a;
+    body.light.android input:focus,
+    body.light.android select:focus,
+    body.light.android textarea:focus {
+      border-color: #48bb78;
+      box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.1);
     }
 
     /* Android Dark */
     body.dark.android {
-      color: #48bb78;
+      background: linear-gradient(135deg, #1a4d2e 0%, #0f2818 100%);
     }
 
-    body.dark.android h1,
-    body.dark.android h2,
-    body.dark.android h3,
-    body.dark.android h4,
-    body.dark.android h5,
-    body.dark.android h6 {
-      color: #68d391;
+    body.dark.android #root,
+    body.dark.android .container,
+    body.dark.android .card {
+      background: rgba(15, 40, 24, 0.95);
     }
 
-    body.dark.android a {
-      color: #9ae6b4;
+    body.dark.android button,
+    body.dark.android .btn {
+      background: linear-gradient(135deg, #2f855a, #276749);
+    }
+
+    body.dark.android input:focus,
+    body.dark.android select:focus,
+    body.dark.android textarea:focus {
+      border-color: #48bb78;
+      box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.1);
     }
 
     /* Chrome Light */
     body.light.chrome {
-      color: #f6ad55;
+      background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
     }
 
-    body.light.chrome h1,
-    body.light.chrome h2,
-    body.light.chrome h3,
-    body.light.chrome h4,
-    body.light.chrome h5,
-    body.light.chrome h6 {
-      color: #ed8936;
+    body.light.chrome button,
+    body.light.chrome .btn {
+      background: linear-gradient(135deg, #f6ad55, #ed8936);
     }
 
-    body.light.chrome a {
-      color: #dd6b20;
+    body.light.chrome input:focus,
+    body.light.chrome select:focus,
+    body.light.chrome textarea:focus {
+      border-color: #f6ad55;
+      box-shadow: 0 0 0 3px rgba(246, 173, 85, 0.1);
     }
 
     /* Chrome Dark */
     body.dark.chrome {
-      color: #f6ad55;
+      background: linear-gradient(135deg, #744210 0%, #4a2600 100%);
     }
 
-    body.dark.chrome h1,
-    body.dark.chrome h2,
-    body.dark.chrome h3,
-    body.dark.chrome h4,
-    body.dark.chrome h5,
-    body.dark.chrome h6 {
-      color: #fbd38d;
+    body.dark.chrome #root,
+    body.dark.chrome .container,
+    body.dark.chrome .card {
+      background: rgba(58, 33, 0, 0.95);
     }
 
-    body.dark.chrome a {
-      color: #fbd38d;
+    body.dark.chrome button,
+    body.dark.chrome .btn {
+      background: linear-gradient(135deg, #c05621, #9c4221);
+    }
+
+    body.dark.chrome input:focus,
+    body.dark.chrome select:focus,
+    body.dark.chrome textarea:focus {
+      border-color: #dd6b20;
+      box-shadow: 0 0 0 3px rgba(221, 107, 32, 0.1);
     }
 
     /* Firefox Light */
     body.light.firefox {
-      color: #fc8181;
+      background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
     }
 
-    body.light.firefox h1,
-    body.light.firefox h2,
-    body.light.firefox h3,
-    body.light.firefox h4,
-    body.light.firefox h5,
-    body.light.firefox h6 {
-      color: #f56565;
+    body.light.firefox button,
+    body.light.firefox .btn {
+      background: linear-gradient(135deg, #fc8181, #f56565);
     }
 
-    body.light.firefox a {
-      color: #e53e3e;
+    body.light.firefox input:focus,
+    body.light.firefox select:focus,
+    body.light.firefox textarea:focus {
+      border-color: #fc8181;
+      box-shadow: 0 0 0 3px rgba(252, 129, 129, 0.1);
     }
 
     /* Firefox Dark */
     body.dark.firefox {
-      color: #fc8181;
+      background: linear-gradient(135deg, #7c2d12 0%, #431407 100%);
     }
 
-    body.dark.firefox h1,
-    body.dark.firefox h2,
-    body.dark.firefox h3,
-    body.dark.firefox h4,
-    body.dark.firefox h5,
-    body.dark.firefox h6 {
-      color: #feb2b2;
+    body.dark.firefox #root,
+    body.dark.firefox .container,
+    body.dark.firefox .card {
+      background: rgba(52, 16, 7, 0.95);
     }
 
-    body.dark.firefox a {
-      color: #feb2b2;
+    body.dark.firefox button,
+    body.dark.firefox .btn {
+      background: linear-gradient(135deg, #c53030, #9b2c2c);
+    }
+
+    body.dark.firefox input:focus,
+    body.dark.firefox select:focus,
+    body.dark.firefox textarea:focus {
+      border-color: #f56565;
+      box-shadow: 0 0 0 3px rgba(245, 101, 101, 0.1);
     }
 
     /* Safari Light */
     body.light.safari {
-      color: #4fd1c5;
+      background: linear-gradient(135deg, #4fd1c5 0%, #38b2ac 100%);
     }
 
-    body.light.safari h1,
-    body.light.safari h2,
-    body.light.safari h3,
-    body.light.safari h4,
-    body.light.safari h5,
-    body.light.safari h6 {
-      color: #38b2ac;
+    body.light.safari button,
+    body.light.safari .btn {
+      background: linear-gradient(135deg, #4fd1c5, #38b2ac);
     }
 
-    body.light.safari a {
-      color: #319795;
+    body.light.safari input:focus,
+    body.light.safari select:focus,
+    body.light.safari textarea:focus {
+      border-color: #4fd1c5;
+      box-shadow: 0 0 0 3px rgba(79, 209, 197, 0.1);
     }
 
     /* Safari Dark */
     body.dark.safari {
-      color: #4fd1c5;
+      background: linear-gradient(135deg, #0d3d39 0%, #042f2e 100%);
     }
 
-    body.dark.safari h1,
-    body.dark.safari h2,
-    body.dark.safari h3,
-    body.dark.safari h4,
-    body.dark.safari h5,
-    body.dark.safari h6 {
-      color: #81e6d9;
+    body.dark.safari #root,
+    body.dark.safari .container,
+    body.dark.safari .card {
+      background: rgba(4, 47, 46, 0.95);
     }
 
-    body.dark.safari a {
-      color: #b2f5ea;
+    body.dark.safari button,
+    body.dark.safari .btn {
+      background: linear-gradient(135deg, #2c7a7b, #285e61);
+    }
+
+    body.dark.safari input:focus,
+    body.dark.safari select:focus,
+    body.dark.safari textarea:focus {
+      border-color: #38b2ac;
+      box-shadow: 0 0 0 3px rgba(56, 178, 172, 0.1);
     }
 
     /* Edge Light */
     body.light.edge {
-      color: #4299e1;
+      background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
     }
 
-    body.light.edge h1,
-    body.light.edge h2,
-    body.light.edge h3,
-    body.light.edge h4,
-    body.light.edge h5,
-    body.light.edge h6 {
-      color: #3182ce;
+    body.light.edge button,
+    body.light.edge .btn {
+      background: linear-gradient(135deg, #4299e1, #3182ce);
     }
 
-    body.light.edge a {
-      color: #2c5282;
+    body.light.edge input:focus,
+    body.light.edge select:focus,
+    body.light.edge textarea:focus {
+      border-color: #4299e1;
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
     }
 
     /* Edge Dark */
     body.dark.edge {
-      color: #4299e1;
+      background: linear-gradient(135deg, #1e3a5f 0%, #0f2942 100%);
     }
 
-    body.dark.edge h1,
-    body.dark.edge h2,
-    body.dark.edge h3,
-    body.dark.edge h4,
-    body.dark.edge h5,
-    body.dark.edge h6 {
-      color: #90cdf4;
+    body.dark.edge #root,
+    body.dark.edge .container,
+    body.dark.edge .card {
+      background: rgba(15, 41, 66, 0.95);
     }
 
-    body.dark.edge a {
-      color: #bee3f8;
+    body.dark.edge button,
+    body.dark.edge .btn {
+      background: linear-gradient(135deg, #2c5282, #2a4365);
+    }
+
+    body.dark.edge input:focus,
+    body.dark.edge select:focus,
+    body.dark.edge textarea:focus {
+      border-color: #3182ce;
+      box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+    }
+
+    /* Additional UI Elements */
+    body .table,
+    body .data-table {
+      backdrop-filter: blur(10px);
+    }
+
+    body.light .table,
+    body.light .data-table {
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    body.dark .table,
+    body.dark .data-table {
+      background: rgba(26, 32, 46, 0.8);
+    }
+
+    body .navbar,
+    body .header {
+      backdrop-filter: blur(20px);
+    }
+
+    body.light .navbar,
+    body.light .header {
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 2px 10px rgba(102, 126, 234, 0.1);
+    }
+
+    body.dark .navbar,
+    body.dark .header {
+      background: rgba(26, 32, 46, 0.9);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Loading States */
+    .loading-spinner {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Fade In Animation */
+    .fade-in {
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      body::before {
+        background-size: 30px 30px;
+      }
     }
   </style>
 </head>
@@ -389,7 +540,7 @@
   <!-- Skip to main content for accessibility -->
   <a href="#main-content" class="skip-link" style="position: absolute; top: -40px; left: 6px; background: #000; color: #fff; padding: 8px; text-decoration: none; z-index: 9999; transition: top 0.3s;" onfocus="this.style.top='6px'" onblur="this.style.top='-40px'">Skip to main content</a>
   
-  <div id="root" role="main" aria-label="Main application content"></div>
+  <div id="root" role="main" aria-label="Main application content" class="fade-in"></div>
 
   <!-- Pages -->
   <script src="pages/forgetpassword.js"></script>
@@ -439,13 +590,13 @@
   <script src="assets/forms/admin/widgets/attachStaffAssignTaskListener.js"></script>
   <script src="assets/forms/admin/widgets/attachStaffViewDetailsListener.js"></script>
   
-  <!-- Adaptive Text Color System Script -->
+  <!-- Advanced Adaptive Color System Script -->
   <script>
     (function() {
       'use strict';
       
-      // Adaptive Text Color System - Only changes text colors
-      function initializeAdaptiveTextColors() {
+      // Adaptive Color System
+      function initializeAdaptiveColorSystem() {
         const ua = navigator.userAgent;
         const body = document.body;
         let browserClass = '';
@@ -471,14 +622,14 @@
           themeClass = 'dark';
         }
 
-        // Apply classes - only affects text colors
+        // Apply classes
         body.classList.add(themeClass, browserClass);
 
         // Log detection for debugging
-        console.log('🎨 Adaptive Text Color System Initialized:', {
+        console.log('🎨 Adaptive Color System Initialized:', {
           browser: browserClass || 'default',
           theme: themeClass,
-          textColorsOnly: true
+          userAgent: ua
         });
 
         // Listen for theme changes
@@ -486,16 +637,16 @@
           window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
             body.classList.remove('light', 'dark');
             body.classList.add(e.matches ? 'dark' : 'light');
-            console.log('🎨 Text theme changed to:', e.matches ? 'dark' : 'light');
+            console.log('🎨 Theme changed to:', e.matches ? 'dark' : 'light');
           });
         }
       }
 
       // Initialize on DOM ready
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeAdaptiveTextColors);
+        document.addEventListener('DOMContentLoaded', initializeAdaptiveColorSystem);
       } else {
-        initializeAdaptiveTextColors();
+        initializeAdaptiveColorSystem();
       }
     })();
 
