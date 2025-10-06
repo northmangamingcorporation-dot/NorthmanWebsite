@@ -1031,7 +1031,8 @@ function attachSidebarNavigation() {
         
         // Load section-specific data
         switch(targetSection) {
-        case 'tampermonkey':
+            
+          case 'tampermonkey':
             // Inject styles first
             if (typeof injectTampermonkeyStyles === 'function') {
               injectTampermonkeyStyles();

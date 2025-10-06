@@ -778,78 +778,7 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
             </table>
           </div>
         </div>
-<!-- Enhanced Tampermonkey Extensions Section -->
-<div id="tampermonkeySection" class="section">
-  <div class="section-header enhanced">
-    <div class="section-title-group">
-      <h4>
-        <i class="fas fa-puzzle-piece"></i>
-        Tampermonkey Extensions
-      </h4>
-      <div class="section-stats">
-        <span class="stat-pill info">
-          <i class="fas fa-code"></i>
-          <span id="totalScripts">0</span> Total
-        </span>
-        <span class="stat-pill success">
-          <i class="fas fa-check-circle"></i>
-          <span id="activeScripts">0</span> Active
-        </span>
-        <span class="stat-pill warning">
-          <i class="fas fa-pause-circle"></i>
-          <span id="disabledScripts">0</span> Disabled
-        </span>
-      </div>
-    </div>
-    
-    <div class="section-controls enhanced">
-      <div class="search-container">
-        <i class="fas fa-search search-icon"></i>
-        <input type="text" id="searchScriptsInput" placeholder="Search scripts..." class="search-input enhanced">
-      </div>
-      
-      <div class="filter-group">
-        <select id="scriptStatusFilter" class="filter-select">
-          <option value="">All Status</option>
-          <option value="active">Active</option>
-          <option value="disabled">Disabled</option>
-        </select>
-      </div>
-      
-      <button id="addScriptBtn" class="btn btn-primary" onclick="showAddScriptModal()">
-        <i class="fas fa-plus"></i>
-        Add Script
-      </button>
-    </div>
-  </div>
-  
-  <div class="enhanced-table-wrapper">
-    <table class="enhanced-table">
-      <thead>
-        <tr>
-          <th>Script Name</th>
-          <th>Script ID</th>
-          <th>Version</th>
-          <th>Status</th>
-          <th>Last Updated</th>
-          <th>Users</th>
-          <th>Changelog</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="tampermonkeyScriptsTable">
-        <tr>
-          <td colspan="8" class="loading-state">
-            <div class="loading-content">
-              <div class="loading-spinner"></div>
-              <span>Loading scripts...</span>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+
         <!-- New Analytics Section -->
         <div id="analyticsSection" class="section">
           <div class="section-header">
@@ -881,6 +810,7 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
     </div>
   `;
 }
+
 
 // Enhanced helper functions
 function getStatusIcon(status) {
@@ -1018,30 +948,11 @@ function attachSidebarNavigation() {
       const targetSection = btn.getAttribute("data-section");
       const section = document.getElementById(`${targetSection}Section`);
       
-      if (!section) {
-        console.error(`Section not found: ${targetSection}Section`);
-        return;
-      }
-      
       setTimeout(() => {
         section.style.display = "block";
         section.offsetHeight; // Force reflow
         section.style.opacity = "1";
         section.style.transform = "translateY(0)";
-        
-        // Load section-specific data
-        switch(targetSection) {
-        case 'tampermonkey':
-            // Inject styles first
-            if (typeof injectTampermonkeyStyles === 'function') {
-              injectTampermonkeyStyles();
-            }
-            // Then load scripts
-            if (typeof loadTampermonkeyScripts === 'function') {
-              loadTampermonkeyScripts();
-            }
-            break;
-        }
       }, 250);
     });
   });

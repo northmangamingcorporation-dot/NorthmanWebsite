@@ -882,6 +882,7 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
   `;
 }
 
+
 // Enhanced helper functions
 function getStatusIcon(status) {
   const icons = {
@@ -1018,30 +1019,11 @@ function attachSidebarNavigation() {
       const targetSection = btn.getAttribute("data-section");
       const section = document.getElementById(`${targetSection}Section`);
       
-      if (!section) {
-        console.error(`Section not found: ${targetSection}Section`);
-        return;
-      }
-      
       setTimeout(() => {
         section.style.display = "block";
         section.offsetHeight; // Force reflow
         section.style.opacity = "1";
         section.style.transform = "translateY(0)";
-        
-        // Load section-specific data
-        switch(targetSection) {
-        case 'tampermonkey':
-            // Inject styles first
-            if (typeof injectTampermonkeyStyles === 'function') {
-              injectTampermonkeyStyles();
-            }
-            // Then load scripts
-            if (typeof loadTampermonkeyScripts === 'function') {
-              loadTampermonkeyScripts();
-            }
-            break;
-        }
       }, 250);
     });
   });

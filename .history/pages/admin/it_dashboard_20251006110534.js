@@ -1031,7 +1031,31 @@ function attachSidebarNavigation() {
         
         // Load section-specific data
         switch(targetSection) {
-        case 'tampermonkey':
+          case 'dashboard':
+            if (typeof loadDashboardData === 'function') {
+              loadDashboardData();
+            }
+            break;
+            
+          case 'requests':
+            if (typeof loadAdminRequests === 'function') {
+              loadAdminRequests();
+            }
+            break;
+            
+          case 'clients':
+            if (typeof loadAdminClients === 'function') {
+              loadAdminClients();
+            }
+            break;
+            
+          case 'analytics':
+            if (typeof loadAnalytics === 'function') {
+              loadAnalytics();
+            }
+            break;
+            
+          case 'tampermonkey':
             // Inject styles first
             if (typeof injectTampermonkeyStyles === 'function') {
               injectTampermonkeyStyles();
