@@ -949,11 +949,7 @@ function initializeTicketInputForm(user) {
             .get();
           
           if (!duplicateSnapshot.empty) {
-            // Reset form BEFORE throwing
-            const form = document.getElementById("ticketInputForm");
-            if (form) form.reset();
             throw new Error(`A ticket with Reference Code "${referenceCode}" and Teller "${teller}" already exists. Please check your submission.`);
-           
           }
         } else {
           console.warn('Missing reference_code or teller for duplicate check:', { referenceCode, teller });
@@ -1986,15 +1982,6 @@ function filterTicketsByDate() {
   
   console.log('Filtering tickets for:', selectedDate || 'today');
 }
-
-// ✅ Automatically show today's date on page load
-  document.addEventListener('DOMContentLoaded', () => {
-    const dateInput = document.getElementById('ticketDateFilter');
-    const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
-    dateInput.value = today; // Set today's date in the input
-    updateTicketsDateDisplay(today); // Also show formatted date text
-  });
-
 
   // ✅ Function to display formatted date
   function updateTicketsDateDisplay(selectedDate = null) {

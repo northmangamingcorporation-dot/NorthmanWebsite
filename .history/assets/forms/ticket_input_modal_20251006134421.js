@@ -949,11 +949,9 @@ function initializeTicketInputForm(user) {
             .get();
           
           if (!duplicateSnapshot.empty) {
-            // Reset form BEFORE throwing
-            const form = document.getElementById("ticketInputForm");
-            if (form) form.reset();
             throw new Error(`A ticket with Reference Code "${referenceCode}" and Teller "${teller}" already exists. Please check your submission.`);
-           
+            const form = document.getElementById("ticketInputForm");
+            form.reset();
           }
         } else {
           console.warn('Missing reference_code or teller for duplicate check:', { referenceCode, teller });
