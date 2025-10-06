@@ -1992,6 +1992,7 @@ function filterTicketsByDate() {
   console.log('Filtering tickets for:', selectedDate || 'today');
 }
 
+
   // ✅ Function to display formatted date
   function updateTicketsDateDisplay(selectedDate = null) {
     const dateElement = document.getElementById('ticketsDateDisplay');

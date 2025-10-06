@@ -1992,6 +1992,15 @@ function filterTicketsByDate() {
   console.log('Filtering tickets for:', selectedDate || 'today');
 }
 
+// ✅ Automatically show today's date on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    const dateInput = document.getElementById('ticketDateFilter');
+    const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+    dateInput.value = today; // Set today's date in the input
+    updateTicketsDateDisplay(today); // Also show formatted date text
+  });
+
+
   // ✅ Function to display formatted date
   function updateTicketsDateDisplay(selectedDate = null) {
     const dateElement = document.getElementById('ticketsDateDisplay');
