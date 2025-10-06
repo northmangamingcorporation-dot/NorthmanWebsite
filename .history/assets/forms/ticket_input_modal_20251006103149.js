@@ -2021,6 +2021,17 @@ function updateTicketTotal(count) {
     totalElement.textContent = count || 0;
   }
 }
+
+// Update the date display
+function updateTicketsDateDisplay() {
+  const dateElement = document.getElementById('ticketsDateDisplay');
+  if (dateElement) {
+    const today = new Date();
+    const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+    dateElement.textContent = today.toLocaleDateString('en-US', options);
+  }
+}
+// Filter tickets based on search and type
 function filterTickets() {
   const searchValue = document.getElementById('ticketSearchInput').value.toLowerCase();
   const typeFilter = document.getElementById('ticketTypeFilter').value.toLowerCase();

@@ -206,6 +206,9 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
                 ">
                  <div style="display: flex; align-items: center; gap: 10px;">
                     <i class="fas fa-calendar-day" style="color: #16a34a; font-size: 18px;"></i>
+                    <span style="color: #166534; font-size: 14px; font-weight: 600;">
+                      <span id="ticketsDateDisplay"></span>
+                    </span>
                     <input 
                       type="date" 
                       id="ticketDateFilter" 

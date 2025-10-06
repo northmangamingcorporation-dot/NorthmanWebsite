@@ -1747,12 +1747,10 @@ function renderTicketRow(ticketData) {
 
 // Store loaded ticket IDs to track what's already in the table
 const loadedTicketIds = new Set();
-
 // Load tickets from Firestore with real-time updates
-function loadTickets(selectedDate = null) {
+function loadTickets() {
   const tbody = document.getElementById("ticketsTable");
-  updateTicketsDateDisplay(selectedDate);
-  
+  updateTicketsDateDisplay()
   if (!tbody) {
     console.warn("ticketsTable not found.");
     return;
@@ -1801,32 +1799,28 @@ function loadTickets(selectedDate = null) {
       return;
     }
 
-    // Determine which date to use (selected date or today)
-    const targetDate = selectedDate ? new Date(selectedDate + 'T00:00:00') : new Date();
+    // Get today's date in ISO string format
+    const today = new Date();
 
     // Start of day (00:00:00.000)
-    const startOfDay = new Date(targetDate);
+    const startOfDay = new Date(today);
     startOfDay.setHours(0, 0, 0, 0);
 
     // End of day (23:59:59.999)
-    const endOfDay = new Date(targetDate);
+    const endOfDay = new Date(today);
     endOfDay.setHours(23, 59, 59, 999);
 
     // Convert to ISO strings (since submittedAt is stored as ISO string)
     const startIso = startOfDay.toISOString();
     const endIso = endOfDay.toISOString();
 
-    // Query for tickets on the selected date
+    // Query for today's tickets
     window.db.collection('ticket_humanErr_report')
       .where('submittedAt', '>=', startIso)
       .where('submittedAt', '<=', endIso)
       .orderBy('submittedAt', 'desc')
       .onSnapshot((snapshot) => {
         if (snapshot.empty) {
-          const dateDisplay = selectedDate 
-            ? new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-            : 'today';
-          
           tbody.innerHTML = `
             <tr class="no-data-row">
               <td colspan="5" style="padding: 60px 20px; text-align: center; border: none;">
@@ -1844,10 +1838,10 @@ function loadTickets(selectedDate = null) {
                   </div>
                   <div>
                     <p style="margin: 0 0 8px 0; color: #64748b; font-size: 16px; font-weight: 600;">
-                      No tickets for ${dateDisplay}
+                      No tickets yet
                     </p>
                     <p style="margin: 0; color: #94a3b8; font-size: 14px;">
-                      ${!selectedDate ? 'Click "New Ticket" to paste and analyze a ticket' : 'Try selecting a different date'}
+                      Click "New Ticket" to paste and analyze a ticket
                     </p>
                   </div>
                 </div>
@@ -1856,14 +1850,11 @@ function loadTickets(selectedDate = null) {
           `;
           loadedTicketIds.clear();
           updateTellerRankings([]);
-          updateTicketTotal(0);
           return;
         }
-        
-        // Update ticket total
+        // After snapshot.forEach and before updating rankings
         const totalTickets = snapshot.size;
         updateTicketTotal(totalTickets);
-        
         // Remove no-data row if exists
         const noDataRow = tbody.querySelector('.no-data-row');
         if (noDataRow) noDataRow.remove();
@@ -1935,7 +1926,7 @@ function loadTickets(selectedDate = null) {
         // Update teller rankings
         updateTellerRankings(allTickets);
 
-        console.log(`Total tickets for ${selectedDate || 'today'}: ${snapshot.size}`);
+        console.log(`Total tickets: ${snapshot.size}`);
       }, (error) => {
         console.error('Error loading tickets:', error);
         tbody.innerHTML = `
@@ -1969,49 +1960,11 @@ function loadTickets(selectedDate = null) {
   }, 500);
 }
 
-// Filter tickets by selected date
-function filterTicketsByDate() {
-  const dateInput = document.getElementById('ticketDateFilter');
-  const selectedDate = dateInput.value;
-  
-  // Clear the loaded IDs to force a fresh load
-  loadedTicketIds.clear();
-  
-  // Reload tickets with the selected date
-  loadTickets(selectedDate || null);
-  
-  console.log('Filtering tickets for:', selectedDate || 'today');
-}
-
-// Update the date display based on selected date or show today
-function updateTicketsDateDisplay(selectedDate = null) {
-  const dateElement = document.getElementById('ticketsDateDisplay');
-  if (dateElement) {
-    const displayDate = selectedDate ? new Date(selectedDate + 'T00:00:00') : new Date();
-    const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
-    dateElement.textContent = displayDate.toLocaleDateString('en-US', options);
-  }
-}
-
 // Call loadTickets when page loads
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    loadTickets();
-    // Set today's date as default value in date picker
-    const today = new Date().toISOString().split('T')[0];
-    const dateInput = document.getElementById('ticketDateFilter');
-    if (dateInput) {
-      dateInput.value = today;
-    }
-  });
+  document.addEventListener('DOMContentLoaded', loadTickets);
 } else {
   loadTickets();
-  // Set today's date as default value in date picker
-  const today = new Date().toISOString().split('T')[0];
-  const dateInput = document.getElementById('ticketDateFilter');
-  if (dateInput) {
-    dateInput.value = today;
-  }
 }
 
 // Update total count display
@@ -2021,6 +1974,17 @@ function updateTicketTotal(count) {
     totalElement.textContent = count || 0;
   }
 }
+
+// Update the date display
+function updateTicketsDateDisplay() {
+  const dateElement = document.getElementById('');
+  if (dateElement) {
+    const today = new Date();
+    const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+    dateElement.textContent = today.toLocaleDateString('en-US', options);
+  }
+}
+// Filter tickets based on search and type
 function filterTickets() {
   const searchValue = document.getElementById('ticketSearchInput').value.toLowerCase();
   const typeFilter = document.getElementById('ticketTypeFilter').value.toLowerCase();

@@ -2021,6 +2021,7 @@ function updateTicketTotal(count) {
     totalElement.textContent = count || 0;
   }
 }
+
 function filterTickets() {
   const searchValue = document.getElementById('ticketSearchInput').value.toLowerCase();
   const typeFilter = document.getElementById('ticketTypeFilter').value.toLowerCase();

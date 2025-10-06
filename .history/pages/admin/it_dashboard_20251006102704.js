@@ -204,28 +204,13 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
                   margin-top: 16px;
                   border: 1px solid #86efac;
                 ">
-                 <div style="display: flex; align-items: center; gap: 10px;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
                     <i class="fas fa-calendar-day" style="color: #16a34a; font-size: 18px;"></i>
-                    <input 
-                      type="date" 
-                      id="ticketDateFilter" 
-                      onchange="filterTicketsByDate()"
-                      style="
-                        padding: 6px 12px;
-                        border: 2px solid #86efac;
-                        border-radius: 8px;
-                        font-size: 13px;
-                        cursor: pointer;
-                        background: white;
-                        color: #166534;
-                        font-weight: 600;
-                        transition: all 0.3s ease;
-                        outline: none;
-                      "
-                      onfocus="this.style.borderColor='#16a34a';"
-                      onblur="this.style.borderColor='#86efac';"
-                    />
+                    <span style="color: #166534; font-size: 14px; font-weight: 600;">
+                      <span id="ticketsDateDisplay"></span>
+                    </span>
                   </div>
+                  
                   <div style="display: flex; align-items: center; gap: 10px;">
                     <i class="fas fa-list-ol" style="color: #16a34a; font-size: 18px;"></i>
                     <span style="color: #166534; font-size: 15px; font-weight: 700;">

@@ -204,8 +204,17 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
                   margin-top: 16px;
                   border: 1px solid #86efac;
                 ">
-                 <div style="display: flex; align-items: center; gap: 10px;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
                     <i class="fas fa-calendar-day" style="color: #16a34a; font-size: 18px;"></i>
+                    <span style="color: #166534; font-size: 14px; font-weight: 600;">
+                      <span id="ticketsDateDisplay"></span>
+                    </span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-calendar-day" style="color: #16a34a; font-size: 18px;"></i>
+                    <span style="color: #166534; font-size: 14px; font-weight: 600;">
+                      <span id="ticketsDateDisplay"></span>
+                    </span>
                     <input 
                       type="date" 
                       id="ticketDateFilter" 
