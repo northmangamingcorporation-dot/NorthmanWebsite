@@ -1,4 +1,4 @@
-// Enhanced IT Admin Dashboard - Keeping your original structure pages\admin\it_dashboard.js
+// Enhanced IT Admin Dashboard - Keeping your original structure 
 function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, staffTasks = []) {
   return `
     ${renderNav()}
