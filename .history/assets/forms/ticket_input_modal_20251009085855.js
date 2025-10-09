@@ -1616,7 +1616,7 @@ function updateTellerRankings() {
       // Convert to array and sort by count (descending)
       const sortedTellers = Object.entries(tellerCounts)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 15); // Top 10 tellers
+        .slice(0, 10); // Top 10 tellers
 
       if (sortedTellers.length === 0) {
         rankingsList.innerHTML = `
