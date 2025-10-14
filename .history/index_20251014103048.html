@@ -163,6 +163,30 @@
   
   <!-- Adaptive Text Color System Script -->
   <script>
+    tive Text Color System Initialized:', {
+          browser: browserClass || 'default',
+          theme: themeClass,
+          textColorsOnly: true
+        });
+
+        // Listen for theme changes
+        if (window.matchMedia) {
+          window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            body.classList.remove('light', 'dark');
+            body.classList.add(e.matches ? 'dark' : 'light');
+            console.log('🎨 Text theme changed to:', e.matches ? 'dark' : 'light');
+          });
+        }
+      }
+
+      // Initialize on DOM ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeAdaptiveTextColors);
+      } else {
+        initializeAdaptiveTextColors();
+      }
+    })();
+
     // Enhanced Error Tracking
     window.addEventListener('error', function(e) {
       console.error('Global Error:', {

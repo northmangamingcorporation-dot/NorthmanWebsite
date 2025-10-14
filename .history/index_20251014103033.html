@@ -163,6 +163,64 @@
   
   <!-- Adaptive Text Color System Script -->
   <script>
+    (function() {
+      'use strict';
+      
+      // Adaptive Text Color System - Only changes text colors
+      function initializeAdaptiveTextColors() {
+        const ua = navigator.userAgent;
+        const body = document.body;
+        let browserClass = '';
+        let themeClass = 'light';
+
+        // Detect device type and browser
+        if (/iPad|iPhone|iPod/.test(ua)) {
+          browserClass = 'ios';
+        } else if (/Android/.test(ua)) {
+          browserClass = 'android';
+        } else if (/Firefox/.test(ua)) {
+          browserClass = 'firefox';
+        } else if (/Edg/.test(ua)) {
+          browserClass = 'edge';
+        } else if (/Chrome/.test(ua) && !/Edg/.test(ua)) {
+          browserClass = 'chrome';
+        } else if (/Safari/.test(ua) && !/Chrome/.test(ua)) {
+          browserClass = 'safari';
+        }
+
+        // Detect theme preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          themeClass = 'dark';
+        }
+
+        // Apply classes - only affects text colors
+        body.classList.add(themeClass, browserClass);
+
+        // Log detection for debugging
+        console.log('🎨 Adaptive Text Color System Initialized:', {
+          browser: browserClass || 'default',
+          theme: themeClass,
+          textColorsOnly: true
+        });
+
+        // Listen for theme changes
+        if (window.matchMedia) {
+          window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            body.classList.remove('light', 'dark');
+            body.classList.add(e.matches ? 'dark' : 'light');
+            console.log('🎨 Text theme changed to:', e.matches ? 'dark' : 'light');
+          });
+        }
+      }
+
+      // Initialize on DOM ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeAdaptiveTextColors);
+      } else {
+        initializeAdaptiveTextColors();
+      }
+    })();
+
     // Enhanced Error Tracking
     window.addEventListener('error', function(e) {
       console.error('Global Error:', {
