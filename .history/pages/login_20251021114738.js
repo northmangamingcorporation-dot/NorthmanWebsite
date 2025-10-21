@@ -667,7 +667,7 @@ function attachLogin(preFillUsername = "", preFillPassword = "") {
     // Initialize system
     initializeAnnouncementSystem(user);
 
-    if (role === "it manager" || role === "system manager" || role === "it staff") {
+    if (role === "it manager" || role === "system manager" ) {
       window.mountITAdminDashboard(user);
     } else if (role === "admin head") {
       window.mountAdminDashboard(user);

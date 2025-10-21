@@ -1796,7 +1796,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       console.log(`Auto-redirecting user: ${user.username} with role: ${role}`);
 
-      if (role === "it manager" || role === "system manager"  || role === "it staff") {
+      if (role === "it manager" || role === "system manager" ) {
       window.mountITAdminDashboard(user);
       } else if (role === "admin head") {
         window.mountAdminDashboard(user);
