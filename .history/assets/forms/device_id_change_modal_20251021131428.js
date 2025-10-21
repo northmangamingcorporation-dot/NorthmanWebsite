@@ -780,6 +780,7 @@ function initializeDeviceIDChangeForm(user) {
         const oldBooth = formData.get('oldBoothCode');
         const newBooth = formData.get('newBoothCode');
         const serial = formData.get('posSerialNumber');
+        const operator = form.querySelector('input[name="operator"]');
         
         if (oldBooth) previewHTML += `<li style="margin-bottom: 12px;"><strong style="color: #10b981;">Old Booth:</strong> ${oldBooth}</li>`;
         if (newBooth) previewHTML += `<li style="margin-bottom: 12px;"><strong style="color: #10b981;">New Booth:</strong> ${newBooth}</li>`;

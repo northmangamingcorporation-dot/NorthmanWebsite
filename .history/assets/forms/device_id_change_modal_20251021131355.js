@@ -827,7 +827,7 @@ function initializeDeviceIDChangeForm(user) {
         const serial = form.querySelector('input[name="posSerialNumber"]');
         const operator = form.querySelector('input[name="operator"]');
         
-        [oldBooth, newBooth, serial, operator].forEach(field => {
+        [oldBooth, newBooth, serial,].forEach(field => {
           if (!field.value.trim()) {
             isValid = false;
             field.style.borderColor = '#ef4444';

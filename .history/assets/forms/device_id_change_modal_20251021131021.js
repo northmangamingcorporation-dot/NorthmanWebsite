@@ -357,12 +357,12 @@ function renderDeviceIDChangeModal(user = { username: "Employee", firstName: "",
                 <input type="text" name="operator"
                        style="
                          padding: 12px 16px;
-                           border: 2px solid #e2e8f0;
-                           border-radius: 12px;
-                           font-size: 16px;
-                           transition: all 0.3s ease;
-                           background: white;
-                           width: 100%;
+                         border: 2px solid #e2e8f0;
+                         border-radius: 12px;
+                         font-size: 16px;
+                         background: #f8fafc;
+                         color: #64748b;
+                         width: 100%;
                        " />
                 <div class="field-error" style="color: #ef4444; font-size: 14px; margin-top: 4px; display: none;"></div>
               </div>
@@ -825,9 +825,8 @@ function initializeDeviceIDChangeForm(user) {
         const oldBooth = form.querySelector('input[name="oldBoothCode"]');
         const newBooth = form.querySelector('input[name="newBoothCode"]');
         const serial = form.querySelector('input[name="posSerialNumber"]');
-        const operator = form.querySelector('input[name="operator"]');
         
-        [oldBooth, newBooth, serial, operator].forEach(field => {
+        [oldBooth, newBooth, serial].forEach(field => {
           if (!field.value.trim()) {
             isValid = false;
             field.style.borderColor = '#ef4444';
