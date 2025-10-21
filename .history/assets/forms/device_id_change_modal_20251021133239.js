@@ -355,23 +355,23 @@ function renderDeviceIDChangeModal(user = { username: "Employee", firstName: "",
                   display: block;
                 ">Operator <span style="color: #ef4444;">*</span></label>
                 <select name="operator" 
-                            style="
-                                padding: 12px 16px;
-                                border: 2px solid #e2e8f0;
-                                border-radius: 12px;
-                                font-size: 16px;
-                                transition: all 0.3s ease;
-                                background: white;
-                                width: 100%;
-                            ">
-                        <option value="" disabled selected>Select operator</option>
-                        <option value="NORTH - 001 BMC & Co.">NORTH - 001 BMC & Co.</option>
-                        <option value="NORTH - 002 Chiong & Co.">NORTH - 002 Chiong & Co.</option>
-                        <option value="NORTH - 005 Jun Dy & Co.">NORTH - 005 Jun Dy & Co.</option>
-                        <option value="HEXAPRIME">HEXAPRIME</option>
-                        <option value="PAYOUT STATION">PAYOUT STATION</option>
-                        <option value="NORTH - 006 Ana & Co.">NORTH - 006 Ana & Co.</option>
-                    </select>
+        style="
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+            width: 100%;
+        ">
+    <option value="" disabled selected>Select operator</option>
+    <option value="NORTH - 001 BMC & Co.">NORTH - 001 BMC & Co.</option>
+    <option value="NORTH - 002 Chiong & Co.">NORTH - 002 Chiong & Co.</option>
+    <option value="NORTH - 005 Jun Dy & Co.">NORTH - 005 Jun Dy & Co.</option>
+    <option value="HEXAPRIME">HEXAPRIME</option>
+    <option value="PAYOUT STATION">PAYOUT STATION</option>
+    <option value="NORTH - 006 Ana & Co.">NORTH - 006 Ana & Co.</option>
+</select>
 
                 <div class="field-error" style="color: #ef4444; font-size: 14px; margin-top: 4px; display: none;"></div>
               </div>
