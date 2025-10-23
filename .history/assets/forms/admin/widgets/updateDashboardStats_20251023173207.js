@@ -84,53 +84,39 @@ function parseApiResponse(response) {
   try {
     // Get combined_report first
     const report = response?.latest_update?.combined_report;
-    console.log("Combined Report:", report);
     if (!report) return stats;
 
     // Determine next draw (must match keys in by_draw, e.g., "10:30")
     const nextDraw = getNextDraw();
-    console.log("Next Draw:", nextDraw);
 
     // Prefer comprehensive_stats if present
     const compStats = report?.comprehensive_stats;
     if (compStats) {
-      console.log("Comprehensive Stats:", compStats);
-
       // Pending for next draw
       stats.pending = compStats?.cancellations?.by_draw?.[nextDraw]?.pending ?? 0;
-      console.log(`Pending for ${nextDraw}:`, stats.pending);
 
       // Daily totals
       stats.approved = compStats?.cancellations?.daily?.approved ?? 0;
       stats.denied = compStats?.cancellations?.daily?.denied ?? 0;
-      console.log("Daily Approved:", stats.approved, "Daily Denied:", stats.denied);
 
       // Daily payout
       stats.payout = compStats?.payouts?.daily_total ?? 0;
-      console.log("Daily Payout:", stats.payout);
     } 
     // Fallback to daily_report if comprehensive_stats missing
     else if (report?.daily_report) {
-      console.log("Daily Report:", report.daily_report);
-
       stats.pending = report.daily_report?.daily_cancellations?.pending ?? 0;
       stats.approved = report.daily_report?.daily_cancellations?.approved ?? 0;
       stats.denied = report.daily_report?.daily_cancellations?.denied ?? 0;
       stats.payout = report.daily_report?.daily_payout_total ?? 0;
-
-      console.log("Fallback Pending:", stats.pending);
-      console.log("Fallback Approved:", stats.approved);
-      console.log("Fallback Denied:", stats.denied);
-      console.log("Fallback Payout:", stats.payout);
     }
 
   } catch (error) {
     console.error("Error parsing API response:", error);
   }
 
-  console.log("Final Stats Object:", stats);
   return stats;
 }
+
 
   // ===============================
   // Fetch API data
