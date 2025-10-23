@@ -1,4 +1,4 @@
-// app/api/webhook/route.js
+// app/api/route.js
 // Store data in memory (use Redis/Database in production)
 let latestData = {
   comprehensive_stats: null,
