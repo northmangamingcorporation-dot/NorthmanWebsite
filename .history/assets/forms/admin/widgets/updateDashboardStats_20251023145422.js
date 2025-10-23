@@ -82,9 +82,6 @@
         const byDraw = report.comprehensive_stats.cancellations.by_draw || {};
         pendingCount = byDraw[nextDraw]?.pending || 0;
 
-        stats.approved = report.comprehensive_stats.cancellations.daily.approved || 0;
-        stats.denied = report.comprehensive_stats.cancellations.daily.denied || 0;
-        stats.payout = report.comprehensive_stats.payouts?.daily_total || 0;
       } else if (report.daily_report) {
         pendingCount = report.daily_report.daily_cancellations?.pending || 0;
         stats.approved = report.daily_report.daily_cancellations?.approved || 0;
