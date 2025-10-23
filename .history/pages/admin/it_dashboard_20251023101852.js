@@ -76,7 +76,7 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
         <!-- Enhanced Dashboard Stats with better animations -->
         <div id="dashboardSection" class="section">
           <div class="stats-container">
-            ${["pending","approved","denied","payout"].map(status => `
+            ${["pending","approved","denied","payoi"].map(status => `
               <div class="stat-card enhanced ${status}">
                 <div class="stat-icon">
                   <i class="fas fa-${getStatusIcon(status)}"></i>
@@ -1065,7 +1065,7 @@ function getStatusIcon(status) {
     pending: 'clock',
     approved: 'check-circle',
     denied: 'times-circle',
-    payout: 'money-bill'  // 💰 changed from 'ban' to 'money-bill'
+    cancelled: 'ban'
   };
   return icons[status] || 'circle';
 }

@@ -1065,7 +1065,7 @@ function getStatusIcon(status) {
     pending: 'clock',
     approved: 'check-circle',
     denied: 'times-circle',
-    payout: 'money-bill'  // 💰 changed from 'ban' to 'money-bill'
+    pay: 'ban'
   };
   return icons[status] || 'circle';
 }
