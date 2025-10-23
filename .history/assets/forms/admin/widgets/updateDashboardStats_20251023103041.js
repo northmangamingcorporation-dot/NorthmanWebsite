@@ -16,9 +16,9 @@
 
   // Configuration
   const config = {
-    apiUrl: '/api/webhook',
+    apiUrl: '/api/route',
     authToken: '200206',
-    pollInterval: 30000, // 30 seconds
+    pollInterval: 1000, // 30 seconds
     autoStart: true
   };
 
