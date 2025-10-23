@@ -163,6 +163,8 @@ function parseApiResponse(response) {
   return stats;
 }
 
+
+
   /**
    * Fetch latest data from API
    * ✅ Fixed: Use query parameter for auth (simpler than Bearer token)
