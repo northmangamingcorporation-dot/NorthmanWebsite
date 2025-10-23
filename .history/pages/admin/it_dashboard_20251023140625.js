@@ -1070,6 +1070,7 @@ function getStatusIcon(status) {
   return icons[status] || 'circle';
 }
 
+
 function calculatePerformance(staff) {
   const total = staff.pending + staff.ongoing + staff.completed;
   if (total === 0) return 0;

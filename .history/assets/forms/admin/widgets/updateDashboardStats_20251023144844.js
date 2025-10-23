@@ -82,11 +82,13 @@
         const byDraw = report.comprehensive_stats.cancellations.by_draw || {};
         pendingCount = byDraw[nextDraw]?.pending || 0;
       } else if (report.daily_report) {
+        pendingCount = report.daily_report.daily_cancellations?.pending || 0;
         stats.approved = report.daily_report.daily_cancellations?.approved || 0;
         stats.denied = report.daily_report.daily_cancellations?.denied || 0;
         stats.payout = report.daily_report.daily_payout_total || 0;
       }
     } else if (response.data?.cancellations?.daily) {
+      pendingCount = response.data.cancellations.daily.pending || 0;
       stats.approved = response.data.cancellations.daily.approved || 0;
       stats.denied = response.data.cancellations.daily.denied || 0;
       stats.payout = response.data.daily_payout_total || 0;
