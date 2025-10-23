@@ -124,7 +124,7 @@ function parseApiResponse(response) {
       stats.pending = response.data.cancellations.daily.pending || 0;
       stats.approved = response.data.cancellations.daily.approved || 0;
       stats.denied = response.data.cancellations.daily.denied || 0;
-      stats.payout = response.data.daily_payout_total  || 0; // ✅ fixed
+      stats.payout = response.data.cancellations.daily.payout || 0; // ✅ fixed
       console.log('📈 Parsed comprehensive_stats:', stats);
     } else if (response.data.daily_cancellations) {
       stats.pending = response.data.daily_cancellations.pending || 0;
