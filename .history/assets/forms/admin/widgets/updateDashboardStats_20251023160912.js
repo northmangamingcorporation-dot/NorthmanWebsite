@@ -264,12 +264,3 @@
   }
 })();
 
-// Get current stats
-window.dashboardSync.getCurrentStats();
-
-// Get next draw
-window.dashboardSync.getNextDraw(); // Returns "14:00"
-
-// Change polling interval
-window.dashboardSync.stopPolling();
-window.dashboardSync.startPolling(10000); // 10 seconds
