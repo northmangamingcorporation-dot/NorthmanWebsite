@@ -61,7 +61,7 @@
     console.log('📊 Updating dashboard with:', stats);
     
     Object.entries(stats).forEach(([status, value]) => {
-      if (['pending', 'approved', 'denied', 'payout'].includes(status)) {
+      if (['pending', 'approved', 'denied', 'pay'].includes(status)) {
         updateStatCard(status, value);
       }
     });
@@ -94,49 +94,49 @@
   }
 
   /**
- * Parse API response and extract stats
- * ✅ Fixed: Handle both direct data and summary responses
- */
-function parseApiResponse(response) {
-  const stats = {};
-
-  // Handle summary response with latest_update
-  if (response.latest_update && response.latest_update.data) {
-    const data = response.latest_update.data;
-
-    if (data.cancellations?.daily) {
-      stats.pending = data.cancellations.daily.pending || 0;
-      stats.approved = data.cancellations.daily.approved || 0;
-      stats.denied = data.cancellations.daily.denied || 0;
-      stats.payout = data.cancellations.daily.payout || 0; // ✅ fixed
-      console.log('📈 Parsed from latest_update:', stats);
-    } else if (data.daily_cancellations) {
-      stats.pending = data.daily_cancellations.pending || 0;
-      stats.approved = data.daily_cancellations.approved || 0;
-      stats.denied = data.daily_cancellations.denied || 0;
-      stats.payout = data.daily_cancellations.payout || 0; // ✅ fixed
-      console.log('📈 Parsed from daily_report:', stats);
+   * Parse API response and extract stats
+   * ✅ Fixed: Handle both direct data and summary responses
+   */
+  function parseApiResponse(response) {
+    const stats = {};
+    
+    // Handle summary response with latest_update
+    if (response.latest_update && response.latest_update.data) {
+      const data = response.latest_update.data;
+      
+      if (data.cancellations?.daily) {
+        stats.pending = data.cancellations.daily.pending || 0;
+        stats.approved = data.cancellations.daily.approved || 0;
+        stats.denied = data.cancellations.daily.denied || 0;
+        stats.cancelled = stats.denied;
+        console.log('📈 Parsed from latest_update:', stats);
+      } else if (data.daily_cancellations) {
+        stats.pending = data.daily_cancellations.pending || 0;
+        stats.approved = data.daily_cancellations.approved || 0;
+        stats.denied = data.daily_cancellations.denied || 0;
+        stats.cancelled = stats.denied;
+        console.log('📈 Parsed from daily_report:', stats);
+      }
     }
-  }
-  // Handle direct data response
-  else if (response.data) {
-    if (response.data.cancellations?.daily) {
-      stats.pending = response.data.cancellations.daily.pending || 0;
-      stats.approved = response.data.cancellations.daily.approved || 0;
-      stats.denied = response.data.cancellations.daily.denied || 0;
-      stats.payout = response.data.cancellations.daily.payout || 0; // ✅ fixed
-      console.log('📈 Parsed comprehensive_stats:', stats);
-    } else if (response.data.daily_cancellations) {
-      stats.pending = response.data.daily_cancellations.pending || 0;
-      stats.approved = response.data.daily_cancellations.approved || 0;
-      stats.denied = response.data.daily_cancellations.denied || 0;
-      stats.payout = response.data.daily_cancellations.payout || 0; // ✅ fixed
-      console.log('📈 Parsed daily_report:', stats);
+    // Handle direct data response
+    else if (response.data) {
+      if (response.data.cancellations?.daily) {
+        stats.pending = response.data.cancellations.daily.pending || 0;
+        stats.approved = response.data.cancellations.daily.approved || 0;
+        stats.denied = response.data.cancellations.daily.denied || 0;
+        stats.cancelled = stats.denied;
+        console.log('📈 Parsed comprehensive_stats:', stats);
+      } else if (response.data.daily_cancellations) {
+        stats.pending = response.data.daily_cancellations.pending || 0;
+        stats.approved = response.data.daily_cancellations.approved || 0;
+        stats.denied = response.data.daily_cancellations.denied || 0;
+        stats.cancelled = stats.denied;
+        console.log('📈 Parsed daily_report:', stats);
+      }
     }
+    
+    return stats;
   }
-
-  return stats;
-}
 
   /**
    * Fetch latest data from API
