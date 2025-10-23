@@ -2,9 +2,16 @@
 // Enhanced webhook with JSONBin.io for persistent storage
 // ✅ No Vercel KV needed - uses free external storage
 
-const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY || '$2a$10$94f359TVjq130gl0yNVSNuxkaxcSositdejr.3.fve1kgWbIS0E.u';
-const JSONBIN_BIN_ID = process.env.JSONBIN_BIN_ID || '68f9aeafd0ea881f40b4bcc2';
+// IMPORTANT: These values should come from environment variables ONLY
+// Never commit actual keys to your repository!
+const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY;
+const JSONBIN_BIN_ID = process.env.JSONBIN_BIN_ID;
 const JSONBIN_BASE_URL = 'https://api.jsonbin.io/v3';
+
+// Validate required environment variables
+if (!JSONBIN_API_KEY || !JSONBIN_BIN_ID) {
+  console.error('❌ Missing required environment variables: JSONBIN_API_KEY or JSONBIN_BIN_ID');
+}
 
 // Helper function to fetch data from JSONBin
 async function fetchFromStorage() {
@@ -19,6 +26,8 @@ async function fetchFromStorage() {
     
     if (!response.ok) {
       console.error('Failed to fetch from storage:', response.status);
+      const text = await response.text();
+      console.error('Response:', text);
       return null;
     }
     
@@ -44,6 +53,8 @@ async function saveToStorage(data) {
     
     if (!response.ok) {
       console.error('Failed to save to storage:', response.status);
+      const text = await response.text();
+      console.error('Response:', text);
       return false;
     }
     

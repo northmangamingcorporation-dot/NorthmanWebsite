@@ -1,72 +1,18 @@
 // api/webhook.js
-// Enhanced webhook with JSONBin.io for persistent storage
-// ✅ No Vercel KV needed - uses free external storage
+// Enhanced webhook with better data management and error handling
+// ✅ Fixed for Vercel Serverless Functions
 
-const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY || '$2a$10$94f359TVjq130gl0yNVSNuxkaxcSositdejr.3.fve1kgWbIS0E.u';
-const JSONBIN_BIN_ID = process.env.JSONBIN_BIN_ID || '68f9aeafd0ea881f40b4bcc2';
-const JSONBIN_BASE_URL = 'https://api.jsonbin.io/v3';
-
-// Helper function to fetch data from JSONBin
-async function fetchFromStorage() {
-  try {
-    const response = await fetch(`${JSONBIN_BASE_URL}/b/${JSONBIN_BIN_ID}/latest`, {
-      method: 'GET',
-      headers: {
-        'X-Master-Key': JSONBIN_API_KEY,
-        'X-Bin-Meta': 'false'
-      }
-    });
-    
-    if (!response.ok) {
-      console.error('Failed to fetch from storage:', response.status);
-      return null;
-    }
-    
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching from storage:', error);
-    return null;
+// In-memory storage (use Vercel KV, Redis, or Database in production)
+let dataStore = {
+  comprehensive_stats: null,
+  daily_report: null,
+  historical_data: null,
+  metadata: {
+    last_updated: null,
+    update_count: 0,
+    first_sync: null
   }
-}
-
-// Helper function to save data to JSONBin
-async function saveToStorage(data) {
-  try {
-    const response = await fetch(`${JSONBIN_BASE_URL}/b/${JSONBIN_BIN_ID}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Master-Key': JSONBIN_API_KEY
-      },
-      body: JSON.stringify(data)
-    });
-    
-    if (!response.ok) {
-      console.error('Failed to save to storage:', response.status);
-      return false;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error saving to storage:', error);
-    return false;
-  }
-}
-
-// Initialize empty data structure
-function getEmptyDataStore() {
-  return {
-    comprehensive_stats: null,
-    daily_report: null,
-    historical_data: null,
-    metadata: {
-      last_updated: null,
-      update_count: 0,
-      first_sync: null
-    }
-  };
-}
+};
 
 // Helper function to validate payload structure
 function validatePayload(payload) {
@@ -160,6 +106,14 @@ function logDataSummary(action, data) {
   }
 }
 
+// CORS headers
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Content-Type': 'application/json'
+};
+
 // POST handler - receives data from Python script
 async function handlePost(req, res) {
   try {
@@ -179,13 +133,6 @@ async function handlePost(req, res) {
       return res.status(400).json({ error: validation.error });
     }
     
-    // Fetch current data from storage
-    let dataStore = await fetchFromStorage();
-    if (!dataStore) {
-      console.log('📦 Initializing new data store');
-      dataStore = getEmptyDataStore();
-    }
-    
     // Update metadata
     const now = new Date().toISOString();
     if (!dataStore.metadata.first_sync) {
@@ -201,17 +148,6 @@ async function handlePost(req, res) {
       python_timestamp: payload.timestamp
     };
     
-    // Save to storage
-    const saved = await saveToStorage(dataStore);
-    
-    if (!saved) {
-      console.error('❌ Failed to save to storage');
-      return res.status(500).json({ 
-        error: 'Failed to persist data',
-        success: false
-      });
-    }
-    
     // Log summary
     logDataSummary(payload.action, payload.data);
     
@@ -220,8 +156,7 @@ async function handlePost(req, res) {
       success: true,
       action: payload.action,
       received_at: now,
-      update_count: dataStore.metadata.update_count,
-      stored: true
+      update_count: dataStore.metadata.update_count
     });
     
   } catch (error) {
@@ -243,16 +178,6 @@ async function handleGet(req, res) {
     const validToken = process.env.WEBHOOK_AUTH_TOKEN || '200206';
     if (authHeader !== validToken && auth_token !== validToken) {
       return res.status(401).json({ error: 'Unauthorized' });
-    }
-    
-    // Fetch data from storage
-    const dataStore = await fetchFromStorage();
-    
-    if (!dataStore) {
-      return res.status(503).json({ 
-        error: 'Storage service unavailable',
-        message: 'Could not connect to storage backend'
-      });
     }
     
     // Check if any data exists

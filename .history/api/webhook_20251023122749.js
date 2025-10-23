@@ -2,8 +2,8 @@
 // Enhanced webhook with JSONBin.io for persistent storage
 // ✅ No Vercel KV needed - uses free external storage
 
-const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY || '$2a$10$94f359TVjq130gl0yNVSNuxkaxcSositdejr.3.fve1kgWbIS0E.u';
-const JSONBIN_BIN_ID = process.env.JSONBIN_BIN_ID || '68f9aeafd0ea881f40b4bcc2';
+const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY || '$2a$10$YOUR_API_KEY_HERE';
+const JSONBIN_BIN_ID = process.env.JSONBIN_BIN_ID || 'YOUR_BIN_ID_HERE';
 const JSONBIN_BASE_URL = 'https://api.jsonbin.io/v3';
 
 // Helper function to fetch data from JSONBin
