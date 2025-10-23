@@ -18,7 +18,7 @@
   const config = {
     apiUrl: '/api/webhook',  // ✅ Fixed: correct path
     authToken: '200206',
-    pollInterval: 1000, // 1 seconds
+    pollInterval: 1, // 1 seconds
     autoStart: true
   };
 
@@ -96,42 +96,45 @@ function animateValue(element, start, end, duration) {
   update();
 }
 
- /**
+  /**
  * Parse API response and extract stats
- * ✅ Fixed: Handle the actual API response structure
+ * ✅ Fixed: Handle both direct data and summary responses
  */
 function parseApiResponse(response) {
   const stats = {};
 
-  // Handle the actual structure: latest_update.combined_report
-  if (response.latest_update?.combined_report) {
-    const report = response.latest_update.combined_report;
-    
-    // Try comprehensive_stats first
-    if (report.comprehensive_stats?.cancellations?.daily) {
-      stats.pending = report.comprehensive_stats.cancellations.daily.pending || 0;
-      stats.approved = report.comprehensive_stats.cancellations.daily.approved || 0;
-      stats.denied = report.comprehensive_stats.cancellations.daily.denied || 0;
-      stats.payout = report.comprehensive_stats.payouts?.daily_total || 0;
-      console.log('📈 Parsed from comprehensive_stats:', stats);
-    }
-    // Then try daily_report
-    else if (report.daily_report) {
-      stats.pending = report.daily_report.daily_cancellations?.pending || 0;
-      stats.approved = report.daily_report.daily_cancellations?.approved || 0;
-      stats.denied = report.daily_report.daily_cancellations?.denied || 0;
-      stats.payout = report.daily_report.daily_payout_total || 0;
+  // Handle summary response with latest_update
+  if (response.latest_update && response.latest_update.data) {
+    const data = response.latest_update.data;
+
+    if (data.cancellations?.daily) {
+      stats.pending = data.cancellations.daily.pending || 0;
+      stats.approved = data.cancellations.daily.approved || 0;
+      stats.denied = data.cancellations.daily.denied || 0;
+      stats.payout = data.daily_payout_total ; // ✅ fixed
+      console.log('📈 Parsed from latest_update:', stats);
+    } else if (data.daily_cancellations) {
+      stats.pending = data.daily_cancellations.pending || 0;
+      stats.approved = data.daily_cancellations.approved || 0;
+      stats.denied = data.daily_cancellations.denied || 0;
+      stats.payout = data.daily_payout_total  || 0; // ✅ fixed
       console.log('📈 Parsed from daily_report:', stats);
     }
   }
-  // Fallback: Handle direct data response (if API structure changes)
+  // Handle direct data response
   else if (response.data) {
     if (response.data.cancellations?.daily) {
       stats.pending = response.data.cancellations.daily.pending || 0;
       stats.approved = response.data.cancellations.daily.approved || 0;
       stats.denied = response.data.cancellations.daily.denied || 0;
-      stats.payout = response.data.daily_payout_total || 0;
-      console.log('📈 Parsed from direct data:', stats);
+      stats.payout = response.data.daily_payout_total  || 0; // ✅ fixed
+      console.log('📈 Parsed comprehensive_stats:', stats);
+    } else if (response.data.daily_cancellations) {
+      stats.pending = response.data.daily_cancellations.pending || 0;
+      stats.approved = response.data.daily_cancellations.approved || 0;
+      stats.denied = response.data.daily_cancellations.denied || 0;
+      stats.payout = response.data.daily_payout_total  || 0; // ✅ fixed
+      console.log('📈 Parsed daily_report:', stats);
     }
   }
 
