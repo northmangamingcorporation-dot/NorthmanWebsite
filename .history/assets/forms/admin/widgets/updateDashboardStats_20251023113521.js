@@ -18,7 +18,7 @@
   const config = {
     apiUrl: '/api/webhook',  // ✅ Fixed: correct path
     authToken: '200206',
-    pollInterval: 500, // 1 seconds
+    pollInterval: , // 30 seconds
     autoStart: true
   };
 
