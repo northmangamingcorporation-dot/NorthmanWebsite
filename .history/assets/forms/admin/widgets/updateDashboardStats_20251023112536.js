@@ -70,31 +70,33 @@
   /**
    * Animate number change with easing
    */
-function animateValue(element, start, end, duration) {
-  const startTime = Date.now();
-  const range = end - start;
-  const isPayout = element.id === 'admin-payout'; // ✅ Detect payout card
-
-  function update() {
-    const now = Date.now();
-    const elapsed = now - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-
-    const easeOutQuad = t => t * (2 - t);
-    const currentValue = start + (range * easeOutQuad(progress));
-
-    // ✅ Format as peso for payout, otherwise plain number
-    element.textContent = isPayout
-      ? `₱${Math.round(currentValue).toLocaleString()}`
-      : Math.round(currentValue).toLocaleString();
-
-    if (progress < 1) {
-      requestAnimationFrame(update);
+  function animateValue(element, start, end, duration) {
+    const startTime = Date.now();
+    const range = end - start;
+    
+    function update() {
+      const now = Date.now();
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Ease-out quad easing
+      const easeOutQuad = t => t * (2 - t);
+      const currentValue = start + (range * easeOutQuad(progress));
+      
+      if (status === 'payout') {
+    element.textContent = `₱${Math.round(currentValue).toLocaleString()}`;
+    } else {
+    element.textContent = Math.round(currentValue);
     }
-  }
 
-  update();
-}
+      
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      }
+    }
+    
+    update();
+  }
 
   /**
  * Parse API response and extract stats
