@@ -840,7 +840,6 @@ function scheduleAnalyticsRefresh() {
 
 // Track if analytics have been loaded
 let analyticsLoaded = false;
-let analyticsLoadingPromise = null;
 
 // Auto-load analytics when analytics section is shown
 function initializeAnalytics() {
@@ -848,35 +847,20 @@ function initializeAnalytics() {
     
     if (analyticsBtn) {
         analyticsBtn.addEventListener('click', () => {
-            // Prevent multiple simultaneous loads
-            if (analyticsLoadingPromise) {
-                console.log('⏳ Analytics already loading, skipping...');
-                return;
-            }
-            
             // Use setTimeout to ensure section is visible
             setTimeout(() => {
                 const analyticsSection = document.getElementById('analyticsSection');
                 if (analyticsSection && analyticsSection.style.display !== 'none' && !analyticsLoaded) {
-                    analyticsLoadingPromise = loadAdvancedAnalytics()
-                        .then(() => {
-                            analyticsLoaded = true;
-                            analyticsLoadingPromise = null;
-                        })
-                        .catch(error => {
-                            console.error('Failed to load analytics:', error);
-                            analyticsLoadingPromise = null;
-                        });
+                    loadAdvancedAnalytics();
+                    analyticsLoaded = true;
                 }
-            }, 400); // Increased delay to ensure DOM is ready
+            }, 350); // Match your animation delay + buffer
         });
     }
 }
-
 // Call this when dashboard loads
 document.addEventListener('DOMContentLoaded', () => {
     initializeAnalytics();
 });
 
-// Export for global access
 window.loadAdvancedAnalytics = loadAdvancedAnalytics;

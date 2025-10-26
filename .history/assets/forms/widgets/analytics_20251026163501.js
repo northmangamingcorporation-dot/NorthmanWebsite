@@ -33,43 +33,11 @@ let analyticsRefreshTimer = null;
 
 async function loadAdvancedAnalytics() {
     try {
-        // Wait for analytics section to be visible AND containers to exist
-        const maxAttempts = 10;
-        let attempts = 0;
-        
-        while (attempts < maxAttempts) {
-            const analyticsSection = document.getElementById('analyticsSection');
-            const cancellationContainer = document.getElementById('cancellationAnalytics');
-            
-            if (analyticsSection && 
-                analyticsSection.style.display !== 'none' && 
-                cancellationContainer) {
-                console.log(`✅ Analytics section ready after ${attempts} attempts`);
-                break;
-            }
-            
-            console.log(`⏳ Waiting for analytics section... (attempt ${attempts + 1}/${maxAttempts})`);
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-        }
-        
-        if (attempts >= maxAttempts) {
-            throw new Error('Analytics section failed to load after 1 second');
-        }
-        
-        // Verify all containers exist
-        const containers = [
-            'cancellationAnalytics',
-            'payoutAnalytics',
-            'deviceChangeAnalytics',
-            'serverErrorAnalytics',
-            'ticketVerificationAnalytics',
-            'boothActivityAnalytics'
-        ];
-        
-        const missingContainers = containers.filter(id => !document.getElementById(id));
-        if (missingContainers.length > 0) {
-            throw new Error(`Missing containers: ${missingContainers.join(', ')}`);
+        // Wait for analytics section to be visible
+        const analyticsSection = document.getElementById('analyticsSection');
+        if (!analyticsSection || analyticsSection.style.display === 'none') {
+            console.warn('Analytics section not visible yet, waiting...');
+            await new Promise(resolve => setTimeout(resolve, 350)); // Wait for animation
         }
         
         showLoadingState('analyticsSection');
@@ -105,9 +73,7 @@ async function loadAdvancedAnalytics() {
     } catch (error) {
         console.error('Analytics error:', error);
         showAnalyticsError('Failed to load analytics: ' + error.message);
-        if (typeof showNotification === 'function') {
-            showNotification('Failed to load analytics', 'error');
-        }
+        showNotification('Failed to load analytics', 'error');
     }
 }
 // ============================================
@@ -840,7 +806,6 @@ function scheduleAnalyticsRefresh() {
 
 // Track if analytics have been loaded
 let analyticsLoaded = false;
-let analyticsLoadingPromise = null;
 
 // Auto-load analytics when analytics section is shown
 function initializeAnalytics() {
@@ -848,35 +813,20 @@ function initializeAnalytics() {
     
     if (analyticsBtn) {
         analyticsBtn.addEventListener('click', () => {
-            // Prevent multiple simultaneous loads
-            if (analyticsLoadingPromise) {
-                console.log('⏳ Analytics already loading, skipping...');
-                return;
-            }
-            
             // Use setTimeout to ensure section is visible
             setTimeout(() => {
                 const analyticsSection = document.getElementById('analyticsSection');
                 if (analyticsSection && analyticsSection.style.display !== 'none' && !analyticsLoaded) {
-                    analyticsLoadingPromise = loadAdvancedAnalytics()
-                        .then(() => {
-                            analyticsLoaded = true;
-                            analyticsLoadingPromise = null;
-                        })
-                        .catch(error => {
-                            console.error('Failed to load analytics:', error);
-                            analyticsLoadingPromise = null;
-                        });
+                    loadAdvancedAnalytics();
+                    analyticsLoaded = true;
                 }
-            }, 400); // Increased delay to ensure DOM is ready
+            }, 350); // Match your animation delay + buffer
         });
     }
 }
-
 // Call this when dashboard loads
 document.addEventListener('DOMContentLoaded', () => {
     initializeAnalytics();
 });
 
-// Export for global access
 window.loadAdvancedAnalytics = loadAdvancedAnalytics;
