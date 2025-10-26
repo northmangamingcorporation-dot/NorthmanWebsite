@@ -1028,36 +1028,36 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
   </div>
 </div>
         <!-- Enhanced Analytics Section -->
-        <div id="analyticsSection" class="section">
-          <div class="section-header enhanced">
-            <div class="section-title-group">
-              <h4>
-                <i class="fas fa-chart-line"></i>
-                Performance Analytics
-              </h4>
-              <span id="analyticsTimestamp" class="last-updated"></span>
-            </div>
-            
-            <div class="section-controls enhanced">
-              <button class="btn btn-secondary" onclick="loadAdvancedAnalytics()">
-                <i class="fas fa-sync-alt"></i>
-                Refresh
-              </button>
-              <button class="btn btn-primary" onclick="exportAnalyticsReport()">
-                <i class="fas fa-download"></i>
-                Export Report
-              </button>
-            </div>
-          </div>
-          
-          <!-- Analytics Content -->
-          <div id="cancellationAnalytics"></div>
-          <div id="payoutAnalytics"></div>
-          <div id="deviceChangeAnalytics"></div>
-          <div id="serverErrorAnalytics"></div>
-          <div id="ticketVerificationAnalytics"></div>
-          <div id="boothActivityAnalytics"></div>
-        </div>
+<div id="analyticsSection" class="section">
+  <div class="section-header enhanced">
+    <div class="section-title-group">
+      <h4>
+        <i class="fas fa-chart-line"></i>
+        Performance Analytics
+      </h4>
+      <span id="analyticsTimestamp" class="last-updated"></span>
+    </div>
+    
+    <div class="section-controls enhanced">
+      <button class="btn btn-secondary" onclick="loadAdvancedAnalytics()">
+        <i class="fas fa-sync-alt"></i>
+        Refresh
+      </button>
+      <button class="btn btn-primary" onclick="exportAnalyticsReport()">
+        <i class="fas fa-download"></i>
+        Export Report
+      </button>
+    </div>
+  </div>
+  
+  <!-- Analytics Content -->
+  <div id="cancellationAnalytics"></div>
+  <div id="payoutAnalytics"></div>
+  <div id="deviceChangeAnalytics"></div>
+  <div id="serverErrorAnalytics"></div>
+  <div id="ticketVerificationAnalytics"></div>
+  <div id="boothActivityAnalytics"></div>
+</div>
       </main>
     </div>
   `;
@@ -2303,186 +2303,6 @@ function injectEnhancedITAdminStyles() {
       --radius-lg: 16px;
       --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
-/* Analytics Section Styles */
-.analytics-section {
-  margin-bottom: 32px;
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 24px;
-  border: 1px solid var(--border);
-}
-
-.analytics-section .section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid var(--border);
-}
-
-.section-badge {
-  padding: 6px 12px;
-  background: rgba(59, 130, 246, 0.1);
-  color: var(--primary);
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.analytics-summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
-  margin-bottom: 32px;
-}
-
-.metric-card {
-  background: var(--surface-2);
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  border: 1px solid var(--border);
-  transition: var(--transition);
-}
-
-.metric-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-}
-
-.metric-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: white;
-  flex-shrink: 0;
-}
-
-.metric-content {
-  flex: 1;
-}
-
-.metric-content h4 {
-  margin: 0 0 8px 0;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.metric-value {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  line-height: 1;
-  margin-bottom: 4px;
-}
-
-.metric-value.success { color: var(--success); }
-.metric-value.error { color: var(--error); }
-.metric-value.warning { color: var(--warning); }
-.metric-value.info { color: var(--info); }
-.metric-value.purple { color: #8b5cf6; }
-
-.metric-subtext {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.charts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 24px;
-}
-
-.charts-grid.full-width {
-  grid-template-columns: 1fr;
-}
-
-.chart-container {
-  background: var(--surface);
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid var(--border);
-}
-
-.chart-container h5 {
-  margin: 0 0 16px 0;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.chart-container canvas {
-  height: 300px !important;
-}
-
-/* Loading State */
-.analytics-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  gap: 16px;
-}
-
-.analytics-loading .loading-spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid var(--border);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-/* Error State */
-.analytics-error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  gap: 16px;
-  text-align: center;
-}
-
-.analytics-error .error-icon {
-  width: 80px;
-  height: 80px;
-  background: rgba(239, 68, 68, 0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.5rem;
-  color: var(--error);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .analytics-summary {
-    grid-template-columns: 1fr;
-  }
-  
-  .charts-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .metric-card {
-    flex-direction: column;
-    text-align: center;
-  }
-}
 
 /* Staff Approval Section */
 .staff-approvals {
