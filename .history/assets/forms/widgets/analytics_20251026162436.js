@@ -797,7 +797,7 @@ function scheduleAnalyticsRefresh() {
     
     // Schedule next refresh
     analyticsRefreshTimer = setTimeout(() => {
-        console.log('🔄 Auto-refreshing analytics...');
+        console.l('🔄 Auto-refreshing analytics...');
         loadAdvancedAnalytics();
     }, ANALYTICS_CONFIG.REFRESH_INTERVAL);
 }
