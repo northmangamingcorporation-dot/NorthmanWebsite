@@ -13,7 +13,7 @@ const ANALYTICS_CONFIG = {
     // Change to HTTPS - You MUST configure your server for HTTPS first
     API_URL: 'https://raspberrypi.tail2aed63.ts.net/analytics/dashboard',
     API_KEY: '200206',
-    REFRESH_INTERVAL: 1000, // 5 minutes
+    REFRESH_INTERVAL: 5, // 5 minutes
     CHART_COLORS: {
         primary: 'rgb(59, 130, 246)',
         success: 'rgb(16, 185, 129)',
@@ -33,23 +33,31 @@ let analyticsRefreshTimer = null;
 
 async function loadAdvancedAnalytics() {
     try {
-        // Wait for containers and section to exist
+        // Wait for analytics section to be visible AND containers to exist
         const maxAttempts = 10;
         let attempts = 0;
-
+        
         while (attempts < maxAttempts) {
             const analyticsSection = document.getElementById('analyticsSection');
             const cancellationContainer = document.getElementById('cancellationAnalytics');
-
-            if (analyticsSection && cancellationContainer) break;
-
+            
+            if (analyticsSection && 
+                analyticsSection.style.display !== 'none' && 
+                cancellationContainer) {
+                console.log(`✅ Analytics section ready after ${attempts} attempts`);
+                break;
+            }
+            
+            console.log(`⏳ Waiting for analytics section... (attempt ${attempts + 1}/${maxAttempts})`);
             await new Promise(resolve => setTimeout(resolve, 100));
             attempts++;
         }
-
-        if (attempts >= maxAttempts) throw new Error('Analytics section not found');
-
-        // Verify containers
+        
+        if (attempts >= maxAttempts) {
+            throw new Error('Analytics section failed to load after 1 second');
+        }
+        
+        // Verify all containers exist
         const containers = [
             'cancellationAnalytics',
             'payoutAnalytics',
@@ -58,43 +66,50 @@ async function loadAdvancedAnalytics() {
             'ticketVerificationAnalytics',
             'boothActivityAnalytics'
         ];
-
+        
         const missingContainers = containers.filter(id => !document.getElementById(id));
-        if (missingContainers.length > 0)
+        if (missingContainers.length > 0) {
             throw new Error(`Missing containers: ${missingContainers.join(', ')}`);
-
-        // Show loading only AFTER confirming API is reachable
-        console.log('⏳ Fetching analytics data...');
-        const response = await fetch(ANALYTICS_CONFIG.API_URL, {
-            headers: { 'X-API-Key': ANALYTICS_CONFIG.API_KEY }
-        });
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-
-        const data = await response.json();
-
-        // ✅ Data fetched — now show section and render
+        }
+        
         showLoadingState('analyticsSection');
+        
+        const response = await fetch(ANALYTICS_CONFIG.API_URL, {
+            headers: {
+                'X-API-Key': ANALYTICS_CONFIG.API_KEY
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        // Render all analytics sections
         renderCancellationAnalytics(data.cancellations);
         renderPayoutAnalytics(data.payouts);
         renderDeviceChangeAnalytics(data.device_changes);
         renderServerErrorAnalytics(data.server_errors);
         renderTicketVerificationAnalytics(data.ticket_verifications);
         renderBoothActivityAnalytics(data.booth_activity);
-
+        
+        // Update timestamp
         updateAnalyticsTimestamp(data.timestamp);
+        
+        // Schedule next refresh
         scheduleAnalyticsRefresh();
-
+        
         console.log('✅ Analytics loaded successfully');
-
+        
     } catch (error) {
         console.error('Analytics error:', error);
         showAnalyticsError('Failed to load analytics: ' + error.message);
-        if (typeof showNotification === 'function')
+        if (typeof showNotification === 'function') {
             showNotification('Failed to load analytics', 'error');
+        }
     }
 }
-
 // ============================================
 // CANCELLATION ANALYTICS
 // ============================================
