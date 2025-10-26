@@ -26,21 +26,6 @@ let analyticsRefreshTimer = null;
 
 async function loadAdvancedAnalytics() {
     try {
-        // DEBUG: Check if containers exist
-        const containers = [
-            'cancellationAnalytics',
-            'payoutAnalytics', 
-            'deviceChangeAnalytics',
-            'serverErrorAnalytics',
-            'ticketVerificationAnalytics',
-            'boothActivityAnalytics'
-        ];
-        
-        containers.forEach(id => {
-            const el = document.getElementById(id);
-            console.log(`Container ${id}:`, el ? '✅ Found' : '❌ Missing');
-        });
-        
         showLoadingState('analyticsSection');
         
         const response = await fetch(ANALYTICS_CONFIG.API_URL, {

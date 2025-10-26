@@ -26,21 +26,6 @@ let analyticsRefreshTimer = null;
 
 async function loadAdvancedAnalytics() {
     try {
-        // DEBUG: Check if containers exist
-        const containers = [
-            'cancellationAnalytics',
-            'payoutAnalytics', 
-            'deviceChangeAnalytics',
-            'serverErrorAnalytics',
-            'ticketVerificationAnalytics',
-            'boothActivityAnalytics'
-        ];
-        
-        containers.forEach(id => {
-            const el = document.getElementById(id);
-            console.log(`Container ${id}:`, el ? '✅ Found' : '❌ Missing');
-        });
-        
         showLoadingState('analyticsSection');
         
         const response = await fetch(ANALYTICS_CONFIG.API_URL, {
@@ -69,7 +54,7 @@ async function loadAdvancedAnalytics() {
         // Schedule next refresh
         scheduleAnalyticsRefresh();
         
-        console.info('✅ Analytics loaded successfully');
+        .info('✅ Analytics loaded successfully');
         
     } catch (error) {
         console.error('Analytics error:', error);
@@ -797,7 +782,7 @@ function scheduleAnalyticsRefresh() {
     
     // Schedule next refresh
     analyticsRefreshTimer = setTimeout(() => {
-        console.info('🔄 Auto-refreshing analytics...');
+        logger.info('🔄 Auto-refreshing analytics...');
         loadAdvancedAnalytics();
     }, ANALYTICS_CONFIG.REFRESH_INTERVAL);
 }
