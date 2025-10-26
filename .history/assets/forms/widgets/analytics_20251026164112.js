@@ -873,6 +873,10 @@ function initializeAnalytics() {
     }
 }
 
+// Call this when dashboard loads
+document.addEventListener('DOMContentLoaded', () => {
+    initializeAnalytics();
+});
+
 // Export for global access
 window.loadAdvancedAnalytics = loadAdvancedAnalytics;
-window.initializeAnalytics = initializeAnalytics;
