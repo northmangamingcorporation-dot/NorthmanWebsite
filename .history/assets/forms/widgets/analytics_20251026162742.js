@@ -2,12 +2,6 @@
 // ANALYTICS MODULE - HTTPS COMPATIBLE
 // ============================================
 
-// Add at the very top of analytics.js, before ANALYTICS_CONFIG
-const logger = {
-    info: (msg) => console.log(`[INFO] ${msg}`),
-    error: (msg) => console.error(`[ERROR] ${msg}`),
-    warn: (msg) => console.warn(`[WARN] ${msg}`)
-};
 
 const ANALYTICS_CONFIG = {
     // Change to HTTPS - You MUST configure your server for HTTPS first
