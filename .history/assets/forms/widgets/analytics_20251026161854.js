@@ -4,7 +4,7 @@
 
 const ANALYTICS_CONFIG = {
     // Change to HTTPS - You MUST configure your server for HTTPS first
-    API_URL: 'https://raspberrypi.tail2aed63.ts.net/analytics/dashboard',
+    API_URL: 'https://raspberrypi.tail2aed63.ts.net:5000/analytics/dashboard',
     API_KEY: '200206',
     REFRESH_INTERVAL: 300000, // 5 minutes
     CHART_COLORS: {
