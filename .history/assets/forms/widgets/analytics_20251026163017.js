@@ -33,12 +33,20 @@ let analyticsRefreshTimer = null;
 
 async function loadAdvancedAnalytics() {
     try {
-        // Wait for analytics section to be visible
-        const analyticsSection = document.getElementById('analyticsSection');
-        if (!analyticsSection || analyticsSection.style.display === 'none') {
-            console.warn('Analytics section not visible yet, waiting...');
-            await new Promise(resolve => setTimeout(resolve, 350)); // Wait for animation
-        }
+        // DEBUG: Check if containers exist
+        const containers = [
+            'cancellationAnalytics',
+            'payoutAnalytics', 
+            'deviceChangeAnalytics',
+            'serverErrorAnalytics',
+            'ticketVerificationAnalytics',
+            'boothActivityAnalytics'
+        ];
+        
+        containers.forEach(id => {
+            const el = document.getElementById(id);
+            console.log(`Container ${id}:`, el ? '✅ Found' : '❌ Missing');
+        });
         
         showLoadingState('analyticsSection');
         
@@ -68,7 +76,7 @@ async function loadAdvancedAnalytics() {
         // Schedule next refresh
         scheduleAnalyticsRefresh();
         
-        console.log('✅ Analytics loaded successfully');
+        console.info('✅ Analytics loaded successfully');
         
     } catch (error) {
         console.error('Analytics error:', error);
@@ -76,6 +84,7 @@ async function loadAdvancedAnalytics() {
         showNotification('Failed to load analytics', 'error');
     }
 }
+
 // ============================================
 // CANCELLATION ANALYTICS
 // ============================================
@@ -804,29 +813,23 @@ function scheduleAnalyticsRefresh() {
 // INITIALIZATION
 // ============================================
 
-// Track if analytics have been loaded
-let analyticsLoaded = false;
-
 // Auto-load analytics when analytics section is shown
 function initializeAnalytics() {
     const analyticsBtn = document.querySelector('.sidebar-btn[data-section="analytics"]');
     
     if (analyticsBtn) {
         analyticsBtn.addEventListener('click', () => {
-            // Use setTimeout to ensure section is visible
-            setTimeout(() => {
-                const analyticsSection = document.getElementById('analyticsSection');
-                if (analyticsSection && analyticsSection.style.display !== 'none' && !analyticsLoaded) {
-                    loadAdvancedAnalytics();
-                    analyticsLoaded = true;
-                }
-            }, 350); // Match your animation delay + buffer
+            // Load analytics if not already loaded
+            if (!document.querySelector('#cancellationAnalytics .analytics-section')) {
+                loadAdvancedAnalytics();
+            }
         });
     }
 }
+
 // Call this when dashboard loads
 document.addEventListener('DOMContentLoaded', () => {
     initializeAnalytics();
 });
 
-window.loadAdvancedAnalytics = loadAdvancedAnalytics;
+window.

@@ -33,12 +33,20 @@ let analyticsRefreshTimer = null;
 
 async function loadAdvancedAnalytics() {
     try {
-        // Wait for analytics section to be visible
-        const analyticsSection = document.getElementById('analyticsSection');
-        if (!analyticsSection || analyticsSection.style.display === 'none') {
-            console.warn('Analytics section not visible yet, waiting...');
-            await new Promise(resolve => setTimeout(resolve, 350)); // Wait for animation
-        }
+        // DEBUG: Check if containers exist
+        const containers = [
+            'cancellationAnalytics',
+            'payoutAnalytics', 
+            'deviceChangeAnalytics',
+            'serverErrorAnalytics',
+            'ticketVerificationAnalytics',
+            'boothActivityAnalytics'
+        ];
+        
+        containers.forEach(id => {
+            const el = document.getElementById(id);
+            console.log(`Container ${id}:`, el ? '✅ Found' : '❌ Missing');
+        });
         
         showLoadingState('analyticsSection');
         
@@ -68,7 +76,7 @@ async function loadAdvancedAnalytics() {
         // Schedule next refresh
         scheduleAnalyticsRefresh();
         
-        console.log('✅ Analytics loaded successfully');
+        console.info('✅ Analytics loaded successfully');
         
     } catch (error) {
         console.error('Analytics error:', error);
@@ -76,6 +84,7 @@ async function loadAdvancedAnalytics() {
         showNotification('Failed to load analytics', 'error');
     }
 }
+
 // ============================================
 // CANCELLATION ANALYTICS
 // ============================================
