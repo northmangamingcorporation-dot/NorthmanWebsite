@@ -1447,7 +1447,7 @@ async function attachITAdminDashboard(admin) {
   initializeApprovalTabs();
   showAnnouncementModal(admin);
   loadDeviceChangeSummary()
-  loadAdvancedAnalytics()
+  loadAdvancedAnalytics
   const ordersCol = window.db.collection("it_service_orders");
   const tasksCol = window.db.collection("ITdepartment_tasks");
   const clientsCol = window.db.collection("clients");
