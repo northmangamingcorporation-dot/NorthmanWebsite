@@ -1,9 +1,13 @@
 // ============================================
-// ADVANCED ANALYTICS MODULE - COMPLETE FIXED VERSION
+// ADVANCED ANALYTICS MODULE - FIXED VERSION
 // ============================================
 
 (function() {
     'use strict';
+    
+    // ============================================
+    // CONFIGURATION
+    // ============================================
     
     const CONFIG = {
         API_URL: 'https://raspberrypi.tail2aed63.ts.net:5000',
@@ -22,6 +26,10 @@
             purple: 'rgb(139, 92, 246)'
         }
     };
+    
+    // ============================================
+    // STATE MANAGEMENT
+    // ============================================
     
     const state = {
         charts: {},
@@ -47,11 +55,19 @@
         showFilters: false
     };
     
+    // ============================================
+    // LOGGER
+    // ============================================
+    
     const logger = {
         info: (msg) => console.log(`[ANALYTICS INFO] ${new Date().toISOString()} ${msg}`),
         error: (msg) => console.error(`[ANALYTICS ERROR] ${new Date().toISOString()} ${msg}`),
         warn: (msg) => console.warn(`[ANALYTICS WARN] ${new Date().toISOString()} ${msg}`)
     };
+    
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
     
     function safeGet(obj, path, defaultValue = null) {
         try {
@@ -113,6 +129,10 @@
         return params.toString();
     }
     
+    // ============================================
+    // IMPROVED NETWORK FUNCTIONS
+    // ============================================
+    
     async function fetchWithTimeout(url, options = {}, timeout = CONFIG.REQUEST_TIMEOUT) {
         const controller = new AbortController();
         state.abortController = controller;
@@ -120,11 +140,12 @@
         const timeoutId = setTimeout(() => controller.abort(), timeout);
         
         try {
+            // Enhanced fetch options with proper CORS settings
             const fetchOptions = {
                 ...options,
                 signal: controller.signal,
                 mode: 'cors',
-                credentials: 'omit',
+                credentials: 'omit', // Changed from 'include' to 'omit'
                 headers: {
                     'Accept': 'application/json',
                     'X-API-Key': CONFIG.API_KEY,
@@ -159,7 +180,7 @@
                     method: 'GET',
                     headers: { 'Accept': 'application/json' }
                 },
-                5000
+                5000 // 5 second timeout for health check
             );
             
             const data = await response.json();
@@ -195,6 +216,7 @@
             return options;
         } catch (error) {
             logger.error(`Failed to fetch filter options: ${error.message}`);
+            // Return default options
             return {
                 booth_codes: [],
                 outlets: [],
@@ -219,6 +241,7 @@
             
             const params = buildQueryParams();
             
+            // Fetch all endpoints in parallel with error handling for each
             const endpoints = {
                 cancellations: `${CONFIG.API_URL}/analytics/v2/cancellations?${params}`,
                 payouts: `${CONFIG.API_URL}/analytics/v2/payouts?${params}`,
@@ -241,6 +264,7 @@
                     return data;
                 } catch (error) {
                     logger.error(`Failed to fetch ${name}: ${error.message}`);
+                    // Return empty data structure instead of failing completely
                     return getEmptyDataStructure(name);
                 }
             };
@@ -331,6 +355,10 @@
                 return {};
         }
     }
+    
+    // ============================================
+    // CHART RENDERING (keeping existing functions)
+    // ============================================
     
     function destroyChart(canvasId) {
         if (state.charts[canvasId]) {
@@ -504,6 +532,10 @@
         }
     }
     
+    // ============================================
+    // UI RENDERING FUNCTIONS (keeping existing)
+    // ============================================
+    
     function renderHeader() {
         const activeFiltersCount = [
             state.filters.status,
@@ -550,6 +582,326 @@
                     <div class="section-header">
                         <h4><i class="fas fa-times-circle"></i> Ticket Cancellations</h4>
                         <span class="section-badge">${formatNumber(last24h)} in last 24h</span>
+                    </div>
+                    <div class="analytics-summary">
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                                <i class="fas fa-exchange-alt"></i>
+                            </div>
+                            <div class="metric-content">
+                                <h4>Total Requests</h4>
+                                <div class="metric-value">${formatNumber(total)}</div>
+                                <div class="metric-subtext">Filtered period</div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                                <i class="fas fa-mobile-alt"></i>
+                            </div>
+                            <div class="metric-content">
+                                <h4>Phone Users</h4>
+                                <div class="metric-value" style="color: #ec4899;">${formatNumber(phoneCount)}</div>
+                                <div class="metric-subtext">${phonePercentage}% of total</div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                                <i class="fas fa-desktop"></i>
+                            </div>
+                            <div class="metric-content">
+                                <h4>POS Users</h4>
+                                <div class="metric-value purple">${formatNumber(posCount)}</div>
+                                <div class="metric-subtext">${posPercentage}% of total</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <h5>Top 10 Operators by Device Changes</h5>
+                            <canvas id="deviceChangeChart" height="300"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h5>Device Change Trend</h5>
+                            <canvas id="deviceChangeTrendChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const topOperators = safeGet(data, 'top_operators', []);
+            const trend = safeGet(data, 'trend', []);
+            
+            if (Array.isArray(topOperators) && topOperators.length > 0) {
+                setTimeout(() => renderBarChart('deviceChangeChart', topOperators, 'operator', 'count', CONFIG.CHART_COLORS.purple), 100);
+            }
+            if (Array.isArray(trend) && trend.length > 0) {
+                setTimeout(() => renderLineChart('deviceChangeTrendChart', trend, 'date', 'count', CONFIG.CHART_COLORS.info), 100);
+            }
+        } catch (error) {
+            logger.error(`Device change render error: ${error.message}`);
+            container.innerHTML = '<div class="section-error">Failed to render device change analytics</div>';
+        }
+    }
+    
+    function showLoading(container) {
+        container.innerHTML = `
+            <div class="analytics-loading">
+                <div class="loading-spinner"></div>
+                <span>Loading analytics data...</span>
+                <p class="loading-status">Connecting to API...</p>
+            </div>
+        `;
+    }
+    
+    function showError(container, message) {
+        container.innerHTML = `
+            <div class="analytics-error">
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3>Failed to Load Analytics</h3>
+                <p>${sanitizeHTML(message)}</p>
+                <div class="error-details">
+                    <p><strong>Troubleshooting:</strong></p>
+                    <ul>
+                        <li>Check if the API server is running</li>
+                        <li>Verify network connectivity</li>
+                        <li>Check browser console for details</li>
+                    </ul>
+                </div>
+                <button class="btn-retry" onclick="window.AnalyticsWidget.refresh()">
+                    <i class="fas fa-redo"></i> Retry
+                </button>
+            </div>
+        `;
+    }
+    
+    function injectStyles() {
+        if (document.getElementById('analytics-widget-styles')) return;
+        
+        const style = document.createElement('style');
+        style.id = 'analytics-widget-styles';
+        style.textContent = `
+            .analytics-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 20px; }
+            .loading-spinner { width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
+            .loading-status { font-size: 13px; color: #6b7280; margin-top: 10px; }
+            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+            .analytics-error { text-align: center; padding: 60px 20px; }
+            .error-icon { font-size: 48px; color: #ef4444; margin-bottom: 20px; }
+            .analytics-error h3 { margin: 0 0 10px; color: #1f2937; }
+            .analytics-error p { color: #6b7280; margin-bottom: 20px; }
+            .error-details { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin: 20px auto; max-width: 500px; text-align: left; }
+            .error-details ul { margin: 10px 0 0 20px; }
+            .error-details li { margin: 5px 0; color: #4b5563; font-size: 14px; }
+            .btn-retry { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; }
+            .btn-retry:hover { background: #2563eb; }
+            
+            .analytics-header { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+            .header-left h1 { font-size: 24px; font-weight: 700; margin: 0 0 4px; }
+            .header-subtitle { font-size: 13px; color: #6b7280; }
+            .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+            .btn-header { background: #f3f4f6; color: #374151; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; position: relative; }
+            .btn-header:hover { background: #e5e7eb; }
+            .btn-header:disabled { opacity: 0.5; cursor: not-allowed; }
+            .badge-count { background: #ef4444; color: white; padding: 2px 6px; border-radius: 10px; font-size: 11px; font-weight: 600; position: absolute; top: -4px; right: -4px; }
+            
+            .analytics-section { background: white; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+            .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #e5e7eb; }
+            .section-header h4 { margin: 0; font-size: 18px; color: #1f2937; display: flex; align-items: center; gap: 10px; }
+            .section-badge { background: #eff6ff; color: #3b82f6; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+            .analytics-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+            .metric-card { display: flex; align-items: center; gap: 16px; padding: 20px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb; }
+            .metric-icon { width: 56px; height: 56px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; flex-shrink: 0; }
+            .metric-content { flex: 1; min-width: 0; }
+            .metric-content h4 { margin: 0 0 8px; font-size: 13px; color: #6b7280; font-weight: 500; }
+            .metric-value { font-size: 28px; font-weight: 700; color: #1f2937; line-height: 1; margin-bottom: 4px; }
+            .metric-value.success { color: #10b981; }
+            .metric-value.error { color: #ef4444; }
+            .metric-value.warning { color: #f59e0b; }
+            .metric-value.info { color: #06b6d4; }
+            .metric-value.purple { color: #8b5cf6; }
+            .metric-subtext { font-size: 12px; color: #9ca3af; }
+            .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; }
+            .chart-container { background: #f9fafb; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; }
+            .chart-container h5 { margin: 0 0 16px; font-size: 14px; color: #4b5563; font-weight: 600; }
+            .chart-container canvas { max-height: 300px; }
+            .section-error { padding: 20px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; color: #dc2626; text-align: center; }
+            
+            @media (max-width: 768px) {
+                .analytics-header { flex-direction: column; align-items: flex-start; }
+                .header-actions { width: 100%; }
+                .btn-header { flex: 1; justify-content: center; }
+                .analytics-summary { grid-template-columns: 1fr; }
+                .charts-grid { grid-template-columns: 1fr; }
+                .metric-card { flex-direction: column; text-align: center; }
+            }
+        `;
+        
+        document.head.appendChild(style);
+    }
+    
+    // ============================================
+    // MAIN INITIALIZATION
+    // ============================================
+    
+    async function initialize() {
+        if (state.loading) {
+            logger.warn('Already loading, skipping duplicate initialization');
+            return;
+        }
+        
+        state.loading = true;
+        
+        try {
+            const container = document.getElementById(CONFIG.CONTAINER_ID);
+            
+            if (!container) {
+                logger.error(`Container #${CONFIG.CONTAINER_ID} not found`);
+                state.loading = false;
+                return;
+            }
+            
+            injectStyles();
+            showLoading(container);
+            
+            // Test connection first
+            const isConnected = await testConnection();
+            if (!isConnected) {
+                throw new Error('Unable to connect to API server. Please check if the server is running.');
+            }
+            
+            // Fetch filter options
+            await fetchFilterOptions();
+            
+            // Update loading status
+            const loadingStatus = container.querySelector('.loading-status');
+            if (loadingStatus) {
+                loadingStatus.textContent = 'Fetching analytics data...';
+            }
+            
+            // Fetch and render data
+            const data = await fetchAnalyticsData();
+            
+            // Clear container
+            container.innerHTML = '';
+            
+            // Render header
+            container.innerHTML = renderHeader();
+            
+            // Create section containers
+            const sections = [
+                { id: 'cancellation', fn: renderCancellationAnalytics, data: data.cancellations },
+                { id: 'payout', fn: renderPayoutAnalytics, data: data.payouts },
+                { id: 'deviceChange', fn: renderDeviceChangeAnalytics, data: data.device_changes }
+            ];
+            
+            sections.forEach(section => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.id = `${section.id}Analytics`;
+                container.appendChild(sectionDiv);
+                
+                if (section.data) {
+                    section.fn(section.data, sectionDiv);
+                }
+            });
+            
+            state.loaded = true;
+            state.loading = false;
+            logger.info('✅ Advanced Analytics widget initialized successfully');
+            
+            scheduleRefresh();
+            
+        } catch (error) {
+            logger.error(`Initialization failed: ${error.message}`);
+            state.loading = false;
+            const container = document.getElementById(CONFIG.CONTAINER_ID);
+            if (container) {
+                showError(container, error.message);
+            }
+        }
+    }
+    
+    function scheduleRefresh() {
+        if (state.refreshTimer) {
+            clearTimeout(state.refreshTimer);
+        }
+        
+        state.refreshTimer = setTimeout(() => {
+            logger.info('🔄 Auto-refreshing analytics...');
+            refresh();
+        }, CONFIG.REFRESH_INTERVAL);
+    }
+    
+    function refresh() {
+        state.loaded = false;
+        state.loading = false; // Reset loading flag
+        return initialize();
+    }
+    
+    function toggleFilters() {
+        state.showFilters = !state.showFilters;
+        refresh();
+    }
+    
+    function destroy() {
+        if (state.refreshTimer) {
+            clearTimeout(state.refreshTimer);
+            state.refreshTimer = null;
+        }
+        
+        if (state.abortController) {
+            state.abortController.abort();
+            state.abortController = null;
+        }
+        
+        Object.keys(state.charts).forEach(chartId => {
+            destroyChart(chartId);
+        });
+        
+        state.loaded = false;
+        state.loading = false;
+        
+        logger.info('Analytics widget destroyed');
+    }
+    
+    // ============================================
+    // PUBLIC API
+    // ============================================
+    
+    window.AnalyticsWidget = {
+        init: initialize,
+        refresh: refresh,
+        destroy: destroy,
+        toggleFilters: toggleFilters,
+        testConnection: testConnection,
+        state: () => ({ 
+            loaded: state.loaded,
+            loading: state.loading,
+            lastFetchTime: state.lastFetchTime,
+            charts: Object.keys(state.charts),
+            filterOptions: state.filterOptions
+        })
+    };
+    
+    // ============================================
+    // AUTO-INITIALIZE
+    // ============================================
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            logger.info('📊 Advanced Analytics widget ready');
+            if (document.getElementById(CONFIG.CONTAINER_ID)) {
+                initialize();
+            }
+        });
+    } else {
+        logger.info('📊 Advanced Analytics widget ready');
+        if (document.getElementById(CONFIG.CONTAINER_ID)) {
+            initialize();
+        }
+    }
+    
+})();">${formatNumber(last24h)} in last 24h</span>
                     </div>
                     <div class="analytics-summary">
                         <div class="metric-card">
@@ -718,304 +1070,4 @@
                 <div class="analytics-section">
                     <div class="section-header">
                         <h4><i class="fas fa-mobile-alt"></i> Device ID Changes</h4>
-                        <span class="section-badge">${formatNumber(last24h)} in last 24h</span>
-                    </div>
-                    <div class="analytics-summary">
-                        <div class="metric-card">
-                            <div class="metric-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
-                                <i class="fas fa-exchange-alt"></i>
-                            </div>
-                            <div class="metric-content">
-                                <h4>Total Requests</h4>
-                                <div class="metric-value">${formatNumber(total)}</div>
-                                <div class="metric-subtext">Filtered period</div>
-                            </div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-icon" style="background: linear-gradient(135deg, #ec4899, #db2777);">
-                                <i class="fas fa-mobile-alt"></i>
-                            </div>
-                            <div class="metric-content">
-                                <h4>Phone Users</h4>
-                                <div class="metric-value" style="color: #ec4899;">${formatNumber(phoneCount)}</div>
-                                <div class="metric-subtext">${phonePercentage}% of total</div>
-                            </div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
-                                <i class="fas fa-desktop"></i>
-                            </div>
-                            <div class="metric-content">
-                                <h4>POS Users</h4>
-                                <div class="metric-value purple">${formatNumber(posCount)}</div>
-                                <div class="metric-subtext">${posPercentage}% of total</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="charts-grid">
-                        <div class="chart-container">
-                            <h5>Top 10 Operators by Device Changes</h5>
-                            <canvas id="deviceChangeChart" height="300"></canvas>
-                        </div>
-                        <div class="chart-container">
-                            <h5>Device Change Trend</h5>
-                            <canvas id="deviceChangeTrendChart" height="300"></canvas>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            const topOperators = safeGet(data, 'top_operators', []);
-            const trend = safeGet(data, 'trend', []);
-            
-            if (Array.isArray(topOperators) && topOperators.length > 0) {
-                setTimeout(() => renderBarChart('deviceChangeChart', topOperators, 'operator', 'count', CONFIG.CHART_COLORS.purple), 100);
-            }
-            if (Array.isArray(trend) && trend.length > 0) {
-                setTimeout(() => renderLineChart('deviceChangeTrendChart', trend, 'date', 'count', CONFIG.CHART_COLORS.info), 100);
-            }
-        } catch (error) {
-            logger.error(`Device change render error: ${error.message}`);
-            container.innerHTML = '<div class="section-error">Failed to render device change analytics</div>';
-        }
-    }
-    
-    function showLoading(container) {
-        container.innerHTML = `
-            <div class="analytics-loading">
-                <div class="loading-spinner"></div>
-                <span>Loading analytics data...</span>
-                <p class="loading-status">Connecting to API...</p>
-            </div>
-        `;
-    }
-    
-    function showError(container, message) {
-        container.innerHTML = `
-            <div class="analytics-error">
-                <div class="error-icon">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <h3>Failed to Load Analytics</h3>
-                <p>${sanitizeHTML(message)}</p>
-                <div class="error-details">
-                    <p><strong>Troubleshooting:</strong></p>
-                    <ul>
-                        <li>Check if the API server is running</li>
-                        <li>Verify network connectivity</li>
-                        <li>Check browser console for details</li>
-                    </ul>
-                </div>
-                <button class="btn-retry" onclick="window.AnalyticsWidget.refresh()">
-                    <i class="fas fa-redo"></i> Retry
-                </button>
-            </div>
-        `;
-    }
-    
-    function injectStyles() {
-        if (document.getElementById('analytics-widget-styles')) return;
-        
-        const style = document.createElement('style');
-        style.id = 'analytics-widget-styles';
-        style.textContent = `
-            .analytics-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 20px; }
-            .loading-spinner { width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
-            .loading-status { font-size: 13px; color: #6b7280; margin-top: 10px; }
-            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-            .analytics-error { text-align: center; padding: 60px 20px; }
-            .error-icon { font-size: 48px; color: #ef4444; margin-bottom: 20px; }
-            .analytics-error h3 { margin: 0 0 10px; color: #1f2937; }
-            .analytics-error p { color: #6b7280; margin-bottom: 20px; }
-            .error-details { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin: 20px auto; max-width: 500px; text-align: left; }
-            .error-details ul { margin: 10px 0 0 20px; }
-            .error-details li { margin: 5px 0; color: #4b5563; font-size: 14px; }
-            .btn-retry { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; }
-            .btn-retry:hover { background: #2563eb; }
-            
-            .analytics-header { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
-            .header-left h1 { font-size: 24px; font-weight: 700; margin: 0 0 4px; }
-            .header-subtitle { font-size: 13px; color: #6b7280; }
-            .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-            .btn-header { background: #f3f4f6; color: #374151; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; position: relative; }
-            .btn-header:hover { background: #e5e7eb; }
-            .btn-header:disabled { opacity: 0.5; cursor: not-allowed; }
-            .badge-count { background: #ef4444; color: white; padding: 2px 6px; border-radius: 10px; font-size: 11px; font-weight: 600; position: absolute; top: -4px; right: -4px; }
-            
-            .analytics-section { background: white; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
-            .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #e5e7eb; }
-            .section-header h4 { margin: 0; font-size: 18px; color: #1f2937; display: flex; align-items: center; gap: 10px; }
-            .section-badge { background: #eff6ff; color: #3b82f6; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-            .analytics-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-            .metric-card { display: flex; align-items: center; gap: 16px; padding: 20px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb; }
-            .metric-icon { width: 56px; height: 56px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; flex-shrink: 0; }
-            .metric-content { flex: 1; min-width: 0; }
-            .metric-content h4 { margin: 0 0 8px; font-size: 13px; color: #6b7280; font-weight: 500; }
-            .metric-value { font-size: 28px; font-weight: 700; color: #1f2937; line-height: 1; margin-bottom: 4px; }
-            .metric-value.success { color: #10b981; }
-            .metric-value.error { color: #ef4444; }
-            .metric-value.warning { color: #f59e0b; }
-            .metric-value.info { color: #06b6d4; }
-            .metric-value.purple { color: #8b5cf6; }
-            .metric-subtext { font-size: 12px; color: #9ca3af; }
-            .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; }
-            .chart-container { background: #f9fafb; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; }
-            .chart-container h5 { margin: 0 0 16px; font-size: 14px; color: #4b5563; font-weight: 600; }
-            .chart-container canvas { max-height: 300px; }
-            .section-error { padding: 20px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; color: #dc2626; text-align: center; }
-            
-            @media (max-width: 768px) {
-                .analytics-header { flex-direction: column; align-items: flex-start; }
-                .header-actions { width: 100%; }
-                .btn-header { flex: 1; justify-content: center; }
-                .analytics-summary { grid-template-columns: 1fr; }
-                .charts-grid { grid-template-columns: 1fr; }
-                .metric-card { flex-direction: column; text-align: center; }
-            }
-        `;
-        
-        document.head.appendChild(style);
-    }
-    
-    async function initialize() {
-        if (state.loading) {
-            logger.warn('Already loading, skipping duplicate initialization');
-            return;
-        }
-        
-        state.loading = true;
-        
-        try {
-            const container = document.getElementById(CONFIG.CONTAINER_ID);
-            
-            if (!container) {
-                logger.error(`Container #${CONFIG.CONTAINER_ID} not found`);
-                state.loading = false;
-                return;
-            }
-            
-            injectStyles();
-            showLoading(container);
-            
-            const isConnected = await testConnection();
-            if (!isConnected) {
-                throw new Error('Unable to connect to API server. Please check if the server is running.');
-            }
-            
-            await fetchFilterOptions();
-            
-            const loadingStatus = container.querySelector('.loading-status');
-            if (loadingStatus) {
-                loadingStatus.textContent = 'Fetching analytics data...';
-            }
-            
-            const data = await fetchAnalyticsData();
-            
-            container.innerHTML = '';
-            container.innerHTML = renderHeader();
-            
-            const sections = [
-                { id: 'cancellation', fn: renderCancellationAnalytics, data: data.cancellations },
-                { id: 'payout', fn: renderPayoutAnalytics, data: data.payouts },
-                { id: 'deviceChange', fn: renderDeviceChangeAnalytics, data: data.device_changes }
-            ];
-            
-            sections.forEach(section => {
-                const sectionDiv = document.createElement('div');
-                sectionDiv.id = `${section.id}Analytics`;
-                container.appendChild(sectionDiv);
-                
-                if (section.data) {
-                    section.fn(section.data, sectionDiv);
-                }
-            });
-            
-            state.loaded = true;
-            state.loading = false;
-            logger.info('✅ Advanced Analytics widget initialized successfully');
-            
-            scheduleRefresh();
-            
-        } catch (error) {
-            logger.error(`Initialization failed: ${error.message}`);
-            state.loading = false;
-            const container = document.getElementById(CONFIG.CONTAINER_ID);
-            if (container) {
-                showError(container, error.message);
-            }
-        }
-    }
-    
-    function scheduleRefresh() {
-        if (state.refreshTimer) {
-            clearTimeout(state.refreshTimer);
-        }
-        
-        state.refreshTimer = setTimeout(() => {
-            logger.info('🔄 Auto-refreshing analytics...');
-            refresh();
-        }, CONFIG.REFRESH_INTERVAL);
-    }
-    
-    function refresh() {
-        state.loaded = false;
-        state.loading = false;
-        return initialize();
-    }
-    
-    function toggleFilters() {
-        state.showFilters = !state.showFilters;
-        refresh();
-    }
-    
-    function destroy() {
-        if (state.refreshTimer) {
-            clearTimeout(state.refreshTimer);
-            state.refreshTimer = null;
-        }
-        
-        if (state.abortController) {
-            state.abortController.abort();
-            state.abortController = null;
-        }
-        
-        Object.keys(state.charts).forEach(chartId => {
-            destroyChart(chartId);
-        });
-        
-        state.loaded = false;
-        state.loading = false;
-        
-        logger.info('Analytics widget destroyed');
-    }
-    
-    window.AnalyticsWidget = {
-        init: initialize,
-        refresh: refresh,
-        destroy: destroy,
-        toggleFilters: toggleFilters,
-        testConnection: testConnection,
-        state: () => ({ 
-            loaded: state.loaded,
-            loading: state.loading,
-            lastFetchTime: state.lastFetchTime,
-            charts: Object.keys(state.charts),
-            filterOptions: state.filterOptions
-        })
-    };
-    
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            logger.info('📊 Advanced Analytics widget ready');
-            if (document.getElementById(CONFIG.CONTAINER_ID)) {
-                initialize();
-            }
-        });
-    } else {
-        logger.info('📊 Advanced Analytics widget ready');
-        if (document.getElementById(CONFIG.CONTAINER_ID)) {
-            initialize();
-        }
-    }
-    
-})();
+                        <span class="section-badge
