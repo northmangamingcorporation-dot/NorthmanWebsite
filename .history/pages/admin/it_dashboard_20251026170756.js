@@ -1051,12 +1051,12 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
           </div>
           
           <!-- Analytics Content -->
-          <div id="cancellationAnalytics" style="display:block"></div>
-          <div id="payoutAnalytics" style="display:block"></div>
-          <div id="deviceChangeAnalytics" style="display:block"></div>
-          <div id="serverErrorAnalytics" style="display:block"></div>
-          <div id="ticketVerificationAnalytics" style="display:block"></div>
-          <div id="boothActivityAnalytics" style="display:block"></div>
+          <div id="cancellationAnalytics" style></div>
+          <div id="payoutAnalytics"></div>
+          <div id="deviceChangeAnalytics"></div>
+          <div id="serverErrorAnalytics"></div>
+          <div id="ticketVerificationAnalytics"></div>
+          <div id="boothActivityAnalytics"></div>
         </div>
       </main>
     </div>
