@@ -29,11 +29,7 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
             <i class="fas fa-users"></i>
             <span>Clients</span>
           </button>
-          <button class="sidebar-btn" data-section="dataTables">
-            <i class="fas fa-table"></i>
-            <span>Data Tables</span>
-            <span class="extension-badge">NEW</span>
-          </button>
+          
           <button class="sidebar-btn" data-section="analytics">
             <i class="fas fa-chart-line"></i>
             <span>Analytics</span>
@@ -1032,12 +1028,6 @@ function renderITAdminDashboard(admin = { username: "ITAdmin", position: "" }, s
     </table>
   </div>
 </div>
-
-<!-- Data Tables Section -->
-<div id="dataTablesSection" class="section">
-  <div id="dataTablesWidget"></div>
-</div>
-
 <!-- Enhanced Analytics Section -->
 <div id="analyticsSection" class="section">
   <div id="analyticsWidget"></div>
@@ -1187,56 +1177,28 @@ function attachSidebarNavigation() {
         return;
       }
       
-      setTimeout(() => {
-        section.style.display = "block";
-        section.offsetHeight; // Force reflow
-        section.style.opacity = "1";
-        section.style.transform = "translateY(0)";
-        
-        // Load section-specific data AFTER section is visible
-        switch(targetSection) {
-          case 'analytics':
-            // Initialize analytics widget
-            if (typeof window.AnalyticsWidget !== 'undefined') {
-              if (!window.analyticsInitialized) {
-                console.log('🔄 Initializing Analytics Widget...');
-                window.AnalyticsWidget.init();
-                window.analyticsInitialized = true;
-              } else {
-                console.log('✅ Analytics Widget already initialized');
-              }
-            } else {
-              console.error('❌ Analytics Widget not loaded!');
-            }
-            break;
-            
-          case 'dataTables':
-            // Initialize data tables widget
-            if (typeof window.DataTablesWidget !== 'undefined') {
-              if (!window.dataTablesInitialized) {
-                console.log('🔄 Initializing Data Tables Widget...');
-                window.DataTablesWidget.init();
-                window.dataTablesInitialized = true;
-              } else {
-                console.log('✅ Data Tables Widget already initialized');
-                // Optionally refresh the data
-                window.DataTablesWidget.refresh();
-              }
-            } else {
-              console.error('❌ Data Tables Widget not loaded!');
-            }
-            break;
-            
-          case 'tampermonkey':
-            if (typeof injectTampermonkeyStyles === 'function') {
-              injectTampermonkeyStyles();
-            }
-            if (typeof loadTampermonkeyScripts === 'function') {
-              loadTampermonkeyScripts();
-            }
-            break;
+setTimeout(() => {
+    section.style.display = "block";
+    section.offsetHeight; // Force reflow
+    section.style.opacity = "1";
+    section.style.transform = "translateY(0)";
+    
+    // Load section-specific data AFTER section is visible
+    switch(targetSection) {
+      case 'analytics':
+        // Remove the extra call - let initializeAnalytics handle it
+        // The button click will trigger the listener we set up
+        break;
+      case 'tampermonkey':
+        if (typeof injectTampermonkeyStyles === 'function') {
+          injectTampermonkeyStyles();
         }
-      }, 250);
+        if (typeof loadTampermonkeyScripts === 'function') {
+          loadTampermonkeyScripts();
+        }
+        break;
+    }
+}, 250);
     });
   });
 }
@@ -1446,10 +1408,6 @@ function showNotification(message, type = "info") {
 async function attachITAdminDashboard(admin) {
   injectEnhancedITAdminStyles();
   
-  // Set widget initialization flags
-  window.analyticsInitialized = false;
-  window.dataTablesInitialized = false;
-
   // Initialize components
   initializeDashboardOnLoad(); // ← ADD THIS LINE
   loadITManagerTasks(admin.username);
@@ -2328,25 +2286,6 @@ function injectEnhancedITAdminStyles() {
       --radius-lg: 16px;
       --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
-.extension-badge {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-  font-size: 0.65rem;
-  padding: 2px 6px;
-  border-radius: 10px;
-  margin-left: auto;
-  min-width: 28px;
-  text-align: center;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
-}
-
-.sidebar-btn:hover .extension-badge {
-  background: linear-gradient(135deg, #059669, #047857);
-  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
-}
 
 /* Analytics Section Styles */
 .analytics-section {

@@ -1446,10 +1446,7 @@ function showNotification(message, type = "info") {
 async function attachITAdminDashboard(admin) {
   injectEnhancedITAdminStyles();
   
-  // Set widget initialization flags
-  window.analyticsInitialized = false;
-  window.dataTablesInitialized = false;
-
+  
   // Initialize components
   initializeDashboardOnLoad(); // ← ADD THIS LINE
   loadITManagerTasks(admin.username);
