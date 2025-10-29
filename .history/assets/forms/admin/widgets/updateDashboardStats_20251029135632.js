@@ -193,22 +193,23 @@
     // Query 1: Pending cancellations (status = 'requested', today only)
     const pendingQuery = `
       SELECT COUNT(DISTINCT c1.ticket_id) AS count
-      FROM cancellations c1
-      WHERE c1.status = 'requested'
-        AND c1.timestamp::date = CURRENT_DATE
-        AND NOT EXISTS (
-            SELECT 1
-            FROM cancellations c2
-            WHERE c2.ticket_id = c1.ticket_id
-              AND c2.status IN ('approved', 'denied')
-        );
+FROM cancellations c1
+WHERE c1.status = 'requested'
+  AND c1.timestamp::date = CURRENT_DATE
+  AND NOT EXISTS (
+      SELECT 1
+      FROM cancellations c2
+      WHERE c2.ticket_id = c1.ticket_id
+        AND c2.status IN ('approved', 'denied')
+  );
+
     `;
 
     // Query 2: Approved cancellations (status = 'approved', today)
     const approvedQuery = `
       SELECT COUNT(DISTINCT ticket_id) as count
       FROM cancellations
-      WHERE status = 'approved'
+      WHERE status = 'approved' NOT status = 'requested' NOT status = 'denied'
       AND timestamp >= %s
       AND timestamp <= %s
     `;
@@ -217,7 +218,7 @@
     const deniedQuery = `
       SELECT COUNT(DISTINCT ticket_id) as count
       FROM cancellations
-      WHERE status = 'denied'
+      WHERE status = 'denied' NOT status = 'requested' NOT status = 'approved'
       AND timestamp >= %s
       AND timestamp <= %s
     `;

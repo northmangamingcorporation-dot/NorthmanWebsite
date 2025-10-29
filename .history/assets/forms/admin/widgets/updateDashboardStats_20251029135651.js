@@ -217,7 +217,7 @@
     const deniedQuery = `
       SELECT COUNT(DISTINCT ticket_id) as count
       FROM cancellations
-      WHERE status = 'denied'
+      WHERE status = 'denied' NOT status = 'requested' NOT status = 'approved'
       AND timestamp >= %s
       AND timestamp <= %s
     `;
