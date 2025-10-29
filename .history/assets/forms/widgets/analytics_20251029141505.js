@@ -1,54 +1,54 @@
-  
 // ============================================
-// REAL-TIME ANALYTICS MODULE WITH CUSTOM QUERIES
+// ENHANCED ADVANCED ANALYTICS MODULE
 // ============================================
+// assets\forms\widgets\analytics.js
 (function() {
     'use strict';
     
     const CONFIG = {
-        API_URL: 'https://api.northman-gaming-corporation.site',
-        API_KEY: '200206',
-        QUERY_ENDPOINT: '/api/query',
-        EVENTS_ENDPOINT: '/api/events/subscribe',
-        REFRESH_INTERVAL: 300000, // 5 minutes (fallback only)
-        MAX_RETRIES: 3,
-        RETRY_DELAY: 2000,
-        REQUEST_TIMEOUT: 30000,
-        CONTAINER_ID: 'analyticsWidget',
-        USE_REALTIME: true, // Use Server-Sent Events
-        CHART_COLORS: {
-            primary: 'rgb(59, 130, 246)',
-            success: 'rgb(16, 185, 129)',
-            warning: 'rgb(245, 158, 11)',
-            error: 'rgb(239, 68, 68)',
-            info: 'rgb(6, 182, 212)',
-            purple: 'rgb(139, 92, 246)'
-        }
+    API_URL: 'https://api.northman-gaming-corporation.site',  // Your Cloudflare tunnel domain
+    API_KEY: '200206',    // From .env API_KEY
+    REFRESH_INTERVAL: 300000,
+    MAX_RETRIES: 3,
+    RETRY_DELAY: 2000,
+    REQUEST_TIMEOUT: 30000,
+    CONTAINER_ID: 'analyticsWidget',
+    CHART_COLORS: {
+        primary: 'rgb(59, 130, 246)',
+        success: 'rgb(16, 185, 129)',
+        warning: 'rgb(245, 158, 11)',
+        error: 'rgb(239, 68, 68)',
+        info: 'rgb(6, 182, 212)',
+        purple: 'rgb(139, 92, 246)'
+    }
     };
-    
     const state = {
         charts: {},
         refreshTimer: null,
-        eventSource: null,
         loaded: false,
         loading: false,
         lastSuccessfulData: null,
         lastFetchTime: 0,
         retryCount: 0,
         abortController: null,
+        filterOptions: null,
         filters: {
             dateRange: 'last_30_days',
-            days: 30,
             startDate: '',
             endDate: '',
             status: '',
             boothCodes: [],
-            outlets: []
+            outlets: [],
+            operators: [],
+            userTypes: [],
+            minAmount: '',
+            maxAmount: ''
         },
+        insights: [],
         showFilters: false,
         activeTab: 'cancellations',
-        connectionMode: 'disconnected', // disconnected, events, polling
-        consecutiveErrors: 0
+        comparisonMode: false,
+        comparisonPeriod: 'previous_period'
     };
     
     const logger = {
@@ -82,6 +82,10 @@
         return '₱' + formatNumber(amount, 2);
     }
     
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
     function sanitizeHTML(str) {
         if (!str) return '';
         const div = document.createElement('div');
@@ -89,357 +93,187 @@
         return div.innerHTML;
     }
     
-    function getTodayRange() {
-        const now = new Date();
-        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-        const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-        
-        const formatDateTime = (date) => {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            const seconds = String(date.getSeconds()).padStart(2, '0');
-            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-        };
-        
-        return {
-            start: formatDateTime(startOfDay),
-            end: formatDateTime(endOfDay)
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
         };
     }
     
+    function downloadJSON(data, filename) {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    
+    function downloadCSV(data, filename) {
+        if (!Array.isArray(data) || data.length === 0) return;
+        
+        const headers = Object.keys(data[0]);
+        const csv = [
+            headers.join(','),
+            ...data.map(row => headers.map(h => JSON.stringify(row[h] ?? '')).join(','))
+        ].join('\n');
+        
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    
     // ============================================
-    // CUSTOM QUERY API
+    // API FUNCTIONS
     // ============================================
     
-    async function executeQuery(query, params = []) {
+    function buildQueryParams() {
+        const params = new URLSearchParams();
+        
+        if (state.filters.dateRange !== 'custom') {
+            const daysMap = {
+                'today': 1,
+                'last_7_days': 7,
+                'last_30_days': 30,
+                'last_90_days': 90,
+                'last_180_days': 180,
+                'last_365_days': 365
+            };
+            const days = daysMap[state.filters.dateRange] || 30;
+            params.append('days', days);
+        } else {
+            if (state.filters.startDate) params.append('start_date', state.filters.startDate);
+            if (state.filters.endDate) params.append('end_date', state.filters.endDate);
+        }
+        
+        if (state.filters.status) params.append('status', state.filters.status);
+        if (state.filters.boothCodes.length) params.append('booth_codes', state.filters.boothCodes.join(','));
+        if (state.filters.outlets.length) params.append('outlets', state.filters.outlets.join(','));
+        if (state.filters.operators.length) params.append('operators', state.filters.operators.join(','));
+        if (state.filters.userTypes.length) params.append('user_types', state.filters.userTypes.join(','));
+        if (state.filters.minAmount) params.append('min_amount', state.filters.minAmount);
+        if (state.filters.maxAmount) params.append('max_amount', state.filters.maxAmount);
+        
+        params.append('include_details', 'false');
+        
+        return params.toString();
+    }
+    
+    async function fetchWithTimeout(url, options = {}, timeout = CONFIG.REQUEST_TIMEOUT) {
+        const controller = new AbortController();
+        state.abortController = controller;
+        
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
         try {
-            const response = await fetch(`${CONFIG.API_URL}${CONFIG.QUERY_ENDPOINT}`, {
-                method: 'POST',
+            const fetchOptions = {
+                ...options,
+                signal: controller.signal,
+                mode: 'cors',
+                credentials: 'omit',
                 headers: {
+                    'Accept': 'application/json',
                     'X-API-Key': CONFIG.API_KEY,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ query, params }),
-                signal: AbortSignal.timeout(CONFIG.REQUEST_TIMEOUT)
-            });
+                    ...options.headers
+                }
+            };
+            
+            const response = await fetch(url, fetchOptions);
+            clearTimeout(timeoutId);
             
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(`HTTP ${response.status}: ${errorData.error || response.statusText}`);
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
-            const data = await response.json();
-            return data.results || [];
+            return response;
         } catch (error) {
-            logger.error(`Query execution error: ${error.message}`);
+            clearTimeout(timeoutId);
+            if (error.name === 'AbortError') {
+                throw new Error('Request timeout');
+            }
             throw error;
+        }
+    }
+    
+    async function fetchFilterOptions() {
+        try {
+            logger.info('Fetching filter options...');
+            const response = await fetchWithTimeout(
+                `${CONFIG.API_URL}/analytics/v2/filters/options`,
+                { method: 'GET' }
+            );
+            
+            const options = await response.json();
+            state.filterOptions = options;
+            logger.info('✅ Filter options loaded');
+            return options;
+        } catch (error) {
+            logger.error(`Failed to fetch filter options: ${error.message}`);
+            return {
+                booth_codes: [],
+                outlets: [],
+                operators: [],
+                user_types: ['phone', 'pos'],
+                statuses: ['request', 'approved', 'rejected', 'denied', 'pending']
+            };
         }
     }
     
     async function fetchAnalyticsData() {
         try {
-            logger.info('Fetching analytics data with custom queries...');
+            logger.info('Fetching analytics data...');
             
-            const today = getTodayRange();
-            const daysAgo = state.filters.days || 30;
+            const params = buildQueryParams();
+            const endpoints = {
+                cancellations: `${CONFIG.API_URL}/analytics/v2/cancellations?${params}`,
+                payouts: `${CONFIG.API_URL}/analytics/v2/payouts?${params}`,
+                deviceChanges: `${CONFIG.API_URL}/analytics/v2/device-changes?${params}`,
+                summary: `${CONFIG.API_URL}/analytics/v2/summary?${params}`
+            };
             
-            // Query 1: Cancellations Summary
-            const cancellationsQuery = `
-                SELECT 
-                    COUNT(DISTINCT ticket_id) AS total,
-                    COUNT(DISTINCT CASE WHEN status = 'approved' THEN ticket_id END) AS approved,
-                    COUNT(DISTINCT CASE WHEN status = 'denied' THEN ticket_id END) AS denied,
-                    COUNT(DISTINCT CASE 
-                        WHEN status = 'requested' 
-                        AND NOT EXISTS (
-                            SELECT 1 
-                            FROM cancellations c2 
-                            WHERE c2.ticket_id = cancellations.ticket_id
-                            AND c2.status IN ('approved', 'denied')
-                        )
-                        THEN ticket_id 
-                    END) AS pending
-                FROM cancellations
-                WHERE timestamp >= NOW() - INTERVAL '${daysAgo} days';
-            `;
-            
-            // Query 2: Last 24h Cancellations
-            const last24hQuery = `
-                SELECT COUNT(DISTINCT ticket_id) as count
-                FROM cancellations
-                WHERE timestamp >= NOW() - INTERVAL '24 hours'
-            `;
-            
-            // Query 3: Top Operators
-            const topOperatorsQuery = `
-                SELECT 
-                    booth_code as booth,
-                    COUNT(DISTINCT ticket_id) as count
-                FROM cancellations
-                WHERE timestamp >= NOW() - INTERVAL '${daysAgo} days'
-                AND booth_code IS NOT NULL AND booth_code != ''
-                GROUP BY booth_code
-                ORDER BY count DESC
-                LIMIT 10
-            `;
-            
-            // Query 4: Daily Trend
-            const trendQuery = `
-                SELECT 
-                    DATE(timestamp) as date,
-                    COUNT(DISTINCT ticket_id) as count
-                FROM cancellations
-                WHERE timestamp >= NOW() - INTERVAL '${daysAgo} days'
-                GROUP BY DATE(timestamp)
-                ORDER BY date
-            `;
-            
-            // Query 5: Payouts Summary
-            const payoutsQuery = `
-                SELECT 
-                    COUNT(*) as total,
-                    COALESCE(SUM(payout_amount), 0) as total_amount,
-                    COALESCE(AVG(payout_amount), 0) as average_amount,
-                    COALESCE(MIN(payout_amount), 0) as min_amount,
-                    COALESCE(MAX(payout_amount), 0) as max_amount
-                FROM payouts
-                WHERE timestamp >= NOW() - INTERVAL '${daysAgo} days'
-            `;
-            
-            // Query 6: Last 24h Payouts
-            const payouts24hQuery = `
-                SELECT 
-                    COUNT(*) as count,
-                    COALESCE(SUM(payout_amount), 0) as amount
-                FROM payouts
-                WHERE timestamp >= NOW() - INTERVAL '24 hours'
-            `;
-            
-            // Query 7: Top Outlets
-            const topOutletsQuery = `
-                SELECT 
-                    outlet,
-                    COUNT(*) as count,
-                    SUM(payout_amount) as amount
-                FROM payouts
-                WHERE timestamp >= NOW() - INTERVAL '${daysAgo} days'
-                AND outlet IS NOT NULL AND outlet != ''
-                GROUP BY outlet
-                ORDER BY amount DESC
-                LIMIT 10
-            `;
-            
-            // Query 8: Payout Trend
-            const payoutTrendQuery = `
-                SELECT 
-                    DATE(timestamp) as date,
-                    SUM(payout_amount) as amount
-                FROM payouts
-                WHERE timestamp >= NOW() - INTERVAL '${daysAgo} days'
-                GROUP BY DATE(timestamp)
-                ORDER BY date
-            `;
-            
-            // Execute all queries in parallel
-            const [
-                cancellationsSummary,
-                last24h,
-                topOperators,
-                trend,
-                payoutsSummary,
-                payouts24h,
-                topOutlets,
-                payoutTrend
-            ] = await Promise.all([
-                executeQuery(cancellationsQuery),
-                executeQuery(last24hQuery),
-                executeQuery(topOperatorsQuery),
-                executeQuery(trendQuery),
-                executeQuery(payoutsQuery),
-                executeQuery(payouts24hQuery),
-                executeQuery(topOutletsQuery),
-                executeQuery(payoutTrendQuery)
+            const [cancellations, payouts, deviceChanges, summary] = await Promise.all([
+                fetchWithTimeout(endpoints.cancellations).then(r => r.json()).catch(() => getEmptyData('cancellations')),
+                fetchWithTimeout(endpoints.payouts).then(r => r.json()).catch(() => getEmptyData('payouts')),
+                fetchWithTimeout(endpoints.deviceChanges).then(r => r.json()).catch(() => getEmptyData('deviceChanges')),
+                fetchWithTimeout(endpoints.summary).then(r => r.json()).catch(() => getEmptyData('summary'))
             ]);
             
-            const cSum = cancellationsSummary[0] || {};
-            const totalRequested = (cSum.approved || 0) + (cSum.denied || 0) + (cSum.pending || 0);
-            const approvalRate = totalRequested > 0 ? ((cSum.approved || 0) / totalRequested * 100) : 0;
-            
             const data = {
-                cancellations: {
-                    total: cSum.total || 0,
-                    last_24h: last24h[0]?.count || 0,
-                    by_status: {
-                        approved: cSum.approved || 0,
-                        denied: cSum.denied || 0,
-                        pending: cSum.pending || 0
-                    },
-                    approval_rate: approvalRate,
-                    top_operators: topOperators,
-                    trend: trend
-                },
-                payouts: {
-                    total: payoutsSummary[0]?.total || 0,
-                    total_amount: parseFloat(payoutsSummary[0]?.total_amount || 0),
-                    average_amount: parseFloat(payoutsSummary[0]?.average_amount || 0),
-                    min_amount: parseFloat(payoutsSummary[0]?.min_amount || 0),
-                    max_amount: parseFloat(payoutsSummary[0]?.max_amount || 0),
-                    last_24h: {
-                        count: payouts24h[0]?.count || 0,
-                        amount: parseFloat(payouts24h[0]?.amount || 0)
-                    },
-                    top_outlets: topOutlets.map(o => ({
-                        ...o,
-                        amount: parseFloat(o.amount || 0)
-                    })),
-                    trend: payoutTrend.map(t => ({
-                        ...t,
-                        amount: parseFloat(t.amount || 0)
-                    }))
-                },
-                summary: {
-                    overview: {
-                        total_cancellations: cSum.total || 0,
-                        total_payouts: payoutsSummary[0]?.total || 0,
-                        total_device_changes: 0
-                    }
-                },
+                cancellations,
+                payouts,
+                device_changes: deviceChanges,
+                summary,
                 timestamp: new Date().toISOString()
             };
             
             state.lastSuccessfulData = data;
             state.lastFetchTime = Date.now();
-            state.consecutiveErrors = 0;
             
             logger.info('✅ Analytics data fetched');
             return data;
             
         } catch (error) {
             logger.error(`Fetch failed: ${error.message}`);
-            state.consecutiveErrors++;
-            
             if (state.lastSuccessfulData) {
                 logger.warn('Using cached data');
                 return state.lastSuccessfulData;
             }
             throw error;
         }
-    }
-    
-    // ============================================
-    // REAL-TIME EVENT STREAM
-    // ============================================
-    
-    function startEventStream() {
-        if (!CONFIG.USE_REALTIME) {
-            logger.info('Real-time disabled, using polling');
-            startPolling();
-            return;
-        }
-        
-        stopEventStream();
-        logger.info('Starting event stream connection...');
-        
-        try {
-            state.eventSource = new EventSource(
-                `${CONFIG.API_URL}${CONFIG.EVENTS_ENDPOINT}?api_key=${CONFIG.API_KEY}`
-            );
-            
-            state.eventSource.onopen = () => {
-                logger.info('✅ Event stream connected');
-                state.connectionMode = 'events';
-                state.consecutiveErrors = 0;
-                updateConnectionStatus();
-            };
-            
-            state.eventSource.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    logger.info('📨 Received event:', data.type);
-                    
-                    if (data.type === 'update' || data.type === 'change') {
-                        logger.info('🔄 Database change detected, refreshing...');
-                        refresh();
-                    } else if (data.type === 'heartbeat') {
-                        logger.info('💓 Heartbeat');
-                    }
-                } catch (error) {
-                    logger.error('Error parsing event:', error);
-                }
-            };
-            
-            state.eventSource.onerror = (error) => {
-                logger.error('❌ Event stream error');
-                state.consecutiveErrors++;
-                
-                if (state.eventSource.readyState === EventSource.CLOSED) {
-                    logger.log('🔌 Event stream closed');
-                    state.connectionMode = 'disconnected';
-                    updateConnectionStatus();
-                    
-                    setTimeout(() => {
-                        if (state.consecutiveErrors < 5) {
-                            startEventStream();
-                        } else {
-                            logger.log('⚠️  Too many errors, falling back to polling');
-                            stopEventStream();
-                            startPolling();
-                        }
-                    }, 5000);
-                }
-            };
-            
-        } catch (error) {
-            logger.error('Failed to start event stream:', error);
-            logger.log('Falling back to polling mode');
-            startPolling();
-        }
-    }
-    
-    function stopEventStream() {
-        if (state.eventSource) {
-            state.eventSource.close();
-            state.eventSource = null;
-            logger.info('🛑 Event stream stopped');
-        }
-    }
-    
-    function startPolling() {
-        stopPolling();
-        logger.info(`Starting polling mode (${CONFIG.REFRESH_INTERVAL}ms)...`);
-        state.connectionMode = 'polling';
-        updateConnectionStatus();
-        
-        state.refreshTimer = setInterval(() => {
-            logger.info('🔄 Auto-refresh (polling)');
-            refresh();
-        }, CONFIG.REFRESH_INTERVAL);
-    }
-    
-    function stopPolling() {
-        if (state.refreshTimer) {
-            clearInterval(state.refreshTimer);
-            state.refreshTimer = null;
-            logger.info('🛑 Polling stopped');
-        }
-    }
-    
-    function updateConnectionStatus() {
-        const statusEl = document.querySelector('.connection-status');
-        if (!statusEl) return;
-        
-        const statusMap = {
-            events: { text: '🟢 Live', class: 'status-connected', icon: 'fa-bolt' },
-            polling: { text: '🟡 Polling', class: 'status-polling', icon: 'fa-sync' },
-            disconnected: { text: '🔴 Disconnected', class: 'status-error', icon: 'fa-exclamation-circle' }
-        };
-        
-        const status = statusMap[state.connectionMode] || statusMap.disconnected;
-        statusEl.innerHTML = `<i class="fas ${status.icon}"></i> ${status.text}`;
-        statusEl.className = `connection-status ${status.class}`;
     }
     
     function getEmptyData(type) {

@@ -1,4 +1,5 @@
-  
+
+    
 // ============================================
 // REAL-TIME ANALYTICS MODULE WITH CUSTOM QUERIES
 // ============================================
@@ -149,21 +150,12 @@
             // Query 1: Cancellations Summary
             const cancellationsQuery = `
                 SELECT 
-                    COUNT(DISTINCT ticket_id) AS total,
-                    COUNT(DISTINCT CASE WHEN status = 'approved' THEN ticket_id END) AS approved,
-                    COUNT(DISTINCT CASE WHEN status = 'denied' THEN ticket_id END) AS denied,
-                    COUNT(DISTINCT CASE 
-                        WHEN status = 'requested' 
-                        AND NOT EXISTS (
-                            SELECT 1 
-                            FROM cancellations c2 
-                            WHERE c2.ticket_id = cancellations.ticket_id
-                            AND c2.status IN ('approved', 'denied')
-                        )
-                        THEN ticket_id 
-                    END) AS pending
+                    COUNT(DISTINCT ticket_id) as total,
+                    COUNT(DISTINCT CASE WHEN status = 'approved' THEN ticket_id END) as approved,
+                    COUNT(DISTINCT CASE WHEN status = 'denied' THEN ticket_id END) as denied,
+                    COUNT(DISTINCT CASE WHEN status = 'requested' THEN ticket_id END) as pending
                 FROM cancellations
-                WHERE timestamp >= NOW() - INTERVAL '${daysAgo} days';
+                WHERE timestamp >= NOW() - INTERVAL '${daysAgo} days'
             `;
             
             // Query 2: Last 24h Cancellations

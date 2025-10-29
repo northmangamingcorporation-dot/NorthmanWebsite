@@ -1,4 +1,178 @@
-  
+// ============================================
+// ENHANCED ADVANCED ANALYTICS MODULE
+// ============================================
+// assets\forms\widgets\analytics.js
+(function() {
+    'use strict';
+    
+    const CONFIG = {
+    API_URL: 'https://api.northman-gaming-corporation.site',  // Your Cloudflare tunnel domain
+    API_KEY: '200206',    // From .env API_KEY
+    REFRESH_INTERVAL: 300000,
+    MAX_RETRIES: 3,
+    RETRY_DELAY: 2000,
+    REQUEST_TIMEOUT: 30000,
+    CONTAINER_ID: 'analyticsWidget',
+    CHART_COLORS: {
+        primary: 'rgb(59, 130, 246)',
+        success: 'rgb(16, 185, 129)',
+        warning: 'rgb(245, 158, 11)',
+        error: 'rgb(239, 68, 68)',
+        info: 'rgb(6, 182, 212)',
+        purple: 'rgb(139, 92, 246)'
+    }
+    };
+    const state = {
+        charts: {},
+        refreshTimer: null,
+        loaded: false,
+        loading: false,
+        lastSuccessfulData: null,
+        lastFetchTime: 0,
+        retryCount: 0,
+        abortController: null,
+        filterOptions: null,
+        filters: {
+            dateRange: 'last_30_days',
+            startDate: '',
+            endDate: '',
+            status: '',
+            boothCodes: [],
+            outlets: [],
+            operators: [],
+            userTypes: [],
+            minAmount: '',
+            maxAmount: ''
+        },
+        insights: [],
+        showFilters: false,
+        activeTab: 'cancellations',
+        comparisonMode: false,
+        comparisonPeriod: 'previous_period'
+    };
+    
+    const logger = {
+        info: (msg) => console.log(`[ANALYTICS INFO] ${new Date().toISOString()} ${msg}`),
+        error: (msg) => console.error(`[ANALYTICS ERROR] ${new Date().toISOString()} ${msg}`),
+        warn: (msg) => console.warn(`[ANALYTICS WARN] ${new Date().toISOString()} ${msg}`)
+    };
+    
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+    
+    function safeGet(obj, path, defaultValue = null) {
+        try {
+            return path.split('.').reduce((acc, part) => acc?.[part], obj) ?? defaultValue;
+        } catch {
+            return defaultValue;
+        }
+    }
+    
+    function formatNumber(num, decimals = 0) {
+        if (num === null || num === undefined || isNaN(num)) return '0';
+        return Number(num).toLocaleString('en-US', { 
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals 
+        });
+    }
+    
+    function formatCurrency(amount) {
+        if (amount === null || amount === undefined || isNaN(amount)) return '₱0';
+        return '₱' + formatNumber(amount, 2);
+    }
+    
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
+    function sanitizeHTML(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+    
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    function downloadJSON(data, filename) {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    
+    function downloadCSV(data, filename) {
+        if (!Array.isArray(data) || data.length === 0) return;
+        
+        const headers = Object.keys(data[0]);
+        const csv = [
+            headers.join(','),
+            ...data.map(row => headers.map(h => JSON.stringify(row[h] ?? '')).join(','))
+        ].join('\n');
+        
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    
+    // ============================================
+    // API FUNCTIONS
+    // ============================================
+    
+    function buildQueryParams() {
+        const params = new URLSearchParams();
+        
+        if (state.filters.dateRange !== 'custom') {
+            const daysMap = {
+                'today': 1,
+                'last_7_days': 7,
+                'last_30_days': 30,
+                'last_90_days': 90,
+                'last_180_days': 180,
+                'last_365_days': 365
+            };
+            const days = daysMap[state.filters.dateRange] || 30;
+            params.append('days', days);
+        } else {
+            if (state.filters.startDate) params.append('start_date', state.filters.startDate);
+            if (state.filters.endDate) params.append('end_date', state.filters.endDate);
+        }
+        
+        if (state.filters.status) params.append('status', state.filters.status);
+        if (state.filters.boothCodes.length) params.append('booth_codes', state.filters.boothCodes.join(','));
+        if (state.filters.outlets.length) params.append('outlets', state.filters.outlets.join(','));
+        if (state.filters.operators.length) params.append('operators', state.filters.operators.join(','));
+        if (state.filters.userTypes.length) params.append('user_types', state.filters.userTypes.join(','));
+        if (state.filters.minAmount) params.append('min_amount', state.filters.minAmount);
+        if (state.filters.maxAmount) params.append('max_amount', state.filters.maxAmount);
+        
+        params.append('include_details', 'false');
+        
+        return params.toString();
+    }
+    
 // ============================================
 // REAL-TIME ANALYTICS MODULE WITH CUSTOM QUERIES
 // ============================================
@@ -149,21 +323,12 @@
             // Query 1: Cancellations Summary
             const cancellationsQuery = `
                 SELECT 
-                    COUNT(DISTINCT ticket_id) AS total,
-                    COUNT(DISTINCT CASE WHEN status = 'approved' THEN ticket_id END) AS approved,
-                    COUNT(DISTINCT CASE WHEN status = 'denied' THEN ticket_id END) AS denied,
-                    COUNT(DISTINCT CASE 
-                        WHEN status = 'requested' 
-                        AND NOT EXISTS (
-                            SELECT 1 
-                            FROM cancellations c2 
-                            WHERE c2.ticket_id = cancellations.ticket_id
-                            AND c2.status IN ('approved', 'denied')
-                        )
-                        THEN ticket_id 
-                    END) AS pending
+                    COUNT(DISTINCT ticket_id) as total,
+                    COUNT(DISTINCT CASE WHEN status = 'approved' THEN ticket_id END) as approved,
+                    COUNT(DISTINCT CASE WHEN status = 'denied' THEN ticket_id END) as denied,
+                    COUNT(DISTINCT CASE WHEN status = 'requested' THEN ticket_id END) as pending
                 FROM cancellations
-                WHERE timestamp >= NOW() - INTERVAL '${daysAgo} days';
+                WHERE timestamp >= NOW() - INTERVAL '${daysAgo} days'
             `;
             
             // Query 2: Last 24h Cancellations
