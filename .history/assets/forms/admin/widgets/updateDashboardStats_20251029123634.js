@@ -11,7 +11,7 @@
 
   // Configuration
   const config = {
-    apiUrl: 'https://api.northman-gaming-corporation.site/',
+    apiUrl: 'https://api.northman-gaming-corporation.site',
     authToken: '200206',
     pollInterval: 5000, // 5 seconds
     autoStart: true,
