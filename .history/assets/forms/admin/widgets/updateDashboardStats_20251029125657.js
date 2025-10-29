@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  console.log('=== Dashboard Sync Script v3.0 Loaded ===');
+  console.log('=== NEW Dashboard Sync Script Loaded ===');
 
   // Store for tracking previous values
   const statsHistory = {
@@ -13,13 +13,13 @@
 
   // Configuration
   const config = {
-    apiUrl: 'https://api.northman-gaming-corporation.site/api/query',
+    cancellationsUrl: 'https://api.northman-gaming-corporation.site/api/analytics/cancellations',
+    payoutsUrl: 'https://api.northman-gaming-corporation.site/api/analytics/payouts',
     apiKey: '200206',
     pollInterval: 5000, // 5 seconds
     autoStart: true,
     maxRetries: 3,
-    retryDelay: 2000,
-    drawTimes: ['10:30', '14:00', '17:00', '20:00', '21:00']
+    retryDelay: 2000
   };
 
   let pollTimer = null;
@@ -62,6 +62,7 @@
 
     const statusMap = {
       connected: { text: '🟢 Connected', class: 'status-connected' },
+      partial: { text: '🟡 Partial Connection', class: 'status-partial' },
       error: { text: '🔴 Connection Error', class: 'status-error' }
     };
 
@@ -83,86 +84,106 @@
   }
 
   // ===============================
-  // Get next draw time
+  // Parse Cancellations API response
   // ===============================
-  function getNextDraw() {
-    const now = new Date();
-    
-    const nextDraw = config.drawTimes.find(time => {
-      const [hours, minutes] = time.split(':').map(Number);
-      const drawDate = new Date();
-      drawDate.setHours(hours, minutes, 0, 0);
-      return drawDate > now;
-    });
+  function parseCancellationsResponse(response) {
+    console.log('Parsing cancellations response:', response);
 
-    // If no more draws today, return first draw tomorrow
-    return nextDraw || config.drawTimes[0];
+    const stats = {
+      pending: 0,
+      approved: 0,
+      denied: 0
+    };
+
+    try {
+      if (response && response.by_status) {
+        const byStatus = response.by_status;
+        
+        // Calculate pending: requested minus (approved + denied)
+        const requested = byStatus.requested || 0;
+        const approved = byStatus.approved || 0;
+        const denied = byStatus.denied || 0;
+        
+        stats.pending = Math.max(0, requested - (approved + denied));
+        stats.approved = approved;
+        stats.denied = denied;
+        
+        console.log('Cancellation stats extracted:', {
+          requested,
+          approved,
+          denied,
+          pending: stats.pending
+        });
+      } else {
+        console.warn('Invalid cancellations response format - missing by_status');
+      }
+    } catch (error) {
+      console.error('Error parsing cancellations response:', error);
+    }
+
+    return stats;
   }
 
   // ===============================
-  // Get today's date range
+  // Parse Payouts API response
   // ===============================
-  function getTodayRange() {
-    const now = new Date();
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-    
-    // Format: YYYY-MM-DD HH:MM:SS
-    const formatDateTime = (date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const seconds = String(date.getSeconds()).padStart(2, '0');
-      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    };
+  function parsePayoutsResponse(response) {
+    console.log('Parsing payouts response:', response);
 
-    return {
-      start: formatDateTime(startOfDay),
-      end: formatDateTime(endOfDay)
-    };
+    let payout = 0;
+
+    try {
+      if (response && response.total_amount !== undefined) {
+        // Response format: { "total_amount": 3089300.0, "total": 788, ... }
+        payout = response.total_amount;
+        console.log('Payout extracted:', payout, `(from ${response.total} transactions)`);
+      } else {
+        console.warn('Invalid payouts response format - missing total_amount');
+      }
+    } catch (error) {
+      console.error('Error parsing payouts response:', error);
+    }
+
+    return payout;
   }
 
   // ===============================
-  // Execute SQL query
+  // Fetch API data with retry logic
   // ===============================
-  async function executeQuery(query, params = [], retryCount = 0) {
-    console.log(`Executing query (attempt ${retryCount + 1}):`, query);
+  async function fetchApi(url, retryCount = 0) {
+    console.log(`Fetching from: ${url} (attempt ${retryCount + 1})`);
     
     try {
-      const response = await fetch(config.apiUrl, {
-        method: 'POST',
-        headers: {
+      const response = await fetch(url, { 
+        method: 'GET', 
+        headers: { 
           'X-API-Key': config.apiKey,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ query, params }),
         signal: AbortSignal.timeout(10000)
       });
-
-      console.log(`Response status: ${response.status}`);
-
+      
+      console.log(`Response status: ${response.status} for ${url}`);
+      
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`HTTP ${response.status}: ${errorData.error || response.statusText}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-
+      
       const data = await response.json();
-      console.log('Query result:', data);
-
-      return { success: true, data: data.results };
-
+      console.log('Data received successfully from', url);
+      
+      return { success: true, data };
+      
     } catch (error) {
-      console.error(`Query error (attempt ${retryCount + 1}/${config.maxRetries}):`, error.message);
-
+      console.error(`Fetch error from ${url} (attempt ${retryCount + 1}/${config.maxRetries}):`, error.message);
+      
       // Retry logic
       if (retryCount < config.maxRetries) {
         console.log(`Retrying in ${config.retryDelay}ms...`);
         await new Promise(resolve => setTimeout(resolve, config.retryDelay));
-        return executeQuery(query, params, retryCount + 1);
+        return fetchApi(url, retryCount + 1);
       }
-
+      
       return { success: false, error: error.message };
     }
   }
@@ -172,53 +193,11 @@
   // ===============================
   async function fetchAllStats() {
     console.log('--- Fetching all stats ---');
-
-    const today = getTodayRange();
-    const nextDraw = getNextDraw();
-    console.log('Date range:', today);
-    console.log('Next draw:', nextDraw);
-
-    // Query 1: Pending cancellations (status = 'requested', before upcoming draw)
-    const pendingQuery = `
-      SELECT COUNT(DISTINCT ticket_id) as count
-      FROM cancellations
-      WHERE status = 'requested'
-      AND draw_time = $1
-      AND DATE(timestamp) = CURRENT_DATE
-    `;
-
-    // Query 2: Approved cancellations (status = 'approved', today)
-    const approvedQuery = `
-      SELECT COUNT(DISTINCT ticket_id) as count
-      FROM cancellations
-      WHERE status = 'approved'
-      AND timestamp >= $1
-      AND timestamp <= $2
-    `;
-
-    // Query 3: Denied cancellations (status = 'denied', today)
-    const deniedQuery = `
-      SELECT COUNT(DISTINCT ticket_id) as count
-      FROM cancellations
-      WHERE status = 'denied'
-      AND timestamp >= $1
-      AND timestamp <= $2
-    `;
-
-    // Query 4: Total payout (today)
-    const payoutQuery = `
-      SELECT COALESCE(SUM(amount), 0) as total
-      FROM payouts
-      WHERE timestamp >= $1
-      AND timestamp <= $2
-    `;
-
-    // Execute all queries in parallel
-    const [pendingResult, approvedResult, deniedResult, payoutResult] = await Promise.all([
-      executeQuery(pendingQuery, [nextDraw]),
-      executeQuery(approvedQuery, [today.start, today.end]),
-      executeQuery(deniedQuery, [today.start, today.end]),
-      executeQuery(payoutQuery, [today.start, today.end])
+    
+    // Fetch both endpoints in parallel
+    const [cancellationsResult, payoutsResult] = await Promise.all([
+      fetchApi(config.cancellationsUrl),
+      fetchApi(config.payoutsUrl)
     ]);
 
     const stats = {
@@ -230,39 +209,32 @@
 
     let successCount = 0;
 
-    // Process results
-    if (pendingResult.success && pendingResult.data.length > 0) {
-      stats.pending = parseInt(pendingResult.data[0].count) || 0;
+    // Process cancellations data
+    if (cancellationsResult.success) {
+      const cancellationStats = parseCancellationsResponse(cancellationsResult.data);
+      stats.pending = cancellationStats.pending;
+      stats.approved = cancellationStats.approved;
+      stats.denied = cancellationStats.denied;
       successCount++;
     } else {
-      console.error('Failed to fetch pending:', pendingResult.error);
+      console.error('Failed to fetch cancellations:', cancellationsResult.error);
     }
 
-    if (approvedResult.success && approvedResult.data.length > 0) {
-      stats.approved = parseInt(approvedResult.data[0].count) || 0;
+    // Process payouts data
+    if (payoutsResult.success) {
+      stats.payout = parsePayoutsResponse(payoutsResult.data);
       successCount++;
     } else {
-      console.error('Failed to fetch approved:', approvedResult.error);
+      console.error('Failed to fetch payouts:', payoutsResult.error);
     }
 
-    if (deniedResult.success && deniedResult.data.length > 0) {
-      stats.denied = parseInt(deniedResult.data[0].count) || 0;
-      successCount++;
-    } else {
-      console.error('Failed to fetch denied:', deniedResult.error);
-    }
-
-    if (payoutResult.success && payoutResult.data.length > 0) {
-      stats.payout = parseFloat(payoutResult.data[0].total) || 0;
-      successCount++;
-    } else {
-      console.error('Failed to fetch payout:', payoutResult.error);
-    }
-
-    // Update connection status
-    if (successCount === 4) {
+    // Update connection status based on results
+    if (successCount === 2) {
       updateConnectionStatus('connected');
       consecutiveErrors = 0;
+    } else if (successCount === 1) {
+      updateConnectionStatus('partial');
+      consecutiveErrors++;
     } else {
       updateConnectionStatus('error');
       consecutiveErrors++;
@@ -275,7 +247,6 @@
       startPolling(config.pollInterval * 2);
     }
 
-    console.log('Final stats:', stats);
     return stats;
   }
 
@@ -284,7 +255,7 @@
   // ===============================
   async function syncDashboard() {
     console.log('--- Syncing dashboard ---');
-
+    
     const stats = await fetchAllStats();
     updateDashboard(stats);
 
@@ -294,13 +265,7 @@
       const now = new Date();
       lastSyncEl.textContent = `Last synced: ${now.toLocaleTimeString()}`;
     }
-
-    // Update next draw indicator
-    const nextDrawEl = document.getElementById('next-draw-time');
-    if (nextDrawEl) {
-      nextDrawEl.textContent = `Next Draw: ${getNextDraw()}`;
-    }
-
+    
     // Reset to normal poll interval if errors cleared
     if (consecutiveErrors === 0 && pollTimer) {
       const currentInterval = pollTimer._idleTimeout || config.pollInterval;
@@ -354,14 +319,13 @@
       consecutiveErrors,
       pollInterval: pollTimer ? (pollTimer._idleTimeout || config.pollInterval) : null,
       isPolling: pollTimer !== null,
-      apiUrl: config.apiUrl,
-      nextDraw: getNextDraw(),
-      todayRange: getTodayRange()
+      cancellationsUrl: config.cancellationsUrl,
+      payoutsUrl: config.payoutsUrl
     };
   }
 
   // ===============================
-  // Expose to window
+  // Expose to window (overwrite old version)
   // ===============================
   window.dashboardSync = {
     updateDashboard,
@@ -371,12 +335,10 @@
     stopPolling,
     manualRefresh,
     getCurrentStats,
-    getNextDraw,
-    getTodayRange,
     getConnectionInfo,
     statsHistory,
     config,
-    version: '3.2' // Updated with correct status column logic
+    version: '2.1.1' // Version identifier with payout support
   };
 
   console.log('Dashboard sync object exposed to window.dashboardSync');
@@ -401,27 +363,20 @@
 // ==============================================
 // USAGE NOTES:
 // ==============================================
-// This script uses the /api/query endpoint with custom SQL queries:
+// This script now fetches from TWO endpoints:
+// 1. /api/analytics/cancellations - for pending, approved, denied
+// 2. /api/analytics/payouts - for payout total
 //
-// 1. Pending: COUNT(DISTINCT ticket_id) WHERE status='requested'
-//    - Filters by next draw time and today's date
+// The script assumes the payouts endpoint exists and returns data in one of these formats:
+// - { "total": 12345 }
+// - { "daily_total": 12345 }
+// - { "total_payout": 12345 }
+// - { "data": { "total": 12345 } }
+// - { "payouts": [{ "amount": 100 }, { "amount": 200 }] }
 //
-// 2. Approved: COUNT(DISTINCT ticket_id) WHERE status='approved'
-//    - Filters by today's date range
-//
-// 3. Denied: COUNT(DISTINCT ticket_id) WHERE status='denied'
-//    - Filters by today's date range
-//
-// 4. Payout: SUM(amount) from payouts table
-//    - Filters by today's date range
-//
-// All queries use DISTINCT ticket_id to avoid duplicates
-// Date range: today 00:00:00 to 23:59:59
-// Timestamp format: YYYY-MM-DD HH:MM:SS (e.g., 2025-10-29 09:43:24)
+// If your payouts endpoint uses a different format, let me know and I'll adjust the parser.
 //
 // To test in console:
-// - window.dashboardSync.version (should show "3.2")
-// - window.dashboardSync.getTodayRange() (shows date range being used)
-// - window.dashboardSync.getNextDraw() (shows next draw time)
-// - window.dashboardSync.getConnectionInfo() (shows all connection details)
-// - window.dashboardSync.manualRefresh() (force immediate update)
+// - window.dashboardSync.version (should show "2.1")
+// - window.dashboardSync.getConnectionInfo() (shows both URLs)
+// - window.dashboardSync.manualRefresh() (force refresh both endpoints)
