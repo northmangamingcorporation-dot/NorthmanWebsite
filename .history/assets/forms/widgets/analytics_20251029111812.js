@@ -5,22 +5,22 @@
 (function() {
     'use strict';
     
-    const CONFIG = {
-    API_URL: 'https://api.northman-gaming-corporation.site',  // Your Cloudflare tunnel domain
-    API_KEY: '200206',    // From .env API_KEY
-    REFRESH_INTERVAL: 300000,
-    MAX_RETRIES: 3,
-    RETRY_DELAY: 2000,
-    REQUEST_TIMEOUT: 30000,
-    CONTAINER_ID: 'analyticsWidget',
-    CHART_COLORS: {
-        primary: 'rgb(59, 130, 246)',
-        success: 'rgb(16, 185, 129)',
-        warning: 'rgb(245, 158, 11)',
-        error: 'rgb(239, 68, 68)',
-        info: 'rgb(6, 182, 212)',
-        purple: 'rgb(139, 92, 246)'
-    }
+        const CONFIG = {
+        API_URL: 'https://api.yourdomain.com',  // Your Cloudflare tunnel domain
+        API_KEY: 'your_actual_api_key_here',    // From .env API_KEY
+        REFRESH_INTERVAL: 300000,
+        MAX_RETRIES: 3,
+        RETRY_DELAY: 2000,
+        REQUEST_TIMEOUT: 30000,
+        CONTAINER_ID: 'analyticsWidget',
+        CHART_COLORS: {
+            primary: 'rgb(59, 130, 246)',
+            success: 'rgb(16, 185, 129)',
+            warning: 'rgb(245, 158, 11)',
+            error: 'rgb(239, 68, 68)',
+            info: 'rgb(6, 182, 212)',
+            purple: 'rgb(139, 92, 246)'
+        }
     };
     const state = {
         charts: {},

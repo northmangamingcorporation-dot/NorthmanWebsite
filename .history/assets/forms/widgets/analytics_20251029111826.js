@@ -6,8 +6,8 @@
     'use strict';
     
     const CONFIG = {
-    API_URL: 'https://api.northman-gaming-corporation.site',  // Your Cloudflare tunnel domain
-    API_KEY: '200206',    // From .env API_KEY
+    API_URL: 'https://api.yourdomain.com',  // Your Cloudflare tunnel domain
+    API_KEY: '200203',    // From .env API_KEY
     REFRESH_INTERVAL: 300000,
     MAX_RETRIES: 3,
     RETRY_DELAY: 2000,

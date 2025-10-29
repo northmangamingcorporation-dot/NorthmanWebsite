@@ -36,13 +36,8 @@
             dateRange: 'last_30_days',
             startDate: '',
             endDate: '',
-            status: '',
             boothCodes: [],
-            outlets: [],
-            operators: [],
-            userTypes: [],
-            minAmount: '',
-            maxAmount: ''
+            outlets: []
         },
         insights: [],
         showFilters: false,

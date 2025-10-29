@@ -32,7 +32,7 @@
         retryCount: 0,
         abortController: null,
         filterOptions: null,
-        filters: {
+        : {
             dateRange: 'last_30_days',
             startDate: '',
             endDate: '',

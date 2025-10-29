@@ -6,7 +6,7 @@
     'use strict';
     
     const CONFIG = {
-        API_URL: 'https://api.northman-gaming-corporation.site',
+        API_URL: 'https://raspberrypi.tail2aed63.ts.net',
         API_KEY: '200206',
         CONTAINER_ID: 'dataTablesWidget',
         PAGE_SIZE: 100,

@@ -36,13 +36,8 @@
             dateRange: 'last_30_days',
             startDate: '',
             endDate: '',
-            status: '',
             boothCodes: [],
-            outlets: [],
-            operators: [],
-            userTypes: [],
-            minAmount: '',
-            maxAmount: ''
+            outlets: []
         },
         insights: [],
         showFilters: false,
@@ -141,37 +136,35 @@
     // API FUNCTIONS
     // ============================================
     
-    function buildQueryParams() {
-        const params = new URLSearchParams();
-        
-        if (state.filters.dateRange !== 'custom') {
-            const daysMap = {
-                'today': 1,
-                'last_7_days': 7,
-                'last_30_days': 30,
-                'last_90_days': 90,
-                'last_180_days': 180,
-                'last_365_days': 365
-            };
-            const days = daysMap[state.filters.dateRange] || 30;
-            params.append('days', days);
-        } else {
-            if (state.filters.startDate) params.append('start_date', state.filters.startDate);
-            if (state.filters.endDate) params.append('end_date', state.filters.endDate);
-        }
-        
-        if (state.filters.status) params.append('status', state.filters.status);
-        if (state.filters.boothCodes.length) params.append('booth_codes', state.filters.boothCodes.join(','));
-        if (state.filters.outlets.length) params.append('outlets', state.filters.outlets.join(','));
-        if (state.filters.operators.length) params.append('operators', state.filters.operators.join(','));
-        if (state.filters.userTypes.length) params.append('user_types', state.filters.userTypes.join(','));
-        if (state.filters.minAmount) params.append('min_amount', state.filters.minAmount);
-        if (state.filters.maxAmount) params.append('max_amount', state.filters.maxAmount);
-        
-        params.append('include_details', 'false');
-        
-        return params.toString();
+function buildQueryParams() {
+    const params = new URLSearchParams();
+    
+    // Date range handling
+    if (state.filters.dateRange !== 'custom') {
+        const daysMap = {
+            'today': 1,
+            'last_7_days': 7,
+            'last_30_days': 30,
+            'last_90_days': 90,
+            'last_180_days': 180,
+            'last_365_days': 365
+        };
+        const days = daysMap[state.filters.dateRange] || 30;
+        params.append('days', days);
+    } else {
+        if (state.filters.startDate) params.append('start_date', state.filters.startDate);
+        if (state.filters.endDate) params.append('end_date', state.filters.endDate);
     }
+    
+    // Filters
+    if (state.filters.boothCodes.length) params.append('booth_codes', state.filters.boothCodes.join(','));
+    if (state.filters.outlets.length) params.append('outlets', state.filters.outlets.join(','));
+    
+    params.append('include_details', 'false');
+    params.append('limit', '10');
+    
+    return params.toString();
+}
     
     async function fetchWithTimeout(url, options = {}, timeout = CONFIG.REQUEST_TIMEOUT) {
         const controller = new AbortController();
@@ -209,29 +202,29 @@
         }
     }
     
-    async function fetchFilterOptions() {
-        try {
-            logger.info('Fetching filter options...');
-            const response = await fetchWithTimeout(
-                `${CONFIG.API_URL}/analytics/v2/filters/options`,
-                { method: 'GET' }
-            );
+    // async function fetchFilterOptions() {
+    //     try {
+    //         logger.info('Fetching filter options...');
+    //         const response = await fetchWithTimeout(
+    //             `${CONFIG.API_URL}/analytics/v2/filters/options`,
+    //             { method: 'GET' }
+    //         );
             
-            const options = await response.json();
-            state.filterOptions = options;
-            logger.info('✅ Filter options loaded');
-            return options;
-        } catch (error) {
-            logger.error(`Failed to fetch filter options: ${error.message}`);
-            return {
-                booth_codes: [],
-                outlets: [],
-                operators: [],
-                user_types: ['phone', 'pos'],
-                statuses: ['request', 'approved', 'rejected', 'denied', 'pending']
-            };
-        }
-    }
+    //         const options = await response.json();
+    //         state.filterOptions = options;
+    //         logger.info('✅ Filter options loaded');
+    //         return options;
+    //     } catch (error) {
+    //         logger.error(`Failed to fetch filter options: ${error.message}`);
+    //         return {
+    //             booth_codes: [],
+    //             outlets: [],
+    //             operators: [],
+    //             user_types: ['phone', 'pos'],
+    //             statuses: ['request', 'approved', 'rejected', 'denied', 'pending']
+    //         };
+    //     }
+    // }
     
     async function fetchAnalyticsData() {
         try {

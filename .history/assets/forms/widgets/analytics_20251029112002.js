@@ -36,13 +36,8 @@
             dateRange: 'last_30_days',
             startDate: '',
             endDate: '',
-            status: '',
             boothCodes: [],
-            outlets: [],
-            operators: [],
-            userTypes: [],
-            minAmount: '',
-            maxAmount: ''
+            outlets: []
         },
         insights: [],
         showFilters: false,
@@ -209,29 +204,29 @@
         }
     }
     
-    async function fetchFilterOptions() {
-        try {
-            logger.info('Fetching filter options...');
-            const response = await fetchWithTimeout(
-                `${CONFIG.API_URL}/analytics/v2/filters/options`,
-                { method: 'GET' }
-            );
+    // async function fetchFilterOptions() {
+    //     try {
+    //         logger.info('Fetching filter options...');
+    //         const response = await fetchWithTimeout(
+    //             `${CONFIG.API_URL}/analytics/v2/filters/options`,
+    //             { method: 'GET' }
+    //         );
             
-            const options = await response.json();
-            state.filterOptions = options;
-            logger.info('✅ Filter options loaded');
-            return options;
-        } catch (error) {
-            logger.error(`Failed to fetch filter options: ${error.message}`);
-            return {
-                booth_codes: [],
-                outlets: [],
-                operators: [],
-                user_types: ['phone', 'pos'],
-                statuses: ['request', 'approved', 'rejected', 'denied', 'pending']
-            };
-        }
-    }
+    //         const options = await response.json();
+    //         state.filterOptions = options;
+    //         logger.info('✅ Filter options loaded');
+    //         return options;
+    //     } catch (error) {
+    //         logger.error(`Failed to fetch filter options: ${error.message}`);
+    //         return {
+    //             booth_codes: [],
+    //             outlets: [],
+    //             operators: [],
+    //             user_types: ['phone', 'pos'],
+    //             statuses: ['request', 'approved', 'rejected', 'denied', 'pending']
+    //         };
+    //     }
+    // }
     
     async function fetchAnalyticsData() {
         try {
