@@ -1440,42 +1440,8 @@
         document.head.appendChild(style);
     }
     
-async function fetchWithTimeout(url, options = {}, timeout = CONFIG.REQUEST_TIMEOUT) {
-        const controller = new AbortController();
-        state.abortController = controller;
-        
-        const timeoutId = setTimeout(() => controller.abort(), timeout);
-        
-        try {
-            const fetchOptions = {
-                ...options,
-                signal: controller.signal,
-                mode: 'cors',
-                credentials: 'omit',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-API-Key': CONFIG.API_KEY,
-                    ...options.headers
-                }
-            };
-            
-            const response = await fetch(url, fetchOptions);
-            clearTimeout(timeoutId);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            return response;
-        } catch (error) {
-            clearTimeout(timeoutId);
-            if (error.name === 'AbortError') {
-                throw new Error('Request timeout');
-            }
-            throw error;
-        }
-    }
 
+    
  async function fetchFilterOptions() {
         try {
             logger.info('Fetching filter options...');
