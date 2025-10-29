@@ -11,8 +11,8 @@
 
   // Configuration
   const config = {
-    apiUrl: 'https://api.northman-gaming-corporation.site/api/analytics/cancellations',
-    apiKey: '200206',
+    apiUrl: 'https://api.northman-gaming-corporation.site/',
+    authToken: '200206',
     pollInterval: 5000, // 5 seconds
     autoStart: true,
     maxRetries: 3,
@@ -104,31 +104,47 @@
     };
 
     try {
-      console.log("API Response:", response);
+      // Get combined_report first
+      const report = response?.latest_update?.combined_report;
+      console.log("Combined Report:", report);
+      if (!report) return stats;
 
-      // Extract data from new API format
-      const byStatus = response?.by_status;
-      
-      if (byStatus) {
-        // Get pending from requested minus (approved + denied)
-        const requested = byStatus.requested || 0;
-        const approved = byStatus.approved || 0;
-        const denied = byStatus.denied || 0;
-        
-        stats.pending = requested - (approved + denied);
-        stats.approved = approved;
-        stats.denied = denied;
-        
-        console.log("Requested:", requested);
-        console.log("Approved:", approved);
-        console.log("Denied:", denied);
-        console.log("Calculated Pending:", stats.pending);
+      // Determine next draw (must match keys in by_draw, e.g., "10:30")
+      const nextDraw = getNextDraw();
+      console.log("Next Draw:", nextDraw);
+
+      // Prefer comprehensive_stats if present
+      const compStats = report?.comprehensive_stats;
+      if (compStats) {
+        console.log("Comprehensive Stats:", compStats);
+
+        // Pending for next draw
+        stats.pending = compStats?.cancellations?.by_draw?.[nextDraw]?.pending ?? 0;
+        console.log(`Pending for ${nextDraw}:`, stats.pending);
+
+        // Daily totals
+        stats.approved = compStats?.cancellations?.daily?.approved ?? 0;
+        stats.denied = compStats?.cancellations?.daily?.denied ?? 0;
+        console.log("Daily Approved:", stats.approved, "Daily Denied:", stats.denied);
+
+        // Daily payout
+        stats.payout = compStats?.payouts?.daily_total ?? 0;
+        console.log("Daily Payout:", stats.payout);
+      } 
+      // Fallback to daily_report if comprehensive_stats missing
+      else if (report?.daily_report) {
+        console.log("Daily Report:", report.daily_report);
+
+        stats.pending = report.daily_report?.daily_cancellations?.pending ?? 0;
+        stats.approved = report.daily_report?.daily_cancellations?.approved ?? 0;
+        stats.denied = report.daily_report?.daily_cancellations?.denied ?? 0;
+        stats.payout = report.daily_report?.daily_payout_total ?? 0;
+
+        console.log("Fallback Pending:", stats.pending);
+        console.log("Fallback Approved:", stats.approved);
+        console.log("Fallback Denied:", stats.denied);
+        console.log("Fallback Payout:", stats.payout);
       }
-
-      // Payout data is not in the cancellations endpoint
-      // You may need a separate endpoint for payout data
-      // For now, keeping it at 0 or you can fetch from another endpoint
-      stats.payout = 0;
 
     } catch (error) {
       console.error("Error parsing API response:", error);
@@ -143,23 +159,40 @@
   // ===============================
   async function fetchStats(retryCount = 0) {
     try {
-      const response = await fetch(config.apiUrl, { 
+      // Request with format=by_draw to get the new summary format
+      const url = `${config.apiUrl}?auth_token=${config.authToken}&format=by_draw`;
+      const response = await fetch(url, { 
         method: 'GET', 
-        headers: { 
-          'X-API-Key': config.apiKey,
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         signal: AbortSignal.timeout(10000) // 10 second timeout
       });
       
       if (!response.ok) {
+        // Check if data is stale (webhook received data but it's old)
+        if (response.status === 503 || response.status === 404) {
+          console.warn(`Webhook data unavailable (${response.status}), database fallback active`);
+          isUsingFallback = true;
+          updateConnectionStatus('fallback');
+          consecutiveErrors = 0; // Reset error count, fallback is working
+          return await response.json(); // May still contain fallback data
+        }
+        
         throw new Error(`API error: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
       
-      isUsingFallback = false;
-      updateConnectionStatus('connected');
+      // Check data age
+      const dataAge = data?.data_age_ms;
+      if (dataAge && dataAge > 3600000) { // > 1 hour
+        console.warn(`Data is stale (${Math.round(dataAge / 60000)} minutes old), using database fallback`);
+        isUsingFallback = true;
+        updateConnectionStatus('fallback');
+      } else {
+        isUsingFallback = false;
+        updateConnectionStatus('connected');
+      }
+      
       consecutiveErrors = 0;
       return data;
       
