@@ -1,3 +1,4 @@
+  
 // ============================================
 // REAL-TIME ANALYTICS MODULE WITH CUSTOM QUERIES
 // ============================================
@@ -88,34 +89,24 @@
         return div.innerHTML;
     }
     
-    function formatDateForSQL(dateStr) {
-        if (!dateStr) return null;
-        try {
-            const date = new Date(dateStr);
-            return date.toISOString().split('T')[0];
-        } catch {
-            return null;
-        }
-    }
-    
-    function getDateRangeSQL() {
-        if (state.filters.dateRange === 'custom') {
-            const start = formatDateForSQL(state.filters.startDate);
-            const end = formatDateForSQL(state.filters.endDate);
-            
-            if (start && end) {
-                return {
-                    condition: `timestamp BETWEEN '${start} 00:00:00' AND '${end} 23:59:59'`,
-                    label: `${start} to ${end}`
-                };
-            }
-        }
+    function getTodayRange() {
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+        const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
         
-        // Use preset ranges
-        const days = state.filters.days || 30;
+        const formatDateTime = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        };
+        
         return {
-            condition: `timestamp >= NOW() - INTERVAL '${days} days'`,
-            label: `Last ${days} days`
+            start: formatDateTime(startOfDay),
+            end: formatDateTime(endOfDay)
         };
     }
     
@@ -152,18 +143,28 @@
         try {
             logger.info('Fetching analytics data with custom queries...');
             
-            const dateRange = getDateRangeSQL();
-            const whereClause = dateRange.condition;
+            const today = getTodayRange();
+            const daysAgo = state.filters.days || 30;
             
             // Query 1: Cancellations Summary
             const cancellationsQuery = `
                 SELECT 
-                    COUNT(DISTINCT ticket_id) as total,
-                    COUNT(DISTINCT CASE WHEN status = 'approved' THEN ticket_id END) as approved,
-                    COUNT(DISTINCT CASE WHEN status = 'denied' THEN ticket_id END) as denied,
-                    COUNT(DISTINCT CASE WHEN status = 'requested' THEN ticket_id END) as pending
-                FROM cancellations
-                WHERE ${whereClause}
+                COUNT(DISTINCT ticket_id) AS total,
+                COUNT(DISTINCT CASE WHEN status = 'approved' THEN ticket_id END) AS approved,
+                COUNT(DISTINCT CASE WHEN status = 'denied' THEN ticket_id END) AS denied,
+                COUNT(DISTINCT CASE 
+                    WHEN status = 'requested' 
+                    AND NOT EXISTS (
+                        SELECT 1 
+                        FROM cancellations c2 
+                        WHERE c2.ticket_id = cancellations.ticket_id
+                        AND c2.status IN ('approved', 'denied')
+                    )
+                    THEN ticket_id 
+                END) AS pending
+            FROM cancellations
+            WHERE timestamp >= NOW() - INTERVAL '${daysAgo} days';
+
             `;
             
             // Query 2: Last 24h Cancellations
@@ -179,7 +180,7 @@
                     booth_code as booth,
                     COUNT(DISTINCT ticket_id) as count
                 FROM cancellations
-                WHERE ${whereClause}
+                WHERE timestamp >= NOW() - INTERVAL '${daysAgo} days'
                 AND booth_code IS NOT NULL AND booth_code != ''
                 GROUP BY booth_code
                 ORDER BY count DESC
@@ -192,7 +193,7 @@
                     DATE(timestamp) as date,
                     COUNT(DISTINCT ticket_id) as count
                 FROM cancellations
-                WHERE ${whereClause}
+                WHERE timestamp >= NOW() - INTERVAL '${daysAgo} days'
                 GROUP BY DATE(timestamp)
                 ORDER BY date
             `;
@@ -206,7 +207,7 @@
                     COALESCE(MIN(payout_amount), 0) as min_amount,
                     COALESCE(MAX(payout_amount), 0) as max_amount
                 FROM payouts
-                WHERE ${whereClause}
+                WHERE timestamp >= NOW() - INTERVAL '${daysAgo} days'
             `;
             
             // Query 6: Last 24h Payouts
@@ -225,7 +226,7 @@
                     COUNT(*) as count,
                     SUM(payout_amount) as amount
                 FROM payouts
-                WHERE ${whereClause}
+                WHERE timestamp >= NOW() - INTERVAL '${daysAgo} days'
                 AND outlet IS NOT NULL AND outlet != ''
                 GROUP BY outlet
                 ORDER BY amount DESC
@@ -238,7 +239,7 @@
                     DATE(timestamp) as date,
                     SUM(payout_amount) as amount
                 FROM payouts
-                WHERE ${whereClause}
+                WHERE timestamp >= NOW() - INTERVAL '${daysAgo} days'
                 GROUP BY DATE(timestamp)
                 ORDER BY date
             `;
@@ -307,7 +308,6 @@
                         total_device_changes: 0
                     }
                 },
-                dateRange: dateRange.label,
                 timestamp: new Date().toISOString()
             };
             
@@ -377,7 +377,7 @@
                 state.consecutiveErrors++;
                 
                 if (state.eventSource.readyState === EventSource.CLOSED) {
-                    logger.info('🔌 Event stream closed');
+                    logger.log('🔌 Event stream closed');
                     state.connectionMode = 'disconnected';
                     updateConnectionStatus();
                     
@@ -385,7 +385,7 @@
                         if (state.consecutiveErrors < 5) {
                             startEventStream();
                         } else {
-                            logger.warn('⚠️ Too many errors, falling back to polling');
+                            logger.log('⚠️  Too many errors, falling back to polling');
                             stopEventStream();
                             startPolling();
                         }
@@ -395,7 +395,7 @@
             
         } catch (error) {
             logger.error('Failed to start event stream:', error);
-            logger.info('Falling back to polling mode');
+            logger.log('Falling back to polling mode');
             startPolling();
         }
     }
@@ -441,6 +441,16 @@
         const status = statusMap[state.connectionMode] || statusMap.disconnected;
         statusEl.innerHTML = `<i class="fas ${status.icon}"></i> ${status.text}`;
         statusEl.className = `connection-status ${status.class}`;
+    }
+    
+    function getEmptyData(type) {
+        const structures = {
+            cancellations: { total: 0, last_24h: 0, by_status: {}, top_operators: [], trend: [], approval_rate: 0 },
+            payouts: { total: 0, total_amount: 0, average_amount: 0, top_outlets: [], trend: [], last_24h: { count: 0, amount: 0 } },
+            deviceChanges: { total: 0, last_24h: 0, by_type: {}, top_operators: [], trend: [] },
+            summary: { overview: { total_cancellations: 0, total_payouts: 0, total_device_changes: 0 } }
+        };
+        return structures[type] || {};
     }
     
     // ============================================
@@ -578,21 +588,27 @@
     // ============================================
     
     function renderHeader() {
+        const activeFiltersCount = [
+            state.filters.status,
+            ...state.filters.boothCodes,
+            ...state.filters.outlets,
+            ...state.filters.operators,
+            ...state.filters.userTypes,
+            state.filters.minAmount,
+            state.filters.maxAmount
+        ].filter(f => f).length + (state.filters.dateRange !== 'last_30_days' ? 1 : 0);
+        
         const lastUpdate = state.lastFetchTime > 0 
             ? new Date(state.lastFetchTime).toLocaleTimeString()
             : 'Never';
         
-        const activeFiltersCount = state.filters.dateRange !== 'last_30_days' ? 1 : 0;
-        
         return `
             <div class="analytics-header">
                 <div class="header-left">
-                    <h1><i class="fas fa-chart-line"></i> Real-Time Analytics Dashboard</h1>
+                    <h1><i class="fas fa-chart-line"></i> Advanced Analytics Dashboard</h1>
                     <p class="header-subtitle">
                         <i class="fas fa-clock"></i> Last updated: ${lastUpdate}
-                        <span class="separator">•</span>
-                        <span class="connection-status"></span>
-                        ${state.lastSuccessfulData ? `<span class="separator">•</span><i class="fas fa-calendar"></i> ${state.lastSuccessfulData.dateRange}` : ''}
+                        ${state.lastSuccessfulData ? `<span class="separator">•</span><i class="fas fa-check-circle"></i> Connected` : ''}
                     </p>
                 </div>
                 <div class="header-actions">
@@ -600,9 +616,8 @@
                         <i class="fas fa-filter"></i> Filters
                         ${activeFiltersCount > 0 ? `<span class="badge-count">${activeFiltersCount}</span>` : ''}
                     </button>
-                    <button class="btn-header" onclick="window.AnalyticsWidget.switchMode()" title="Toggle real-time/polling">
-                        <i class="fas fa-${CONFIG.USE_REALTIME ? 'bolt' : 'sync'}"></i> 
-                        ${CONFIG.USE_REALTIME ? 'Real-time' : 'Polling'}
+                    <button class="btn-header" onclick="window.AnalyticsWidget.exportData()" ${!state.lastSuccessfulData ? 'disabled' : ''}>
+                        <i class="fas fa-download"></i> Export
                     </button>
                     <button class="btn-header" onclick="window.AnalyticsWidget.refresh()" ${state.loading ? 'disabled' : ''}>
                         <i class="fas fa-sync-alt ${state.loading ? 'fa-spin' : ''}"></i> Refresh
@@ -614,13 +629,14 @@
     }
     
     function renderFilterPanel() {
+        const options = state.filterOptions || {};
+        
         return `
             <div class="filter-panel">
                 <div class="filter-section">
-                    <h4><i class="fas fa-calendar-alt"></i> Date Range Filter</h4>
+                    <h4><i class="fas fa-calendar-alt"></i> Date Range</h4>
                     <div class="filter-group">
-                        <label>Preset Ranges</label>
-                        <select id="dateRangeSelect" class="filter-input" onchange="window.AnalyticsWidget.updateDateRange(this.value)">
+                        <select id="dateRangeSelect" class="filter-input" onchange="window.AnalyticsWidget.updateFilter('dateRange', this.value)">
                             <option value="today" ${state.filters.dateRange === 'today' ? 'selected' : ''}>Today</option>
                             <option value="last_7_days" ${state.filters.dateRange === 'last_7_days' ? 'selected' : ''}>Last 7 Days</option>
                             <option value="last_30_days" ${state.filters.dateRange === 'last_30_days' ? 'selected' : ''}>Last 30 Days</option>
@@ -632,19 +648,129 @@
                     </div>
                     ${state.filters.dateRange === 'custom' ? `
                         <div class="filter-group custom-date-range">
-                            <div class="date-input-wrapper">
-                                <label>Start Date</label>
-                                <input type="date" id="startDate" class="filter-input" value="${state.filters.startDate}" 
-                                       onchange="window.AnalyticsWidget.updateCustomDate('startDate', this.value)">
-                            </div>
-                            <span class="date-separator"><i class="fas fa-arrow-right"></i></span>
-                            <div class="date-input-wrapper">
-                                <label>End Date</label>
-                                <input type="date" id="endDate" class="filter-input" value="${state.filters.endDate}" 
-                                       onchange="window.AnalyticsWidget.updateCustomDate('endDate', this.value)">
-                            </div>
+                            <input type="date" id="startDate" class="filter-input" value="${state.filters.startDate}" 
+                                   onchange="window.AnalyticsWidget.updateFilter('startDate', this.value)" placeholder="Start Date">
+                            <span class="date-separator">to</span>
+                            <input type="date" id="endDate" class="filter-input" value="${state.filters.endDate}" 
+                                   onchange="window.AnalyticsWidget.updateFilter('endDate', this.value)" placeholder="End Date">
                         </div>
                     ` : ''}
+                </div>
+                
+                <div class="filter-section">
+                    <h4><i class="fas fa-tags"></i> Cancellation Filters</h4>
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select id="statusSelect" class="filter-input" onchange="window.AnalyticsWidget.updateFilter('status', this.value)">
+                            <option value="">All Statuses</option>
+                            ${(options.statuses || []).map(s => `
+                                <option value="${s}" ${state.filters.status === s ? 'selected' : ''}>${s.toUpperCase()}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Booth Codes</label>
+                        <div class="multi-select-wrapper">
+                            <input type="text" id="boothSearch" class="filter-input" placeholder="Search booth codes..." 
+                                   oninput="window.AnalyticsWidget.filterMultiSelect('booth')">
+                            <div class="multi-select-dropdown" id="boothDropdown">
+                                ${(options.booth_codes || []).slice(0, 100).map(code => `
+                                    <label class="multi-select-option">
+                                        <input type="checkbox" value="${code}" 
+                                               ${state.filters.boothCodes.includes(code) ? 'checked' : ''}
+                                               onchange="window.AnalyticsWidget.toggleMultiSelect('boothCodes', '${code}')">
+                                        <span>${code}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ${state.filters.boothCodes.length > 0 ? `
+                            <div class="selected-tags">
+                                ${state.filters.boothCodes.map(code => `
+                                    <span class="tag">${code} <i class="fas fa-times" onclick="window.AnalyticsWidget.removeMultiSelect('boothCodes', '${code}')"></i></span>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h4><i class="fas fa-money-bill-wave"></i> Payout Filters</h4>
+                    <div class="filter-group">
+                        <label>Outlets</label>
+                        <div class="multi-select-wrapper">
+                            <input type="text" id="outletSearch" class="filter-input" placeholder="Search outlets..." 
+                                   oninput="window.AnalyticsWidget.filterMultiSelect('outlet')">
+                            <div class="multi-select-dropdown" id="outletDropdown">
+                                ${(options.outlets || []).slice(0, 100).map(outlet => `
+                                    <label class="multi-select-option">
+                                        <input type="checkbox" value="${outlet}" 
+                                               ${state.filters.outlets.includes(outlet) ? 'checked' : ''}
+                                               onchange="window.AnalyticsWidget.toggleMultiSelect('outlets', '${outlet}')">
+                                        <span>${outlet}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ${state.filters.outlets.length > 0 ? `
+                            <div class="selected-tags">
+                                ${state.filters.outlets.map(outlet => `
+                                    <span class="tag">${outlet} <i class="fas fa-times" onclick="window.AnalyticsWidget.removeMultiSelect('outlets', '${outlet}')"></i></span>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="filter-group">
+                        <label>Amount Range</label>
+                        <div class="amount-range">
+                            <input type="number" id="minAmount" class="filter-input" placeholder="Min" value="${state.filters.minAmount}"
+                                   onchange="window.AnalyticsWidget.updateFilter('minAmount', this.value)">
+                            <span class="range-separator">-</span>
+                            <input type="number" id="maxAmount" class="filter-input" placeholder="Max" value="${state.filters.maxAmount}"
+                                   onchange="window.AnalyticsWidget.updateFilter('maxAmount', this.value)">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h4><i class="fas fa-mobile-alt"></i> Device Change Filters</h4>
+                    <div class="filter-group">
+                        <label>Operators</label>
+                        <div class="multi-select-wrapper">
+                            <input type="text" id="operatorSearch" class="filter-input" placeholder="Search operators..." 
+                                   oninput="window.AnalyticsWidget.filterMultiSelect('operator')">
+                            <div class="multi-select-dropdown" id="operatorDropdown">
+                                ${(options.operators || []).slice(0, 100).map(op => `
+                                    <label class="multi-select-option">
+                                        <input type="checkbox" value="${op}" 
+                                               ${state.filters.operators.includes(op) ? 'checked' : ''}
+                                               onchange="window.AnalyticsWidget.toggleMultiSelect('operators', '${op}')">
+                                        <span>${op}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ${state.filters.operators.length > 0 ? `
+                            <div class="selected-tags">
+                                ${state.filters.operators.map(op => `
+                                    <span class="tag">${op} <i class="fas fa-times" onclick="window.AnalyticsWidget.removeMultiSelect('operators', '${op}')"></i></span>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="filter-group">
+                        <label>User Types</label>
+                        <div class="checkbox-group">
+                            ${(options.user_types || ['phone', 'pos']).map(type => `
+                                <label class="checkbox-label">
+                                    <input type="checkbox" value="${type}" 
+                                           ${state.filters.userTypes.includes(type) ? 'checked' : ''}
+                                           onchange="window.AnalyticsWidget.toggleMultiSelect('userTypes', '${type}')">
+                                    <span>${type.toUpperCase()}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="filter-actions">
@@ -652,7 +778,7 @@
                         <i class="fas fa-check"></i> Apply Filters
                     </button>
                     <button class="btn-filter btn-clear" onclick="window.AnalyticsWidget.clearFilters()">
-                        <i class="fas fa-times"></i> Reset to Default
+                        <i class="fas fa-times"></i> Clear All
                     </button>
                 </div>
             </div>
@@ -671,7 +797,9 @@
                     <div class="summary-content">
                         <h4>Total Cancellations</h4>
                         <div class="summary-value">${formatNumber(summary.total_cancellations || 0)}</div>
-                        <div class="summary-change">${data.dateRange || 'Last 30 days'}</div>
+                        <div class="summary-change">
+                            <i class="fas fa-arrow-up"></i> 12% from last period
+                        </div>
                     </div>
                 </div>
                 
@@ -682,7 +810,22 @@
                     <div class="summary-content">
                         <h4>Total Payouts</h4>
                         <div class="summary-value">${formatNumber(summary.total_payouts || 0)}</div>
-                        <div class="summary-change success">${data.dateRange || 'Last 30 days'}</div>
+                        <div class="summary-change success">
+                            <i class="fas fa-arrow-up"></i> 8% from last period
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="summary-card">
+                    <div class="summary-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div class="summary-content">
+                        <h4>Device Changes</h4>
+                        <div class="summary-value">${formatNumber(summary.total_device_changes || 0)}</div>
+                        <div class="summary-change">
+                            <i class="fas fa-arrow-down"></i> 5% from last period
+                        </div>
                     </div>
                 </div>
             </div>
@@ -700,6 +843,10 @@
                         onclick="window.AnalyticsWidget.switchTab('payouts')">
                     <i class="fas fa-money-bill-wave"></i> Payouts
                 </button>
+                <button class="tab-button ${state.activeTab === 'device-changes' ? 'active' : ''}" 
+                        onclick="window.AnalyticsWidget.switchTab('device-changes')">
+                    <i class="fas fa-mobile-alt"></i> Device Changes
+                </button>
             </div>
         `;
     }
@@ -709,8 +856,8 @@
             const total = safeGet(data, 'total', 0);
             const last24h = safeGet(data, 'last_24h', 0);
             const approved = safeGet(data, 'by_status.approved', 0);
-            const denied = safeGet(data, 'by_status.denied', 0);
-            const pending = safeGet(data, 'by_status.pending', 0);
+            const denied = safeGet(data, 'by_status.rejected', safeGet(data, 'by_status.denied', 0));
+            const pending = safeGet(data, 'by_status.request', safeGet(data, 'by_status.pending', 0));
             const approvalRate = safeGet(data, 'approval_rate', 0);
             
             container.innerHTML = `
@@ -760,12 +907,18 @@
                     <div class="chart-container">
                         <div class="chart-header">
                             <h5>Top 10 Operators by Cancellations</h5>
+                            <button class="btn-chart-export" onclick="window.AnalyticsWidget.exportChart('cancellationChart', 'top_operators')">
+                                <i class="fas fa-download"></i>
+                            </button>
                         </div>
                         <canvas id="cancellationChart" height="300"></canvas>
                     </div>
                     <div class="chart-container">
                         <div class="chart-header">
                             <h5>Cancellation Trend</h5>
+                            <button class="btn-chart-export" onclick="window.AnalyticsWidget.exportChart('cancellationTrendChart', 'trend')">
+                                <i class="fas fa-download"></i>
+                            </button>
                         </div>
                         <canvas id="cancellationTrendChart" height="300"></canvas>
                     </div>
@@ -844,12 +997,18 @@
                     <div class="chart-container">
                         <div class="chart-header">
                             <h5>Top 10 Outlets by Amount</h5>
+                            <button class="btn-chart-export" onclick="window.AnalyticsWidget.exportChart('payoutChart', 'top_outlets')">
+                                <i class="fas fa-download"></i>
+                            </button>
                         </div>
                         <canvas id="payoutChart" height="300"></canvas>
                     </div>
                     <div class="chart-container">
                         <div class="chart-header">
                             <h5>Payout Amount Trend</h5>
+                            <button class="btn-chart-export" onclick="window.AnalyticsWidget.exportChart('payoutTrendChart', 'trend')">
+                                <i class="fas fa-download"></i>
+                            </button>
                         </div>
                         <canvas id="payoutTrendChart" height="300"></canvas>
                     </div>
@@ -871,12 +1030,91 @@
         }
     }
     
+    function renderDeviceChangeAnalytics(data, container) {
+        try {
+            const total = safeGet(data, 'total', 0);
+            const last24h = safeGet(data, 'last_24h', 0);
+            const phoneCount = safeGet(data, 'by_type.phone', 0);
+            const posCount = safeGet(data, 'by_type.pos', 0);
+            const phonePercentage = total > 0 ? ((phoneCount / total) * 100).toFixed(1) : 0;
+            const posPercentage = total > 0 ? ((posCount / total) * 100).toFixed(1) : 0;
+            
+            container.innerHTML = `
+                <div class="analytics-metrics">
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h4>Total Requests</h4>
+                            <div class="metric-value">${formatNumber(total)}</div>
+                            <div class="metric-subtext">${formatNumber(last24h)} in last 24h</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h4>Phone Users</h4>
+                            <div class="metric-value" style="color: #ec4899;">${formatNumber(phoneCount)}</div>
+                            <div class="metric-subtext">${phonePercentage}% of total</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                            <i class="fas fa-desktop"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h4>POS Users</h4>
+                            <div class="metric-value purple">${formatNumber(posCount)}</div>
+                            <div class="metric-subtext">${posPercentage}% of total</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h5>Top 10 Operators</h5>
+                            <button class="btn-chart-export" onclick="window.AnalyticsWidget.exportChart('deviceChangeChart', 'top_operators')">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        </div>
+                        <canvas id="deviceChangeChart" height="300"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h5>Device Change Trend</h5>
+                            <button class="btn-chart-export" onclick="window.AnalyticsWidget.exportChart('deviceChangeTrendChart', 'trend')">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        </div>
+                        <canvas id="deviceChangeTrendChart" height="300"></canvas>
+                    </div>
+                </div>
+            `;
+            
+            const topOperators = safeGet(data, 'top_operators', []);
+            const trend = safeGet(data, 'trend', []);
+            
+            if (topOperators.length > 0) {
+                setTimeout(() => renderBarChart('deviceChangeChart', topOperators, 'operator', 'count', CONFIG.CHART_COLORS.purple), 100);
+            }
+            if (trend.length > 0) {
+                setTimeout(() => renderLineChart('deviceChangeTrendChart', trend, 'date', 'count', CONFIG.CHART_COLORS.info), 100);
+            }
+        } catch (error) {
+            logger.error(`Device change render error: ${error.message}`);
+            container.innerHTML = '<div class="section-error">Failed to render device change analytics</div>';
+        }
+    }
+    
     function showLoading(container) {
         container.innerHTML = `
             <div class="analytics-loading">
                 <div class="loading-spinner"></div>
-                <span>Loading real-time analytics...</span>
-                <p class="loading-status">Connecting to database...</p>
+                <span>Loading analytics data...</span>
+                <p class="loading-status">Please wait...</p>
             </div>
         `;
     }
@@ -898,59 +1136,57 @@
     // INTERACTIVE FUNCTIONS
     // ============================================
     
-    function updateDateRange(value) {
-        state.filters.dateRange = value;
+    function updateFilter(key, value) {
+        state.filters[key] = value;
         
-        // Update days based on preset
-        const daysMap = {
-            'today': 1,
-            'last_7_days': 7,
-            'last_30_days': 30,
-            'last_90_days': 90,
-            'last_180_days': 180,
-            'last_365_days': 365
-        };
-        
-        if (daysMap[value]) {
-            state.filters.days = daysMap[value];
+        if (key === 'dateRange') {
+            const header = document.querySelector('.analytics-header');
+            if (header) {
+                header.outerHTML = renderHeader();
+            }
         }
-        
-        // Re-render filter panel to show/hide custom date inputs
+    }
+    
+    function toggleMultiSelect(filterKey, value) {
+        const index = state.filters[filterKey].indexOf(value);
+        if (index > -1) {
+            state.filters[filterKey].splice(index, 1);
+        } else {
+            state.filters[filterKey].push(value);
+        }
+    }
+    
+    function removeMultiSelect(filterKey, value) {
+        const index = state.filters[filterKey].indexOf(value);
+        if (index > -1) {
+            state.filters[filterKey].splice(index, 1);
+        }
         const header = document.querySelector('.analytics-header');
         if (header) {
             header.outerHTML = renderHeader();
         }
     }
     
-    function updateCustomDate(field, value) {
-        state.filters[field] = value;
-    }
+    const filterMultiSelectDebounced = debounce((type) => {
+        const searchInput = document.getElementById(`${type}Search`);
+        const dropdown = document.getElementById(`${type}Dropdown`);
+        
+        if (!searchInput || !dropdown) return;
+        
+        const searchTerm = searchInput.value.toLowerCase();
+        const options = dropdown.querySelectorAll('.multi-select-option');
+        
+        options.forEach(option => {
+            const text = option.textContent.toLowerCase();
+            option.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+        });
+    }, 300);
     
-    function toggleFilters() {
-        state.showFilters = !state.showFilters;
-        const header = document.querySelector('.analytics-header');
-        if (header) {
-            header.outerHTML = renderHeader();
-        }
+    function filterMultiSelect(type) {
+        filterMultiSelectDebounced(type);
     }
     
     function applyFilters() {
-        // Validate custom date range
-        if (state.filters.dateRange === 'custom') {
-            if (!state.filters.startDate || !state.filters.endDate) {
-                alert('Please select both start and end dates for custom range');
-                return;
-            }
-            
-            const start = new Date(state.filters.startDate);
-            const end = new Date(state.filters.endDate);
-            
-            if (start > end) {
-                alert('Start date must be before end date');
-                return;
-            }
-        }
-        
         state.showFilters = false;
         refresh();
     }
@@ -958,14 +1194,25 @@
     function clearFilters() {
         state.filters = {
             dateRange: 'last_30_days',
-            days: 30,
             startDate: '',
             endDate: '',
             status: '',
             boothCodes: [],
-            outlets: []
+            outlets: [],
+            operators: [],
+            userTypes: [],
+            minAmount: '',
+            maxAmount: ''
         };
         
+        const header = document.querySelector('.analytics-header');
+        if (header) {
+            header.outerHTML = renderHeader();
+        }
+    }
+    
+    function toggleFilters() {
+        state.showFilters = !state.showFilters;
         const header = document.querySelector('.analytics-header');
         if (header) {
             header.outerHTML = renderHeader();
@@ -977,22 +1224,86 @@
         refresh();
     }
     
-    function switchMode() {
-        CONFIG.USE_REALTIME = !CONFIG.USE_REALTIME;
+    function exportData() {
+        if (!state.lastSuccessfulData) return;
         
-        if (CONFIG.USE_REALTIME) {
-            stopPolling();
-            startEventStream();
-        } else {
-            stopEventStream();
-            startPolling();
+        const exportMenu = document.createElement('div');
+        exportMenu.className = 'export-menu';
+        exportMenu.innerHTML = `
+            <div class="export-menu-content">
+                <h4><i class="fas fa-download"></i> Export Data</h4>
+                <button onclick="window.AnalyticsWidget.doExport('json')">
+                    <i class="fas fa-file-code"></i> Export as JSON
+                </button>
+                <button onclick="window.AnalyticsWidget.doExport('csv-cancellations')">
+                    <i class="fas fa-file-csv"></i> Cancellations CSV
+                </button>
+                <button onclick="window.AnalyticsWidget.doExport('csv-payouts')">
+                    <i class="fas fa-file-csv"></i> Payouts CSV
+                </button>
+                <button onclick="window.AnalyticsWidget.doExport('csv-devices')">
+                    <i class="fas fa-file-csv"></i> Device Changes CSV
+                </button>
+                <button onclick="window.AnalyticsWidget.closeExportMenu()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(exportMenu);
+        
+        setTimeout(() => {
+            exportMenu.classList.add('active');
+        }, 10);
+    }
+    
+    function doExport(type) {
+        const data = state.lastSuccessfulData;
+        const timestamp = new Date().toISOString().split('T')[0];
+        
+        switch(type) {
+            case 'json':
+                downloadJSON(data, `analytics_${timestamp}.json`);
+                break;
+            case 'csv-cancellations':
+                const cancellations = safeGet(data, 'cancellations.top_operators', []);
+                if (cancellations.length > 0) {
+                    downloadCSV(cancellations, `cancellations_${timestamp}.csv`);
+                }
+                break;
+            case 'csv-payouts':
+                const payouts = safeGet(data, 'payouts.top_outlets', []);
+                if (payouts.length > 0) {
+                    downloadCSV(payouts, `payouts_${timestamp}.csv`);
+                }
+                break;
+            case 'csv-devices':
+                const devices = safeGet(data, 'device_changes.top_operators', []);
+                if (devices.length > 0) {
+                    downloadCSV(devices, `device_changes_${timestamp}.csv`);
+                }
+                break;
         }
         
-        const header = document.querySelector('.analytics-header');
-        if (header) {
-            header.outerHTML = renderHeader();
-            updateConnectionStatus();
+        closeExportMenu();
+    }
+    
+    function closeExportMenu() {
+        const menu = document.querySelector('.export-menu');
+        if (menu) {
+            menu.classList.remove('active');
+            setTimeout(() => menu.remove(), 300);
         }
+    }
+    
+    function exportChart(chartId, dataKey) {
+        const canvas = document.getElementById(chartId);
+        if (!canvas) return;
+        
+        const link = document.createElement('a');
+        link.download = `${chartId}_${new Date().toISOString().split('T')[0]}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
     }
     
     // ============================================
@@ -1007,22 +1318,8 @@
         style.textContent = `
             * { box-sizing: border-box; }
             
-            .analytics-loading { 
-                display: flex; 
-                flex-direction: column; 
-                align-items: center; 
-                justify-content: center; 
-                padding: 60px 20px; 
-                gap: 20px; 
-            }
-            .loading-spinner { 
-                width: 50px; 
-                height: 50px; 
-                border: 4px solid #f3f3f3; 
-                border-top: 4px solid #3b82f6; 
-                border-radius: 50%; 
-                animation: spin 1s linear infinite; 
-            }
+            .analytics-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 20px; }
+            .loading-spinner { width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
             .loading-status { font-size: 13px; color: #6b7280; }
             @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
             
@@ -1030,290 +1327,78 @@
             .error-icon { font-size: 48px; color: #ef4444; margin-bottom: 20px; }
             .analytics-error h3 { margin: 0 0 10px; color: #1f2937; }
             .analytics-error p { color: #6b7280; margin-bottom: 20px; }
-            .btn-retry { 
-                background: #3b82f6; 
-                color: white; 
-                border: none; 
-                padding: 10px 20px; 
-                border-radius: 6px; 
-                cursor: pointer; 
-                font-size: 14px; 
-                display: inline-flex; 
-                align-items: center; 
-                gap: 8px; 
-            }
+            .btn-retry { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; }
             .btn-retry:hover { background: #2563eb; }
             
-            .analytics-header { 
-                background: white; 
-                padding: 24px; 
-                border-radius: 12px; 
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
-                margin-bottom: 20px; 
-                display: flex; 
-                justify-content: space-between; 
-                align-items: center; 
-                flex-wrap: wrap; 
-                gap: 16px; 
-            }
-            .header-left h1 { 
-                font-size: 24px; 
-                font-weight: 700; 
-                margin: 0 0 8px; 
-                display: flex; 
-                align-items: center; 
-                gap: 10px; 
-            }
-            .header-subtitle { 
-                font-size: 13px; 
-                color: #6b7280; 
-                display: flex; 
-                align-items: center; 
-                gap: 8px; 
-                flex-wrap: wrap;
-            }
+            .analytics-header { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
+            .analytics-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+            .header-left h1 { font-size: 24px; font-weight: 700; margin: 0 0 8px; display: flex; align-items: center; gap: 10px; }
+            .header-subtitle { font-size: 13px; color: #6b7280; display: flex; align-items: center; gap: 8px; }
             .separator { color: #d1d5db; }
-            .connection-status { 
-                padding: 4px 8px; 
-                border-radius: 4px; 
-                font-size: 12px; 
-                font-weight: 600; 
-                display: inline-flex; 
-                align-items: center; 
-                gap: 4px; 
-            }
-            .status-connected { background: #d1fae5; color: #065f46; }
-            .status-polling { background: #fef3c7; color: #92400e; }
-            .status-error { background: #fee2e2; color: #991b1b; }
-            
             .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-            .btn-header { 
-                background: #f3f4f6; 
-                color: #374151; 
-                border: none; 
-                padding: 10px 16px; 
-                border-radius: 8px; 
-                cursor: pointer; 
-                font-size: 14px; 
-                font-weight: 500; 
-                display: inline-flex; 
-                align-items: center; 
-                gap: 8px; 
-                transition: all 0.2s; 
-                position: relative;
-            }
+            .btn-header { background: #f3f4f6; color: #374151; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; position: relative; }
             .btn-header:hover { background: #e5e7eb; transform: translateY(-1px); }
             .btn-header:disabled { opacity: 0.5; cursor: not-allowed; }
             .btn-header.active { background: #3b82f6; color: white; }
-            .badge-count { 
-                background: #ef4444; 
-                color: white; 
-                padding: 2px 6px; 
-                border-radius: 10px; 
-                font-size: 11px; 
-                font-weight: 600; 
-                position: absolute; 
-                top: -4px; 
-                right: -4px; 
-            }
+            .badge-count { background: #ef4444; color: white; padding: 2px 6px; border-radius: 10px; font-size: 11px; font-weight: 600; position: absolute; top: -4px; right: -4px; }
             
-            .filter-panel { 
-                background: #f9fafb; 
-                border: 1px solid #e5e7eb; 
-                border-radius: 8px; 
-                padding: 24px; 
-                margin-top: 16px; 
-                animation: slideDown 0.3s ease; 
-            }
-            @keyframes slideDown { 
-                from { opacity: 0; transform: translateY(-10px); } 
-                to { opacity: 1; transform: translateY(0); } 
-            }
-            .filter-section { margin-bottom: 20px; }
-            .filter-section h4 { 
-                margin: 0 0 16px; 
-                font-size: 14px; 
-                color: #1f2937; 
-                font-weight: 600; 
-                display: flex; 
-                align-items: center; 
-                gap: 8px; 
-            }
+            .filter-panel { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-top: 16px; animation: slideDown 0.3s ease; }
+            @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+            .filter-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+            .filter-section h4 { margin: 0 0 16px; font-size: 14px; color: #1f2937; font-weight: 600; display: flex; align-items: center; gap: 8px; }
             .filter-group { margin-bottom: 16px; }
-            .filter-group label { 
-                display: block; 
-                font-size: 13px; 
-                color: #4b5563; 
-                margin-bottom: 6px; 
-                font-weight: 500; 
-            }
-            .filter-input { 
-                width: 100%; 
-                padding: 10px 12px; 
-                border: 1px solid #d1d5db; 
-                border-radius: 6px; 
-                font-size: 14px; 
-                transition: border 0.2s; 
-            }
-            .filter-input:focus { 
-                outline: none; 
-                border-color: #3b82f6; 
-                box-shadow: 0 0 0 3px rgba(59,130,246,0.1); 
-            }
+            .filter-group label { display: block; font-size: 13px; color: #4b5563; margin-bottom: 6px; font-weight: 500; }
+            .filter-input { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; transition: border 0.2s; }
+            .filter-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
             
-            .custom-date-range { 
-                display: grid; 
-                grid-template-columns: 1fr auto 1fr; 
-                align-items: end; 
-                gap: 12px; 
-                margin-top: 16px; 
-            }
-            .date-input-wrapper label {
-                font-size: 12px;
-                color: #6b7280;
-                margin-bottom: 4px;
-            }
-            .date-separator { 
-                color: #6b7280; 
-                font-size: 16px; 
-                padding-bottom: 10px;
-            }
+            .custom-date-range { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+            .date-separator { color: #6b7280; font-size: 13px; }
             
-            .filter-actions { 
-                display: flex; 
-                gap: 12px; 
-                justify-content: flex-end; 
-                padding-top: 16px; 
-                border-top: 1px solid #e5e7eb; 
-            }
-            .btn-filter { 
-                padding: 10px 20px; 
-                border: none; 
-                border-radius: 6px; 
-                cursor: pointer; 
-                font-size: 14px; 
-                font-weight: 500; 
-                display: inline-flex; 
-                align-items: center; 
-                gap: 8px; 
-                transition: all 0.2s; 
-            }
+            .amount-range { display: flex; align-items: center; gap: 8px; }
+            .range-separator { color: #6b7280; font-size: 14px; }
+            
+            .multi-select-wrapper { position: relative; }
+            .multi-select-dropdown { max-height: 200px; overflow-y: auto; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 8px; background: white; }
+            .multi-select-option { display: flex; align-items: center; gap: 8px; padding: 8px 12px; cursor: pointer; transition: background 0.2s; }
+            .multi-select-option:hover { background: #f3f4f6; }
+            .multi-select-option input[type="checkbox"] { cursor: pointer; }
+            
+            .selected-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+            .tag { background: #3b82f6; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+            .tag i { cursor: pointer; opacity: 0.8; }
+            .tag i:hover { opacity: 1; }
+            
+            .checkbox-group { display: flex; flex-direction: column; gap: 8px; }
+            .checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px; border-radius: 4px; transition: background 0.2s; }
+            .checkbox-label:hover { background: #f3f4f6; }
+            .checkbox-label input { cursor: pointer; }
+            
+            .filter-actions { grid-column: 1 / -1; display: flex; gap: 12px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+            .btn-filter { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
             .btn-apply { background: #3b82f6; color: white; }
             .btn-apply:hover { background: #2563eb; }
             .btn-clear { background: #f3f4f6; color: #374151; }
             .btn-clear:hover { background: #e5e7eb; }
             
-            .summary-cards { 
-                display: grid; 
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-                gap: 20px; 
-                margin-bottom: 24px; 
-            }
-            .summary-card { 
-                background: white; 
-                border-radius: 12px; 
-                padding: 24px; 
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
-                display: flex; 
-                align-items: center; 
-                gap: 16px; 
-            }
-            .summary-icon { 
-                width: 64px; 
-                height: 64px; 
-                border-radius: 12px; 
-                display: flex; 
-                align-items: center; 
-                justify-content: center; 
-                color: white; 
-                font-size: 28px; 
-                flex-shrink: 0; 
-            }
-            .summary-content h4 { 
-                margin: 0 0 8px; 
-                font-size: 13px; 
-                color: #6b7280; 
-                font-weight: 500; 
-            }
-            .summary-value { 
-                font-size: 32px; 
-                font-weight: 700; 
-                color: #1f2937; 
-                margin-bottom: 6px; 
-            }
-            .summary-change { 
-                font-size: 13px; 
-                color: #6b7280; 
-            }
+            .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 24px; }
+            .summary-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 16px; }
+            .summary-icon { width: 64px; height: 64px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; flex-shrink: 0; }
+            .summary-content h4 { margin: 0 0 8px; font-size: 13px; color: #6b7280; font-weight: 500; }
+            .summary-value { font-size: 32px; font-weight: 700; color: #1f2937; margin-bottom: 6px; }
+            .summary-change { font-size: 13px; color: #10b981; display: flex; align-items: center; gap: 4px; }
             .summary-change.success { color: #10b981; }
             
-            .analytics-tabs { 
-                display: flex; 
-                gap: 4px; 
-                background: white; 
-                padding: 4px; 
-                border-radius: 8px; 
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
-                margin-bottom: 20px; 
-            }
-            .tab-button { 
-                flex: 1; 
-                padding: 12px 20px; 
-                border: none; 
-                background: transparent; 
-                color: #6b7280; 
-                border-radius: 6px; 
-                cursor: pointer; 
-                font-size: 14px; 
-                font-weight: 500; 
-                display: flex; 
-                align-items: center; 
-                justify-content: center; 
-                gap: 8px; 
-                transition: all 0.2s; 
-            }
+            .analytics-tabs { display: flex; gap: 4px; background: white; padding: 4px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
+            .tab-button { flex: 1; padding: 12px 20px; border: none; background: transparent; color: #6b7280; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
             .tab-button:hover { background: #f3f4f6; color: #374151; }
             .tab-button.active { background: #3b82f6; color: white; }
             
-            .analytics-metrics { 
-                display: grid; 
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-                gap: 20px; 
-                margin-bottom: 30px; 
-            }
-            .metric-card { 
-                display: flex; 
-                align-items: center; 
-                gap: 16px; 
-                padding: 20px; 
-                background: white; 
-                border-radius: 8px; 
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
-            }
-            .metric-icon { 
-                width: 56px; 
-                height: 56px; 
-                border-radius: 12px; 
-                display: flex; 
-                align-items: center; 
-                justify-content: center; 
-                color: white; 
-                font-size: 24px; 
-                flex-shrink: 0; 
-            }
+            .analytics-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+            .metric-card { display: flex; align-items: center; gap: 16px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+            .metric-icon { width: 56px; height: 56px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; flex-shrink: 0; }
             .metric-content { flex: 1; }
-            .metric-content h4 { 
-                margin: 0 0 8px; 
-                font-size: 13px; 
-                color: #6b7280; 
-                font-weight: 500; 
-            }
-            .metric-value { 
-                font-size: 28px; 
-                font-weight: 700; 
-                color: #1f2937; 
-                margin-bottom: 4px; 
-            }
+            .metric-content h4 { margin: 0 0 8px; font-size: 13px; color: #6b7280; font-weight: 500; }
+            .metric-value { font-size: 28px; font-weight: 700; color: #1f2937; margin-bottom: 4px; }
             .metric-value.success { color: #10b981; }
             .metric-value.error { color: #ef4444; }
             .metric-value.warning { color: #f59e0b; }
@@ -1321,52 +1406,35 @@
             .metric-value.purple { color: #8b5cf6; }
             .metric-subtext { font-size: 12px; color: #9ca3af; }
             
-            .charts-grid { 
-                display: grid; 
-                grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); 
-                gap: 24px; 
-            }
-            .chart-container { 
-                background: white; 
-                padding: 20px; 
-                border-radius: 8px; 
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
-            }
-            .chart-header { 
-                display: flex; 
-                justify-content: space-between; 
-                align-items: center; 
-                margin-bottom: 16px; 
-            }
-            .chart-header h5 { 
-                margin: 0; 
-                font-size: 14px; 
-                color: #4b5563; 
-                font-weight: 600; 
-            }
+            .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 24px; }
+            .chart-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+            .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+            .chart-header h5 { margin: 0; font-size: 14px; color: #4b5563; font-weight: 600; }
+            .btn-chart-export { background: #f3f4f6; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; color: #6b7280; transition: all 0.2s; }
+            .btn-chart-export:hover { background: #e5e7eb; color: #374151; }
             .chart-container canvas { max-height: 300px; }
             
-            .section-error { 
-                padding: 20px; 
-                background: #fef2f2; 
-                border: 1px solid #fecaca; 
-                border-radius: 6px; 
-                color: #dc2626; 
-                text-align: center; 
-            }
+            .export-menu { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity 0.3s; }
+            .export-menu.active { opacity: 1; }
+            .export-menu-content { background: white; border-radius: 12px; padding: 24px; min-width: 320px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); transform: scale(0.9); transition: transform 0.3s; }
+            .export-menu.active .export-menu-content { transform: scale(1); }
+            .export-menu-content h4 { margin: 0 0 20px; font-size: 18px; color: #1f2937; display: flex; align-items: center; gap: 10px; }
+            .export-menu-content button { width: 100%; padding: 12px 16px; margin-bottom: 10px; border: 1px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; transition: all 0.2s; }
+            .export-menu-content button:hover { background: #f9fafb; border-color: #3b82f6; color: #3b82f6; }
+            .export-menu-content button:last-child { background: #f3f4f6; border-color: #d1d5db; margin-bottom: 0; }
+            .export-menu-content button:last-child:hover { background: #e5e7eb; }
+            
+            .section-error { padding: 20px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; color: #dc2626; text-align: center; }
             
             @media (max-width: 768px) {
                 .analytics-header { flex-direction: column; align-items: flex-start; }
                 .header-actions { width: 100%; }
                 .btn-header { flex: 1; justify-content: center; }
+                .filter-panel { grid-template-columns: 1fr; }
                 .summary-cards { grid-template-columns: 1fr; }
                 .analytics-tabs { flex-direction: column; }
                 .analytics-metrics { grid-template-columns: 1fr; }
                 .charts-grid { grid-template-columns: 1fr; }
-                .custom-date-range { 
-                    grid-template-columns: 1fr; 
-                }
-                .date-separator { display: none; }
             }
         `;
         
@@ -1397,6 +1465,7 @@
             injectStyles();
             showLoading(container);
             
+            await fetchFilterOptions();
             const data = await fetchAnalyticsData();
             
             container.innerHTML = '';
@@ -1421,20 +1490,16 @@
                 case 'payouts':
                     renderPayoutAnalytics(data.payouts, contentDiv);
                     break;
+                case 'device-changes':
+                    renderDeviceChangeAnalytics(data.device_changes, contentDiv);
+                    break;
             }
             
             state.loaded = true;
             state.loading = false;
             logger.info('✅ Widget initialized');
             
-            updateConnectionStatus();
-            
-            // Start real-time updates
-            if (CONFIG.USE_REALTIME) {
-                startEventStream();
-            } else {
-                startPolling();
-            }
+            scheduleRefresh();
             
         } catch (error) {
             logger.error(`Initialization failed: ${error.message}`);
@@ -1446,6 +1511,17 @@
         }
     }
     
+    function scheduleRefresh() {
+        if (state.refreshTimer) {
+            clearTimeout(state.refreshTimer);
+        }
+        
+        state.refreshTimer = setTimeout(() => {
+            logger.info('🔄 Auto-refresh');
+            refresh();
+        }, CONFIG.REFRESH_INTERVAL);
+    }
+    
     function refresh() {
         state.loaded = false;
         state.loading = false;
@@ -1453,8 +1529,10 @@
     }
     
     function destroy() {
-        stopEventStream();
-        stopPolling();
+        if (state.refreshTimer) {
+            clearTimeout(state.refreshTimer);
+            state.refreshTimer = null;
+        }
         
         if (state.abortController) {
             state.abortController.abort();
@@ -1479,35 +1557,38 @@
         init: initialize,
         refresh: refresh,
         destroy: destroy,
-        switchTab: switchTab,
-        switchMode: switchMode,
         toggleFilters: toggleFilters,
-        updateDateRange: updateDateRange,
-        updateCustomDate: updateCustomDate,
+        updateFilter: updateFilter,
+        toggleMultiSelect: toggleMultiSelect,
+        removeMultiSelect: removeMultiSelect,
+        filterMultiSelect: filterMultiSelect,
         applyFilters: applyFilters,
         clearFilters: clearFilters,
+        switchTab: switchTab,
+        exportData: exportData,
+        doExport: doExport,
+        closeExportMenu: closeExportMenu,
+        exportChart: exportChart,
         state: () => ({ 
             loaded: state.loaded,
             loading: state.loading,
             lastFetchTime: state.lastFetchTime,
             activeTab: state.activeTab,
-            connectionMode: state.connectionMode,
-            charts: Object.keys(state.charts),
-            useRealtime: CONFIG.USE_REALTIME,
-            filters: state.filters
+            filters: state.filters,
+            charts: Object.keys(state.charts)
         })
     };
     
     // Auto-initialize on DOM ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-            logger.info('📊 Real-time Analytics widget ready');
+            logger.info('📊 Analytics widget ready');
             if (document.getElementById(CONFIG.CONTAINER_ID)) {
                 initialize();
             }
         });
     } else {
-        logger.info('📊 Real-time Analytics widget ready');
+        logger.info('📊 Analytics widget ready');
         if (document.getElementById(CONFIG.CONTAINER_ID)) {
             initialize();
         }
