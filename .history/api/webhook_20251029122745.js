@@ -4,7 +4,7 @@ const AUTH_TOKEN = process.env.WEBHOOK_AUTH_TOKEN || '200206';
 
 // PostgreSQL API fallback configuration
 const POSTGRES_API_URL = process.env.POSTGRES_API_URL || 'https://api.northman-gaming-corporation.site';
-const POSTGRES_API_KEY = process.env.POSTGRES_API_KEY || '200206';
+const POSTGRES_API_KEY = process.env.POSTGRES_API_KEY || '';
 
 // Failover settings
 const MAX_WEBHOOK_FAILURES = 3;
