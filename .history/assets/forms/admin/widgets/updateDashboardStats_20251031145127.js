@@ -479,8 +479,8 @@
     version: '4.0.1' // Fixed column names
   };
 
-  // console.log('Dashboard sync object exposed to window.dashboardSync');
-  // console.log('Version:', window.dashboardSync.version);
+  console.log('Dashboard sync object exposed to window.dashboardSync');
+  console.log('Version:', window.dashboardSync.version);
 
   // ===============================
   // Auto-start on page load

@@ -289,7 +289,7 @@
   // Sync dashboard
   // ===============================
   async function syncDashboard() {
-    // console.log('--- Syncing dashboard ---');
+    console.log('--- Syncing dashboard ---');
 
     const stats = await fetchAllStats();
     updateDashboard(stats);
@@ -311,13 +311,13 @@
   // ===============================
   function startEventStream() {
     if (!config.useEventStream) {
-      // console.log('Event stream disabled, using polling');
+      console.log('Event stream disabled, using polling');
       startPolling();
       return;
     }
 
     stopEventStream();
-    // console.log('Starting event stream connection...');
+    console.log('Starting event stream connection...');
 
     try {
       eventSource = new EventSource(
@@ -325,7 +325,7 @@
       );
 
       eventSource.onopen = () => {
-        // console.log('✅ Event stream connected');
+        console.log('✅ Event stream connected');
         updateConnectionStatus('connected', 'events');
         consecutiveErrors = 0;
       };
@@ -333,7 +333,7 @@
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          // console.log('📨 Received event:', data);
+          console.log('📨 Received event:', data);
 
           // Handle different event types
           if (data.type === 'update' || data.type === 'change') {
@@ -479,8 +479,8 @@
     version: '4.0.1' // Fixed column names
   };
 
-  // console.log('Dashboard sync object exposed to window.dashboardSync');
-  // console.log('Version:', window.dashboardSync.version);
+  console.log('Dashboard sync object exposed to window.dashboardSync');
+  console.log('Version:', window.dashboardSync.version);
 
   // ===============================
   // Auto-start on page load
