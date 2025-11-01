@@ -6,8 +6,8 @@
     'use strict';
     
     const CONFIG = {
-    API_URL: 'https://api.northman-gaming-corporation.site',
-    API_KEY: '200206',
+    API_URL: 'https://api.northman-gaming-corporation.site',  // Your Cloudflare tunnel domain
+    API_KEY: '200206',    // From .env API_KEY
     REFRESH_INTERVAL: 300000,
     MAX_RETRIES: 3,
     RETRY_DELAY: 2000,
@@ -480,13 +480,16 @@ async function fetchDataGatheringRate(filterMode = 'day') {
 
     function renderOverviewAnalytics(data, container) {
     try {
+        // ✅ FIX: Handle API response structure
         const metrics = data.metrics || {};
         const period = data.period || {};
         
+        // ✅ FIX: Add null checks for nested properties
         const cancellations = metrics.cancellations || {};
         const payouts = metrics.payouts || {};
         const other = metrics.other || {};
         
+        // Format period display
         let periodText = '';
         if (period.report_date) {
             periodText = `Report Date: ${period.report_date}`;
@@ -628,7 +631,7 @@ async function fetchDataGatheringRate(filterMode = 'day') {
         `;
     } catch (error) {
         logger.error(`Overview render error: ${error.message}`);
-        console.error('Full error:', error);
+        console.error('Full error:', error); // ✅ Add detailed error logging
         container.innerHTML = `
             <div class="section-error">
                 Failed to render overview analytics
@@ -637,10 +640,10 @@ async function fetchDataGatheringRate(filterMode = 'day') {
         `;
     }
 }
-
+// Add new rendering function for rankings tab
 function renderRankingsAnalytics(container) {
     container.innerHTML = `
-        <div class="overview-header">
+        <div class="rankings-header">
             <h3><i class="fas fa-trophy"></i> Rankings & Leaderboards</h3>
             <div class="filter-mode-selector">
                 <button class="filter-mode-btn ${state.filters.filterMode === 'day' ? 'active' : ''}" 
@@ -668,6 +671,7 @@ function renderRankingsAnalytics(container) {
         </div>
     `;
     
+    // Fetch and render all rankings
     Promise.all([
         fetchRankingsData('requesters', state.filters.filterMode),
         fetchRankingsData('approvers', state.filters.filterMode),
@@ -676,7 +680,7 @@ function renderRankingsAnalytics(container) {
         fetchRankingsData('payout-stations', state.filters.filterMode)
     ]).then(([requesters, approvers, forceCancellers, payoutTellers, payoutStations]) => {
         container.innerHTML = `
-            <div class="overview-header">
+            <div class="rankings-header">
                 <h3><i class="fas fa-trophy"></i> Rankings & Leaderboards</h3>
                 <div class="filter-mode-selector">
                     <button class="filter-mode-btn ${state.filters.filterMode === 'day' ? 'active' : ''}" 
@@ -728,6 +732,7 @@ function renderRankingTable(title, data, headers) {
         
         let cells = `<td class="rank-cell ${rankClass}">${rank}</td>`;
         
+        // Build cells based on data structure
         Object.values(item).forEach(value => {
             if (typeof value === 'number') {
                 if (value > 1000) {
@@ -760,6 +765,7 @@ function renderRankingTable(title, data, headers) {
     `;
 }
 
+// Add new function to change filter mode
 function changeFilterMode(mode) {
     state.filters.filterMode = mode;
     refresh();
@@ -1051,7 +1057,7 @@ function changeFilterMode(mode) {
             const approvalRate = safeGet(data, 'approval_rate', 0);
             
             container.innerHTML = `
-                <div class="overview-header">
+                <div class="tab-header">
                     <h3><i class="fas fa-times-circle"></i> Cancellations Analytics</h3>
                     <div class="filter-mode-selector">
                         <button class="filter-mode-btn ${state.filters.filterMode === 'day' ? 'active' : ''}" 
@@ -1162,27 +1168,6 @@ function changeFilterMode(mode) {
             const maxAmount = safeGet(data, 'max_amount', 0);
             
             container.innerHTML = `
-                <div class="overview-header">
-                    <h3><i class="fas fa-money-bill-wave"></i> Payouts Analytics</h3>
-                    <div class="filter-mode-selector">
-                        <button class="filter-mode-btn ${state.filters.filterMode === 'day' ? 'active' : ''}" 
-                                onclick="window.AnalyticsWidget.changeFilterMode('day')">
-                            <i class="fas fa-calendar-day"></i> Daily
-                        </button>
-                        <button class="filter-mode-btn ${state.filters.filterMode === 'week' ? 'active' : ''}" 
-                                onclick="window.AnalyticsWidget.changeFilterMode('week')">
-                            <i class="fas fa-calendar-week"></i> Weekly
-                        </button>
-                        <button class="filter-mode-btn ${state.filters.filterMode === 'month' ? 'active' : ''}" 
-                                onclick="window.AnalyticsWidget.changeFilterMode('month')">
-                            <i class="fas fa-calendar-alt"></i> Monthly
-                        </button>
-                        <button class="filter-mode-btn ${state.filters.filterMode === 'custom' ? 'active' : ''}" 
-                                onclick="window.AnalyticsWidget.changeFilterMode('custom')">
-                            <i class="fas fa-calendar"></i> Custom
-                        </button>
-                    </div>
-                </div>
                 <div class="analytics-metrics">
                     <div class="metric-card">
                         <div class="metric-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
@@ -1272,27 +1257,6 @@ function changeFilterMode(mode) {
             const posPercentage = total > 0 ? ((posCount / total) * 100).toFixed(1) : 0;
             
             container.innerHTML = `
-                <div class="overview-header">
-                    <h3><i class="fas fa-mobile-alt"></i> Device Changes Analytics</h3>
-                    <div class="filter-mode-selector">
-                        <button class="filter-mode-btn ${state.filters.filterMode === 'day' ? 'active' : ''}" 
-                                onclick="window.AnalyticsWidget.changeFilterMode('day')">
-                            <i class="fas fa-calendar-day"></i> Daily
-                        </button>
-                        <button class="filter-mode-btn ${state.filters.filterMode === 'week' ? 'active' : ''}" 
-                                onclick="window.AnalyticsWidget.changeFilterMode('week')">
-                            <i class="fas fa-calendar-week"></i> Weekly
-                        </button>
-                        <button class="filter-mode-btn ${state.filters.filterMode === 'month' ? 'active' : ''}" 
-                                onclick="window.AnalyticsWidget.changeFilterMode('month')">
-                            <i class="fas fa-calendar-alt"></i> Monthly
-                        </button>
-                        <button class="filter-mode-btn ${state.filters.filterMode === 'custom' ? 'active' : ''}" 
-                                onclick="window.AnalyticsWidget.changeFilterMode('custom')">
-                            <i class="fas fa-calendar"></i> Custom
-                        </button>
-                    </div>
-                </div>
                 <div class="analytics-metrics">
                     <div class="metric-card">
                         <div class="metric-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
@@ -1455,8 +1419,7 @@ function changeFilterMode(mode) {
             operators: [],
             userTypes: [],
             minAmount: '',
-            maxAmount: '',
-            filterMode: 'day'
+            maxAmount: ''
         };
         
         const header = document.querySelector('.analytics-header');
@@ -1680,167 +1643,168 @@ function changeFilterMode(mode) {
             
             .section-error { padding: 20px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; color: #dc2626; text-align: center; }
             
-            .overview-header, .rankings-header {
-                margin-bottom: 24px;
-            }
-            
-            .overview-header h3, .rankings-header h3 {
-                font-size: 20px;
-                font-weight: 700;
-                margin: 0 0 8px;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            
-            .period-text {
-                font-size: 13px;
-                color: #6b7280;
-                margin: 8px 0 16px;
-            }
-            
-            .filter-mode-selector {
-                display: flex;
-                gap: 8px;
-                flex-wrap: wrap;
-            }
-            
-            .filter-mode-btn {
-                padding: 8px 16px;
-                border: 1px solid #d1d5db;
-                background: white;
-                border-radius: 6px;
-                cursor: pointer;
-                font-size: 13px;
-                font-weight: 500;
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                transition: all 0.2s;
-            }
-            
-            .filter-mode-btn:hover {
-                border-color: #3b82f6;
-                color: #3b82f6;
-            }
-            
-            .filter-mode-btn.active {
-                background: #3b82f6;
-                color: white;
-                border-color: #3b82f6;
-            }
-            
-            .overview-section {
-                margin-bottom: 32px;
-            }
-            
-            .overview-section h4 {
-                font-size: 16px;
-                font-weight: 600;
-                margin: 0 0 16px;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                color: #1f2937;
-            }
-            
-            .rankings-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-                gap: 20px;
-            }
-            
-            .ranking-card {
-                background: white;
-                border-radius: 8px;
-                padding: 20px;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            }
-            
-            .ranking-card h4 {
-                font-size: 15px;
-                font-weight: 600;
-                margin: 0 0 16px;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                color: #1f2937;
-            }
-            
-            .ranking-table-wrapper {
-                overflow-x: auto;
-            }
-            
-            .ranking-table {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 13px;
-            }
-            
-            .ranking-table th {
-                background: #f9fafb;
-                padding: 10px 12px;
-                text-align: left;
-                font-weight: 600;
-                color: #374151;
-                border-bottom: 2px solid #e5e7eb;
-            }
-            
-            .ranking-table td {
-                padding: 10px 12px;
-                border-bottom: 1px solid #f3f4f6;
-            }
-            
-            .ranking-table tbody tr:hover {
-                background: #f9fafb;
-            }
-            
-            .rank-cell {
-                font-weight: 700;
-                font-size: 16px;
-            }
-            
-            .rank-cell.gold {
-                color: #f59e0b;
-            }
-            
-            .rank-cell.silver {
-                color: #9ca3af;
-            }
-            
-            .rank-cell.bronze {
-                color: #d97706;
-            }
-            
-            .no-data {
-                text-align: center;
-                padding: 40px 20px;
-                color: #9ca3af;
-                font-style: italic;
-            }
-            
-            .rankings-loading {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                padding: 60px 20px;
-                gap: 20px;
-            }
-            
+    .overview-header, .rankings-header {
+        margin-bottom: 24px;
+    }
+    
+    .overview-header h3, .rankings-header h3 {
+        font-size: 20px;
+        font-weight: 700;
+        margin: 0 0 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .period-text {
+        font-size: 13px;
+        color: #6b7280;
+        margin: 8px 0 16px;
+    }
+    
+    .filter-mode-selector {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .filter-mode-btn {
+        padding: 8px 16px;
+        border: 1px solid #d1d5db;
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+    
+    .filter-mode-btn:hover {
+        border-color: #3b82f6;
+        color: #3b82f6;
+    }
+    
+    .filter-mode-btn.active {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+    }
+    
+    .overview-section {
+        margin-bottom: 32px;
+    }
+    
+    .overview-section h4 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #1f2937;
+    }
+    
+    .rankings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+        gap: 20px;
+    }
+    
+    .ranking-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .ranking-card h4 {
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0 0 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #1f2937;
+    }
+    
+    .ranking-table-wrapper {
+        overflow-x: auto;
+    }
+    
+    .ranking-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+    
+    .ranking-table th {
+        background: #f9fafb;
+        padding: 10px 12px;
+        text-align: left;
+        font-weight: 600;
+        color: #374151;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .ranking-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .ranking-table tbody tr:hover {
+        background: #f9fafb;
+    }
+    
+    .rank-cell {
+        font-weight: 700;
+        font-size: 16px;
+    }
+    
+    .rank-cell.gold {
+        color: #f59e0b;
+    }
+    
+    .rank-cell.silver {
+        color: #9ca3af;
+    }
+    
+    .rank-cell.bronze {
+        color: #d97706;
+    }
+    
+    .no-data {
+        text-align: center;
+        padding: 40px 20px;
+        color: #9ca3af;
+        font-style: italic;
+    }
+    
+    .rankings-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 60px 20px;
+        gap: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .rankings-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .filter-mode-selector {
+            width: 100%;
+        }
+        
+        .filter-mode-btn {
+            flex: 1;
+            justify-content: center;
+        }
+
             @media (max-width: 768px) {
-                .rankings-grid {
-                    grid-template-columns: 1fr;
-                }
-                
-                .filter-mode-selector {
-                    width: 100%;
-                }
-                
-                .filter-mode-btn {
-                    flex: 1;
-                    justify-content: center;
-                }
-                
                 .analytics-header { flex-direction: column; align-items: flex-start; }
                 .header-actions { width: 100%; }
                 .btn-header { flex: 1; justify-content: center; }
@@ -1898,26 +1862,27 @@ function changeFilterMode(mode) {
             container.appendChild(contentDiv);
             
             switch(state.activeTab) {
-                case 'overview':
-                    fetchComprehensiveData(state.filters.filterMode).then(data => {
-                        renderOverviewAnalytics(data, contentDiv);
-                    }).catch(error => {
-                        contentDiv.innerHTML = '<div class="section-error">Failed to load overview</div>';
-                    });
-                    break;
-                case 'rankings':
-                    renderRankingsAnalytics(contentDiv);
-                    break;
-                case 'cancellations':
-                    renderCancellationAnalytics(data.cancellations, contentDiv);
-                    break;
-                case 'payouts':
-                    renderPayoutAnalytics(data.payouts, contentDiv);
-                    break;
-                case 'device-changes':
-                    renderDeviceChangeAnalytics(data.device_changes, contentDiv);
-                    break;
-            }
+    case 'overview':
+        fetchComprehensiveData(state.filters.filterMode).then(data => {
+            renderOverviewAnalytics(data, contentDiv);
+        }).catch(error => {
+            contentDiv.innerHTML = '<div class="section-error">Failed to load overview</div>';
+        });
+        break;
+    case 'rankings':
+        renderRankingsAnalytics(contentDiv);
+        break;
+    case 'cancellations':
+        renderCancellationAnalytics(data.cancellations, contentDiv);
+        break;
+    case 'payouts':
+        renderPayoutAnalytics(data.payouts, contentDiv);
+        break;
+    case 'device-changes':
+        renderDeviceChangeAnalytics(data.device_changes, contentDiv);
+        break;
+}
+
             
             state.loaded = true;
             state.loading = false;
@@ -1978,32 +1943,33 @@ function changeFilterMode(mode) {
     // ============================================
     
     window.AnalyticsWidget = {
-        init: initialize,
-        refresh: refresh,
-        destroy: destroy,
-        toggleFilters: toggleFilters,
-        updateFilter: updateFilter,
-        toggleMultiSelect: toggleMultiSelect,
-        removeMultiSelect: removeMultiSelect,
-        filterMultiSelect: filterMultiSelect,
-        applyFilters: applyFilters,
-        clearFilters: clearFilters,
-        switchTab: switchTab,
-        changeFilterMode: changeFilterMode,
-        exportData: exportData,
-        doExport: doExport,
-        closeExportMenu: closeExportMenu,
-        exportChart: exportChart,
-        state: () => ({ 
-            loaded: state.loaded,
-            loading: state.loading,
-            lastFetchTime: state.lastFetchTime,
-            activeTab: state.activeTab,
-            filterMode: state.filters.filterMode,
-            filters: state.filters,
-            charts: Object.keys(state.charts)
-        })
-    };
+    init: initialize,
+    refresh: refresh,
+    destroy: destroy,
+    toggleFilters: toggleFilters,
+    updateFilter: updateFilter,
+    toggleMultiSelect: toggleMultiSelect,
+    removeMultiSelect: removeMultiSelect,
+    filterMultiSelect: filterMultiSelect,
+    applyFilters: applyFilters,
+    clearFilters: clearFilters,
+    switchTab: switchTab,
+    changeFilterMode: changeFilterMode,  // NEW
+    exportData: exportData,
+    doExport: doExport,
+    closeExportMenu: closeExportMenu,
+    exportChart: exportChart,
+    state: () => ({ 
+        loaded: state.loaded,
+        loading: state.loading,
+        lastFetchTime: state.lastFetchTime,
+        activeTab: state.activeTab,
+        filterMode: state.filters.filterMode,  // NEW
+        filters: state.filters,
+        charts: Object.keys(state.charts)
+    })
+};
+
     
     // Auto-initialize on DOM ready
     if (document.readyState === 'loading') {
