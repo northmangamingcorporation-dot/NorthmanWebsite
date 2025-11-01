@@ -650,14 +650,14 @@ function mapRankingData(type, data) {
       }));
 
     case 'cancellers':
-        return data.map((item, i) => ({
-            name: item.canceller_name,
-            total: item.total_actions,
-            approved: item.total_approved,
-            denied: item.total_denied,
-            requested: item.total_requested,
-            percentage: item.action_percentage
-        }));
+  return data.map((item, i) => ({
+    name: item.canceller_name,
+    total: item.total_actions,
+    approved: item.total_approved,
+    denied: item.total_denied,
+    requested: item.total_requested,
+    percentage: item.action_percentage
+  }));
 
     case 'force-cancellers':
       return data.map((item, i) => ({
@@ -752,8 +752,9 @@ function renderRankingsAnalytics(container) {
                 )}
                 ${renderRankingTable('Top Cancellers',
                 mapRankingData('cancellers', cancellers.data),
-                ['Rank', 'Name', 'Total', 'Approved', 'Denied', 'Requested', '%']
+                ['Rank', 'Name', 'Total', 'Pending', 'Approved', 'Denied']
                 )}
+
                 ${renderRankingTable('Top Force Cancellers',
                 mapRankingData('force-cancellers', forceCancellers.data),
                 ['Rank', 'Username', 'Total Forced', 'Affected Booths']

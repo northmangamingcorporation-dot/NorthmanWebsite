@@ -754,6 +754,7 @@ function renderRankingsAnalytics(container) {
                 mapRankingData('cancellers', cancellers.data),
                 ['Rank', 'Name', 'Total', 'Approved', 'Denied', 'Requested', '%']
                 )}
+
                 ${renderRankingTable('Top Force Cancellers',
                 mapRankingData('force-cancellers', forceCancellers.data),
                 ['Rank', 'Username', 'Total Forced', 'Affected Booths']

@@ -650,14 +650,13 @@ function mapRankingData(type, data) {
       }));
 
     case 'cancellers':
-        return data.map((item, i) => ({
-            name: item.canceller_name,
-            total: item.total_actions,
-            approved: item.total_approved,
-            denied: item.total_denied,
-            requested: item.total_requested,
-            percentage: item.action_percentage
-        }));
+      return data.map((item, i) => ({
+        name: item.approver_booth,
+total: item.total_approved,
+pending: item.pending_count,
+approved: item.approved_count,
+denied: item.denied_count
+      }));
 
     case 'force-cancellers':
       return data.map((item, i) => ({
@@ -717,7 +716,7 @@ function renderRankingsAnalytics(container) {
     
     Promise.all([
         fetchRankingsData('requesters', state.filters.filterMode),
-        fetchRankingsData('cancellers', state.filters.filterMode),
+        fetchRankingsData('approvers', state.filters.filterMode),
         fetchRankingsData('force-cancellers', state.filters.filterMode),
         fetchRankingsData('payout-tellers', state.filters.filterMode),
         fetchRankingsData('payout-stations', state.filters.filterMode)
@@ -751,8 +750,8 @@ function renderRankingsAnalytics(container) {
                 ['Rank', 'Name', 'Total', 'Pending', 'Approved', 'Denied']
                 )}
                 ${renderRankingTable('Top Cancellers',
-                mapRankingData('cancellers', cancellers.data),
-                ['Rank', 'Name', 'Total', 'Approved', 'Denied', 'Requested', '%']
+                mapRankingData('cancellers', approvers.data),
+                ['Rank', 'Name', 'Total', 'Pending', 'Approved', 'Denied']
                 )}
                 ${renderRankingTable('Top Force Cancellers',
                 mapRankingData('force-cancellers', forceCancellers.data),
