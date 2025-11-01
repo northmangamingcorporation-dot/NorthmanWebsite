@@ -42,12 +42,12 @@
             operators: [],
             userTypes: [],
             minAmount: '',
-            maxAmount: '',
-            filterMode: 'day'
+            maxAmount: ''
         },
         insights: [],
         showFilters: false,
         activeTab: 'overview',
+        
         comparisonMode: false,
         comparisonPeriod: 'previous_period'
     };
@@ -287,67 +287,6 @@
         return structures[type] || {};
     }
     
-async function fetchComprehensiveData(filterMode = 'day') {
-    try {
-        let url = `${CONFIG.API_URL}/analytics/v2/comprehensive?filter_mode=${filterMode}`;
-        
-        if (filterMode === 'custom' && state.filters.startDate && state.filters.endDate) {
-            url += `&from_date=${state.filters.startDate}&to_date=${state.filters.endDate}`;
-        }
-        
-        const response = await fetchWithTimeout(url);
-        const data = await response.json();
-        
-        logger.info('✅ Comprehensive data fetched');
-        return data;
-        
-    } catch (error) {
-        logger.error(`Comprehensive fetch failed: ${error.message}`);
-        throw error;
-    }
-}
-
-async function fetchRankingsData(rankingType, filterMode = 'day') {
-    try {
-        let url = `${CONFIG.API_URL}/analytics/v2/rankings/${rankingType}?filter_mode=${filterMode}&limit=10`;
-        
-        if (filterMode === 'custom' && state.filters.startDate && state.filters.endDate) {
-            url += `&from_date=${state.filters.startDate}&to_date=${state.filters.endDate}`;
-        }
-        
-        const response = await fetchWithTimeout(url);
-        const data = await response.json();
-        
-        logger.info(`✅ ${rankingType} rankings fetched`);
-        return data;
-        
-    } catch (error) {
-        logger.error(`Rankings fetch failed: ${error.message}`);
-        throw error;
-    }
-}
-
-async function fetchDataGatheringRate(filterMode = 'day') {
-    try {
-        let url = `${CONFIG.API_URL}/analytics/v2/data-gathering-rate?filter_mode=${filterMode}`;
-        
-        if (filterMode === 'custom' && state.filters.startDate && state.filters.endDate) {
-            url += `&from_date=${state.filters.startDate}&to_date=${state.filters.endDate}`;
-        }
-        
-        const response = await fetchWithTimeout(url);
-        const data = await response.json();
-        
-        logger.info('✅ Data gathering rate fetched');
-        return data;
-        
-    } catch (error) {
-        logger.error(`Data gathering rate fetch failed: ${error.message}`);
-        throw error;
-    }
-}
-
-
     // ============================================
     // CHART RENDERING
     // ============================================
@@ -477,288 +416,6 @@ async function fetchDataGatheringRate(filterMode = 'day') {
             logger.error(`Failed to render line chart ${canvasId}: ${error.message}`);
         }
     }
-
-    function renderOverviewAnalytics(data, container) {
-    try {
-        const metrics = data.metrics;
-        const period = data.period;
-        
-        // Format period display
-        let periodText = '';
-        if (period.report_date) {
-            periodText = `Report Date: ${period.report_date}`;
-        } else if (period.period_start && period.period_end) {
-            periodText = `Period: ${period.period_start} to ${period.period_end}`;
-        }
-        
-        container.innerHTML = `
-            <div class="overview-header">
-                <h3><i class="fas fa-tachometer-alt"></i> Comprehensive Overview</h3>
-                <p class="period-text">${periodText}</p>
-                <div class="filter-mode-selector">
-                    <button class="filter-mode-btn ${state.filters.filterMode === 'day' ? 'active' : ''}" 
-                            onclick="window.AnalyticsWidget.changeFilterMode('day')">
-                        <i class="fas fa-calendar-day"></i> Daily
-                    </button>
-                    <button class="filter-mode-btn ${state.filters.filterMode === 'week' ? 'active' : ''}" 
-                            onclick="window.AnalyticsWidget.changeFilterMode('week')">
-                        <i class="fas fa-calendar-week"></i> Weekly
-                    </button>
-                    <button class="filter-mode-btn ${state.filters.filterMode === 'month' ? 'active' : ''}" 
-                            onclick="window.AnalyticsWidget.changeFilterMode('month')">
-                        <i class="fas fa-calendar-alt"></i> Monthly
-                    </button>
-                    <button class="filter-mode-btn ${state.filters.filterMode === 'custom' ? 'active' : ''}" 
-                            onclick="window.AnalyticsWidget.changeFilterMode('custom')">
-                        <i class="fas fa-calendar"></i> Custom
-                    </button>
-                </div>
-            </div>
-            
-            <div class="overview-section">
-                <h4><i class="fas fa-times-circle"></i> Cancellations</h4>
-                <div class="analytics-metrics">
-                    <div class="metric-card">
-                        <div class="metric-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="metric-content">
-                            <h4>Pending</h4>
-                            <div class="metric-value warning">${formatNumber(metrics.cancellations.total_pending)}</div>
-                            <div class="metric-subtext">Awaiting review</div>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="metric-content">
-                            <h4>Approved</h4>
-                            <div class="metric-value success">${formatNumber(metrics.cancellations.total_approved)}</div>
-                            <div class="metric-subtext">Successfully processed</div>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
-                            <i class="fas fa-times-circle"></i>
-                        </div>
-                        <div class="metric-content">
-                            <h4>Denied</h4>
-                            <div class="metric-value error">${formatNumber(metrics.cancellations.total_denied)}</div>
-                            <div class="metric-subtext">Rejected requests</div>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
-                            <i class="fas fa-ban"></i>
-                        </div>
-                        <div class="metric-content">
-                            <h4>Forced</h4>
-                            <div class="metric-value purple">${formatNumber(metrics.cancellations.total_forced)}</div>
-                            <div class="metric-subtext">Force cancelled</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="overview-section">
-                <h4><i class="fas fa-money-bill-wave"></i> Payouts</h4>
-                <div class="analytics-metrics">
-                    <div class="metric-card">
-                        <div class="metric-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-                            <i class="fas fa-receipt"></i>
-                        </div>
-                        <div class="metric-content">
-                            <h4>Total Count</h4>
-                            <div class="metric-value">${formatNumber(metrics.payouts.total_count)}</div>
-                            <div class="metric-subtext">Payout transactions</div>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-                            <i class="fas fa-coins"></i>
-                        </div>
-                        <div class="metric-content">
-                            <h4>Total Amount</h4>
-                            <div class="metric-value warning">${formatCurrency(metrics.payouts.total_amount)}</div>
-                            <div class="metric-subtext">Total disbursed</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="overview-section">
-                <h4><i class="fas fa-chart-line"></i> Other Metrics</h4>
-                <div class="analytics-metrics">
-                    <div class="metric-card">
-                        <div class="metric-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
-                            <i class="fas fa-mobile-alt"></i>
-                        </div>
-                        <div class="metric-content">
-                            <h4>Device Changes</h4>
-                            <div class="metric-value info">${formatNumber(metrics.other.total_device_changes)}</div>
-                            <div class="metric-subtext">Device requests</div>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
-                            <i class="fas fa-server"></i>
-                        </div>
-                        <div class="metric-content">
-                            <h4>Server Reports</h4>
-                            <div class="metric-value error">${formatNumber(metrics.other.total_server_reports)}</div>
-                            <div class="metric-subtext">System issues</div>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
-                            <i class="fas fa-ticket-alt"></i>
-                        </div>
-                        <div class="metric-content">
-                            <h4>Verifications</h4>
-                            <div class="metric-value">${formatNumber(metrics.other.total_verifications)}</div>
-                            <div class="metric-subtext">Ticket verifications</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    } catch (error) {
-        logger.error(`Overview render error: ${error.message}`);
-        container.innerHTML = '<div class="section-error">Failed to render overview analytics</div>';
-    }
-}
-
-// Add new rendering function for rankings tab
-function renderRankingsAnalytics(container) {
-    container.innerHTML = `
-        <div class="rankings-header">
-            <h3><i class="fas fa-trophy"></i> Rankings & Leaderboards</h3>
-            <div class="filter-mode-selector">
-                <button class="filter-mode-btn ${state.filters.filterMode === 'day' ? 'active' : ''}" 
-                        onclick="window.AnalyticsWidget.changeFilterMode('day')">
-                    <i class="fas fa-calendar-day"></i> Daily
-                </button>
-                <button class="filter-mode-btn ${state.filters.filterMode === 'week' ? 'active' : ''}" 
-                        onclick="window.AnalyticsWidget.changeFilterMode('week')">
-                    <i class="fas fa-calendar-week"></i> Weekly
-                </button>
-                <button class="filter-mode-btn ${state.filters.filterMode === 'month' ? 'active' : ''}" 
-                        onclick="window.AnalyticsWidget.changeFilterMode('month')">
-                    <i class="fas fa-calendar-alt"></i> Monthly
-                </button>
-                <button class="filter-mode-btn ${state.filters.filterMode === 'custom' ? 'active' : ''}" 
-                        onclick="window.AnalyticsWidget.changeFilterMode('custom')">
-                    <i class="fas fa-calendar"></i> Custom
-                </button>
-            </div>
-        </div>
-        
-        <div class="rankings-loading">
-            <div class="loading-spinner"></div>
-            <span>Loading rankings...</span>
-        </div>
-    `;
-    
-    // Fetch and render all rankings
-    Promise.all([
-        fetchRankingsData('requesters', state.filters.filterMode),
-        fetchRankingsData('approvers', state.filters.filterMode),
-        fetchRankingsData('force-cancellers', state.filters.filterMode),
-        fetchRankingsData('payout-tellers', state.filters.filterMode),
-        fetchRankingsData('payout-stations', state.filters.filterMode)
-    ]).then(([requesters, approvers, forceCancellers, payoutTellers, payoutStations]) => {
-        container.innerHTML = `
-            <div class="rankings-header">
-                <h3><i class="fas fa-trophy"></i> Rankings & Leaderboards</h3>
-                <div class="filter-mode-selector">
-                    <button class="filter-mode-btn ${state.filters.filterMode === 'day' ? 'active' : ''}" 
-                            onclick="window.AnalyticsWidget.changeFilterMode('day')">
-                        <i class="fas fa-calendar-day"></i> Daily
-                    </button>
-                    <button class="filter-mode-btn ${state.filters.filterMode === 'week' ? 'active' : ''}" 
-                            onclick="window.AnalyticsWidget.changeFilterMode('week')">
-                        <i class="fas fa-calendar-week"></i> Weekly
-                    </button>
-                    <button class="filter-mode-btn ${state.filters.filterMode === 'month' ? 'active' : ''}" 
-                            onclick="window.AnalyticsWidget.changeFilterMode('month')">
-                        <i class="fas fa-calendar-alt"></i> Monthly
-                    </button>
-                    <button class="filter-mode-btn ${state.filters.filterMode === 'custom' ? 'active' : ''}" 
-                            onclick="window.AnalyticsWidget.changeFilterMode('custom')">
-                        <i class="fas fa-calendar"></i> Custom
-                    </button>
-                </div>
-            </div>
-            
-            <div class="rankings-grid">
-                ${renderRankingTable('Top Requesters', requesters.data, ['Rank', 'Name', 'Total', 'Pending', 'Approved', 'Denied'])}
-                ${renderRankingTable('Top Approvers', approvers.data, ['Rank', 'Booth', 'Approved', 'Percentage'])}
-                ${renderRankingTable('Top Force Cancellers', forceCancellers.data, ['Rank', 'Username', 'Total', 'Affected Booths'])}
-                ${renderRankingTable('Top Payout Tellers', payoutTellers.data, ['Rank', 'Teller', 'Count', 'Total Amount', 'Avg Amount'])}
-                ${renderRankingTable('Top Payout Stations', payoutStations.data, ['Rank', 'Outlet', 'Count', 'Total Amount', 'Unique Tellers'])}
-            </div>
-        `;
-    }).catch(error => {
-        logger.error(`Rankings load error: ${error.message}`);
-        container.innerHTML = '<div class="section-error">Failed to load rankings</div>';
-    });
-}
-
-function renderRankingTable(title, data, headers) {
-    if (!data || data.length === 0) {
-        return `
-            <div class="ranking-card">
-                <h4>${title}</h4>
-                <p class="no-data">No data available</p>
-            </div>
-        `;
-    }
-    
-    const rows = data.map((item, index) => {
-        const rank = index + 1;
-        const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
-        
-        let cells = `<td class="rank-cell ${rankClass}">${rank}</td>`;
-        
-        // Build cells based on data structure
-        Object.values(item).forEach(value => {
-            if (typeof value === 'number') {
-                if (value > 1000) {
-                    cells += `<td>${formatCurrency(value)}</td>`;
-                } else {
-                    cells += `<td>${formatNumber(value)}</td>`;
-                }
-            } else {
-                cells += `<td>${sanitizeHTML(value)}</td>`;
-            }
-        });
-        
-        return `<tr>${cells}</tr>`;
-    }).join('');
-    
-    return `
-        <div class="ranking-card">
-            <h4><i class="fas fa-trophy"></i> ${title}</h4>
-            <div class="ranking-table-wrapper">
-                <table class="ranking-table">
-                    <thead>
-                        <tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>
-                    </thead>
-                    <tbody>
-                        ${rows}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
-}
-
-// Add new function to change filter mode
-function changeFilterMode(mode) {
-    state.filters.filterMode = mode;
-    refresh();
-}
     
     // ============================================
     // UI RENDERING
@@ -1010,31 +667,23 @@ function changeFilterMode(mode) {
     }
     
     function renderTabs() {
-    return `
-        <div class="analytics-tabs">
-            <button class="tab-button ${state.activeTab === 'overview' ? 'active' : ''}" 
-                    onclick="window.AnalyticsWidget.switchTab('overview')">
-                <i class="fas fa-tachometer-alt"></i> Overview
-            </button>
-            <button class="tab-button ${state.activeTab === 'cancellations' ? 'active' : ''}" 
-                    onclick="window.AnalyticsWidget.switchTab('cancellations')">
-                <i class="fas fa-times-circle"></i> Cancellations
-            </button>
-            <button class="tab-button ${state.activeTab === 'payouts' ? 'active' : ''}" 
-                    onclick="window.AnalyticsWidget.switchTab('payouts')">
-                <i class="fas fa-money-bill-wave"></i> Payouts
-            </button>
-            <button class="tab-button ${state.activeTab === 'device-changes' ? 'active' : ''}" 
-                    onclick="window.AnalyticsWidget.switchTab('device-changes')">
-                <i class="fas fa-mobile-alt"></i> Device Changes
-            </button>
-            <button class="tab-button ${state.activeTab === 'rankings' ? 'active' : ''}" 
-                    onclick="window.AnalyticsWidget.switchTab('rankings')">
-                <i class="fas fa-trophy"></i> Rankings
-            </button>
-        </div>
-    `;
-}
+        return `
+            <div class="analytics-tabs">
+                <button class="tab-button ${state.activeTab === 'cancellations' ? 'active' : ''}" 
+                        onclick="window.AnalyticsWidget.switchTab('cancellations')">
+                    <i class="fas fa-times-circle"></i> Cancellations
+                </button>
+                <button class="tab-button ${state.activeTab === 'payouts' ? 'active' : ''}" 
+                        onclick="window.AnalyticsWidget.switchTab('payouts')">
+                    <i class="fas fa-money-bill-wave"></i> Payouts
+                </button>
+                <button class="tab-button ${state.activeTab === 'device-changes' ? 'active' : ''}" 
+                        onclick="window.AnalyticsWidget.switchTab('device-changes')">
+                    <i class="fas fa-mobile-alt"></i> Device Changes
+                </button>
+            </div>
+        `;
+    }
     
     function renderCancellationAnalytics(data, container) {
         try {
@@ -1611,167 +1260,6 @@ function changeFilterMode(mode) {
             
             .section-error { padding: 20px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; color: #dc2626; text-align: center; }
             
-    .overview-header, .rankings-header {
-        margin-bottom: 24px;
-    }
-    
-    .overview-header h3, .rankings-header h3 {
-        font-size: 20px;
-        font-weight: 700;
-        margin: 0 0 8px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .period-text {
-        font-size: 13px;
-        color: #6b7280;
-        margin: 8px 0 16px;
-    }
-    
-    .filter-mode-selector {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-    
-    .filter-mode-btn {
-        padding: 8px 16px;
-        border: 1px solid #d1d5db;
-        background: white;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 500;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        transition: all 0.2s;
-    }
-    
-    .filter-mode-btn:hover {
-        border-color: #3b82f6;
-        color: #3b82f6;
-    }
-    
-    .filter-mode-btn.active {
-        background: #3b82f6;
-        color: white;
-        border-color: #3b82f6;
-    }
-    
-    .overview-section {
-        margin-bottom: 32px;
-    }
-    
-    .overview-section h4 {
-        font-size: 16px;
-        font-weight: 600;
-        margin: 0 0 16px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #1f2937;
-    }
-    
-    .rankings-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-        gap: 20px;
-    }
-    
-    .ranking-card {
-        background: white;
-        border-radius: 8px;
-        padding: 20px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    
-    .ranking-card h4 {
-        font-size: 15px;
-        font-weight: 600;
-        margin: 0 0 16px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #1f2937;
-    }
-    
-    .ranking-table-wrapper {
-        overflow-x: auto;
-    }
-    
-    .ranking-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 13px;
-    }
-    
-    .ranking-table th {
-        background: #f9fafb;
-        padding: 10px 12px;
-        text-align: left;
-        font-weight: 600;
-        color: #374151;
-        border-bottom: 2px solid #e5e7eb;
-    }
-    
-    .ranking-table td {
-        padding: 10px 12px;
-        border-bottom: 1px solid #f3f4f6;
-    }
-    
-    .ranking-table tbody tr:hover {
-        background: #f9fafb;
-    }
-    
-    .rank-cell {
-        font-weight: 700;
-        font-size: 16px;
-    }
-    
-    .rank-cell.gold {
-        color: #f59e0b;
-    }
-    
-    .rank-cell.silver {
-        color: #9ca3af;
-    }
-    
-    .rank-cell.bronze {
-        color: #d97706;
-    }
-    
-    .no-data {
-        text-align: center;
-        padding: 40px 20px;
-        color: #9ca3af;
-        font-style: italic;
-    }
-    
-    .rankings-loading {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 60px 20px;
-        gap: 20px;
-    }
-    
-    @media (max-width: 768px) {
-        .rankings-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .filter-mode-selector {
-            width: 100%;
-        }
-        
-        .filter-mode-btn {
-            flex: 1;
-            justify-content: center;
-        }
-
             @media (max-width: 768px) {
                 .analytics-header { flex-direction: column; align-items: flex-start; }
                 .header-actions { width: 100%; }
@@ -1830,27 +1318,16 @@ function changeFilterMode(mode) {
             container.appendChild(contentDiv);
             
             switch(state.activeTab) {
-    case 'overview':
-        fetchComprehensiveData(state.filters.filterMode).then(data => {
-            renderOverviewAnalytics(data, contentDiv);
-        }).catch(error => {
-            contentDiv.innerHTML = '<div class="section-error">Failed to load overview</div>';
-        });
-        break;
-    case 'rankings':
-        renderRankingsAnalytics(contentDiv);
-        break;
-    case 'cancellations':
-        renderCancellationAnalytics(data.cancellations, contentDiv);
-        break;
-    case 'payouts':
-        renderPayoutAnalytics(data.payouts, contentDiv);
-        break;
-    case 'device-changes':
-        renderDeviceChangeAnalytics(data.device_changes, contentDiv);
-        break;
-}
-
+                case 'cancellations':
+                    renderCancellationAnalytics(data.cancellations, contentDiv);
+                    break;
+                case 'payouts':
+                    renderPayoutAnalytics(data.payouts, contentDiv);
+                    break;
+                case 'device-changes':
+                    renderDeviceChangeAnalytics(data.device_changes, contentDiv);
+                    break;
+            }
             
             state.loaded = true;
             state.loading = false;
@@ -1911,33 +1388,30 @@ function changeFilterMode(mode) {
     // ============================================
     
     window.AnalyticsWidget = {
-    init: initialize,
-    refresh: refresh,
-    destroy: destroy,
-    toggleFilters: toggleFilters,
-    updateFilter: updateFilter,
-    toggleMultiSelect: toggleMultiSelect,
-    removeMultiSelect: removeMultiSelect,
-    filterMultiSelect: filterMultiSelect,
-    applyFilters: applyFilters,
-    clearFilters: clearFilters,
-    switchTab: switchTab,
-    changeFilterMode: changeFilterMode,  // NEW
-    exportData: exportData,
-    doExport: doExport,
-    closeExportMenu: closeExportMenu,
-    exportChart: exportChart,
-    state: () => ({ 
-        loaded: state.loaded,
-        loading: state.loading,
-        lastFetchTime: state.lastFetchTime,
-        activeTab: state.activeTab,
-        filterMode: state.filters.filterMode,  // NEW
-        filters: state.filters,
-        charts: Object.keys(state.charts)
-    })
-};
-
+        init: initialize,
+        refresh: refresh,
+        destroy: destroy,
+        toggleFilters: toggleFilters,
+        updateFilter: updateFilter,
+        toggleMultiSelect: toggleMultiSelect,
+        removeMultiSelect: removeMultiSelect,
+        filterMultiSelect: filterMultiSelect,
+        applyFilters: applyFilters,
+        clearFilters: clearFilters,
+        switchTab: switchTab,
+        exportData: exportData,
+        doExport: doExport,
+        closeExportMenu: closeExportMenu,
+        exportChart: exportChart,
+        state: () => ({ 
+            loaded: state.loaded,
+            loading: state.loading,
+            lastFetchTime: state.lastFetchTime,
+            activeTab: state.activeTab,
+            filters: state.filters,
+            charts: Object.keys(state.charts)
+        })
+    };
     
     // Auto-initialize on DOM ready
     if (document.readyState === 'loading') {

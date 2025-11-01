@@ -1611,6 +1611,117 @@ function changeFilterMode(mode) {
             
             .section-error { padding: 20px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; color: #dc2626; text-align: center; }
             
+            @media (max-width: 768px) {
+                .analytics-header { flex-direction: column; align-items: flex-start; }
+                .header-actions { width: 100%; }
+                .btn-header { flex: 1; justify-content: center; }
+                .filter-panel { grid-template-columns: 1fr; }
+                .summary-cards { grid-template-columns: 1fr; }
+                .analytics-tabs { flex-direction: column; }
+                .analytics-metrics { grid-template-columns: 1fr; }
+                .charts-grid { grid-template-columns: 1fr; }
+            }
+        `;
+        
+        document.head.appendChild(style);
+    }
+    
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    
+    async function initialize() {
+        if (state.loading) {
+            logger.warn('Already loading');
+            return;
+        }
+        
+        state.loading = true;
+        
+        try {
+            const container = document.getElementById(CONFIG.CONTAINER_ID);
+            
+            if (!container) {
+                logger.error(`Container #${CONFIG.CONTAINER_ID} not found`);
+                state.loading = false;
+                return;
+            }
+            
+            injectStyles();
+            showLoading(container);
+            
+            await fetchFilterOptions();
+            const data = await fetchAnalyticsData();
+            
+            container.innerHTML = '';
+            container.innerHTML = renderHeader();
+            
+            const summaryDiv = document.createElement('div');
+            summaryDiv.innerHTML = renderSummaryCards(data);
+            container.appendChild(summaryDiv);
+            
+            const tabsDiv = document.createElement('div');
+            tabsDiv.innerHTML = renderTabs();
+            container.appendChild(tabsDiv);
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.id = 'tabContent';
+            container.appendChild(contentDiv);
+            
+            switch(state.activeTab) {
+    case 'overview':
+        fetchComprehensiveData(state.filters.filterMode).then(data => {
+            renderOverviewAnalytics(data, contentDiv);
+        }).catch(error => {
+            contentDiv.innerHTML = '<div class="section-error">Failed to load overview</div>';
+        });
+        break;
+    case 'rankings':
+        renderRankingsAnalytics(contentDiv);
+        break;
+    case 'cancellations':
+        renderCancellationAnalytics(data.cancellations, contentDiv);
+        break;
+    case 'payouts':
+        renderPayoutAnalytics(data.payouts, contentDiv);
+        break;
+    case 'device-changes':
+        renderDeviceChangeAnalytics(data.device_changes, contentDiv);
+        break;
+}
+
+// Update the public API (around line 1233)
+window.AnalyticsWidget = {
+    init: initialize,
+    refresh: refresh,
+    destroy: destroy,
+    toggleFilters: toggleFilters,
+    updateFilter: updateFilter,
+    toggleMultiSelect: toggleMultiSelect,
+    removeMultiSelect: removeMultiSelect,
+    filterMultiSelect: filterMultiSelect,
+    applyFilters: applyFilters,
+    clearFilters: clearFilters,
+    switchTab: switchTab,
+    changeFilterMode: changeFilterMode,  // NEW
+    exportData: exportData,
+    doExport: doExport,
+    closeExportMenu: closeExportMenu,
+    exportChart: exportChart,
+    state: () => ({ 
+        loaded: state.loaded,
+        loading: state.loading,
+        lastFetchTime: state.lastFetchTime,
+        activeTab: state.activeTab,
+        filterMode: state.filters.filterMode,  // NEW
+        filters: state.filters,
+        charts: Object.keys(state.charts)
+    })
+};
+
+// Add new styles to injectStyles() function (around line 1040)
+// Add these CSS rules:
+const additionalStyles = `
     .overview-header, .rankings-header {
         margin-bottom: 24px;
     }
@@ -1771,85 +1882,35 @@ function changeFilterMode(mode) {
             flex: 1;
             justify-content: center;
         }
-
-            @media (max-width: 768px) {
-                .analytics-header { flex-direction: column; align-items: flex-start; }
-                .header-actions { width: 100%; }
-                .btn-header { flex: 1; justify-content: center; }
-                .filter-panel { grid-template-columns: 1fr; }
-                .summary-cards { grid-template-columns: 1fr; }
-                .analytics-tabs { flex-direction: column; }
-                .analytics-metrics { grid-template-columns: 1fr; }
-                .charts-grid { grid-template-columns: 1fr; }
-            }
-        `;
-        
-        document.head.appendChild(style);
     }
-    
-    // ============================================
-    // INITIALIZATION
-    // ============================================
-    
-    async function initialize() {
-        if (state.loading) {
-            logger.warn('Already loading');
-            return;
-        }
-        
-        state.loading = true;
-        
-        try {
-            const container = document.getElementById(CONFIG.CONTAINER_ID);
-            
-            if (!container) {
-                logger.error(`Container #${CONFIG.CONTAINER_ID} not found`);
-                state.loading = false;
-                return;
-            }
-            
-            injectStyles();
-            showLoading(container);
-            
-            await fetchFilterOptions();
-            const data = await fetchAnalyticsData();
-            
-            container.innerHTML = '';
-            container.innerHTML = renderHeader();
-            
-            const summaryDiv = document.createElement('div');
-            summaryDiv.innerHTML = renderSummaryCards(data);
-            container.appendChild(summaryDiv);
-            
-            const tabsDiv = document.createElement('div');
-            tabsDiv.innerHTML = renderTabs();
-            container.appendChild(tabsDiv);
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.id = 'tabContent';
-            container.appendChild(contentDiv);
-            
-            switch(state.activeTab) {
-    case 'overview':
-        fetchComprehensiveData(state.filters.filterMode).then(data => {
-            renderOverviewAnalytics(data, contentDiv);
-        }).catch(error => {
-            contentDiv.innerHTML = '<div class="section-error">Failed to load overview</div>';
-        });
-        break;
-    case 'rankings':
-        renderRankingsAnalytics(contentDiv);
-        break;
-    case 'cancellations':
-        renderCancellationAnalytics(data.cancellations, contentDiv);
-        break;
-    case 'payouts':
-        renderPayoutAnalytics(data.payouts, contentDiv);
-        break;
-    case 'device-changes':
-        renderDeviceChangeAnalytics(data.device_changes, contentDiv);
-        break;
-}
+`;
+Summary of Changes:
+Python Backend:
+✅ Added 7 new comprehensive analytics endpoints:
+
+/analytics/v2/comprehensive - All metrics in one call
+/analytics/v2/rankings/requesters - Top tellers requesting cancellations
+/analytics/v2/rankings/approvers - Top booths approving cancellations
+/analytics/v2/rankings/force-cancellers - Top force cancellers
+/analytics/v2/rankings/payout-tellers - Top payout tellers
+/analytics/v2/rankings/payout-stations - Top payout outlets
+/analytics/v2/data-gathering-rate - Records per table
+✅ All support 4 filter modes: day, week, month, custom
+
+Frontend (Optional):
+✅ New "Overview" tab with all metrics at a glance
+✅ New "Rankings" tab with leaderboards
+✅ Filter mode selector (Daily/Weekly/Monthly/Custom)
+✅ Responsive design for rankings tables
+
+What to do next:
+Update your Python script - Copy all the new endpoint functions
+Test the new endpoints - Use curl or Postman
+Optionally update analytics.js - Add the new tabs if you want them
+Restart your Flask server
+The SQL queries are optimized for PostgreSQL performance with proper indexing on timestamp columns.
+
+
 
             
             state.loaded = true;
@@ -1911,33 +1972,30 @@ function changeFilterMode(mode) {
     // ============================================
     
     window.AnalyticsWidget = {
-    init: initialize,
-    refresh: refresh,
-    destroy: destroy,
-    toggleFilters: toggleFilters,
-    updateFilter: updateFilter,
-    toggleMultiSelect: toggleMultiSelect,
-    removeMultiSelect: removeMultiSelect,
-    filterMultiSelect: filterMultiSelect,
-    applyFilters: applyFilters,
-    clearFilters: clearFilters,
-    switchTab: switchTab,
-    changeFilterMode: changeFilterMode,  // NEW
-    exportData: exportData,
-    doExport: doExport,
-    closeExportMenu: closeExportMenu,
-    exportChart: exportChart,
-    state: () => ({ 
-        loaded: state.loaded,
-        loading: state.loading,
-        lastFetchTime: state.lastFetchTime,
-        activeTab: state.activeTab,
-        filterMode: state.filters.filterMode,  // NEW
-        filters: state.filters,
-        charts: Object.keys(state.charts)
-    })
-};
-
+        init: initialize,
+        refresh: refresh,
+        destroy: destroy,
+        toggleFilters: toggleFilters,
+        updateFilter: updateFilter,
+        toggleMultiSelect: toggleMultiSelect,
+        removeMultiSelect: removeMultiSelect,
+        filterMultiSelect: filterMultiSelect,
+        applyFilters: applyFilters,
+        clearFilters: clearFilters,
+        switchTab: switchTab,
+        exportData: exportData,
+        doExport: doExport,
+        closeExportMenu: closeExportMenu,
+        exportChart: exportChart,
+        state: () => ({ 
+            loaded: state.loaded,
+            loading: state.loading,
+            lastFetchTime: state.lastFetchTime,
+            activeTab: state.activeTab,
+            filters: state.filters,
+            charts: Object.keys(state.charts)
+        })
+    };
     
     // Auto-initialize on DOM ready
     if (document.readyState === 'loading') {
