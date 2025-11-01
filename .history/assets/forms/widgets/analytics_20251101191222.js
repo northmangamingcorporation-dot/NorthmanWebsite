@@ -782,7 +782,7 @@ function renderRankingTable(title, data, headers) {
                 const isNumeric = !isNaN(numeric);
                 const keyLower = key.toLowerCase();
 
-                if (isNumeric && (keyLower.includes('amount')|| keyLower.includes('amount'))) {
+                if (isNumeric && (keyLower.includes('amount')|| keyLower.includes('avg'))) {
                 // Currency format for amount/avg/total
                 cells += `<td class="text-right">${formatCurrency(numeric)}</td>`;
                 } else if (isNumeric) {
