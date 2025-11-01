@@ -777,22 +777,22 @@ function renderRankingTable(title, data, headers) {
         let cells = `<td class="rank-cell ${rankClass}">${rank}</td>`;
         
           // Loop through key-value pairs
-            Object.entries(item).forEach(([key, value]) => {
-                const numeric = parseFloat(value);
-                const isNumeric = !isNaN(numeric);
-                const keyLower = key.toLowerCase();
+        Object.entries(item).forEach(([key, value]) => {
+            const numeric = parseFloat(value);
+            const isNumeric = !isNaN(numeric);
+            const keyLower = key.toLowerCase();
 
-                if (isNumeric && (keyLower.includes('amount') || keyLower.includes('total') || keyLower.includes('avg'))) {
-                // Currency format for amount/avg/total
-                cells += `<td class="text-right">${formatCurrency(numeric)}</td>`;
-                } else if (isNumeric) {
-                // Just a number (like counts)
-                cells += `<td class="text-right">${formatNumber(numeric)}</td>`;
-                } else {
-                // Safe text output
-                cells += `<td>${sanitizeHTML(value)}</td>`;
-                }
-            });
+            if (isNumeric && (keyLower.includes('amount') || keyLower.includes('total') || keyLower.includes('avg'))) {
+            // Currency format for amount/avg/total
+            cells += `<td class="text-right">${formatCurrency(numeric)}</td>`;
+            } else if (isNumeric) {
+            // Just a number (like counts)
+            cells += `<td class="text-right">${formatNumber(numeric)}</td>`;
+            } else {
+            // Safe text output
+            cells += `<td>${sanitizeHTML(value)}</td>`;
+            }
+        });
         
         return `<tr>${cells}</tr>`;
     }).join('');
