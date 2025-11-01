@@ -210,6 +210,14 @@
             if (state.filters.endDate) params.append('end_date', state.filters.endDate);
         }
         
+        if (state.filters.status) params.append('status', state.filters.status);
+        if (state.filters.boothCodes.length) params.append('booth_codes', state.filters.boothCodes.join(','));
+        if (state.filters.outlets.length) params.append('outlets', state.filters.outlets.join(','));
+        if (state.filters.operators.length) params.append('operators', state.filters.operators.join(','));
+        if (state.filters.userTypes.length) params.append('user_types', state.filters.userTypes.join(','));
+        if (state.filters.minAmount) params.append('min_amount', state.filters.minAmount);
+        if (state.filters.maxAmount) params.append('max_amount', state.filters.maxAmount);
+        
         params.append('include_details', 'false');
         
         return params.toString();
@@ -321,7 +329,7 @@
     
     function getEmptyData(type) {
         const structures = {
-            cancellations: { total: 0, last_24h: 0, total_approved: 0, total_denied: 0, total_pending: 0, by_status: {}, top_operators: [], trend: [], approval_rate: 0 },
+            cancellations: { total: 0, last_24h: 0, by_status: {}, top_operators: [], trend: [], approval_rate: 0 },
             payouts: { total: 0, total_amount: 0, average_amount: 0, top_outlets: [], trend: [], last_24h: { count: 0, amount: 0 } },
             deviceChanges: { total: 0, last_24h: 0, by_type: {}, top_operators: [], trend: [] },
             summary: { overview: { total_cancellations: 0, total_payouts: 0, total_device_changes: 0 } }
@@ -605,121 +613,14 @@
     
     function renderCancellationDetails(data) {
         const total = safeGet(data, 'total', 0);
+        const last24h = safeGet(data, 'last_24h', 0);
         const approved = safeGet(data, 'total_approved', 0);
         const denied = safeGet(data, 'total_denied', 0);
         const pending = safeGet(data, 'total_pending', 0);
+        const approvalRate = safeGet(data, 'approval_rate', 0);
         
         return `
             <div class="detail-stats">
-                <div class="detail-card">
-                    <div class="detail-icon" style="background: #3b82f6;">📋</div>
-                    <div class="detail-number">${formatNumber(total)}</div>
-                    <div class="detail-label">Total Cancellations</div>
-                </div>
-                <div class="detail-card">
-                    <div class="detail-icon" style="background: #10b981;">✅</div>
-                    <div class="detail-number">${formatNumber(approved)}</div>
-                    <div class="detail-label">Approved</div>
-                </div>
-                <div class="detail-card">
-                    <div class="detail-icon" style="background: #ef4444;">❌</div>
-                    <div class="detail-number">${formatNumber(denied)}</div>
-                    <div class="detail-label">Denied</div>
-                </div>
-                <div class="detail-card">
-                    <div class="detail-icon" style="background: #f59e0b;">⏳</div>
-                    <div class="detail-number">${formatNumber(pending)}</div>
-                    <div class="detail-label">Pending</div>
-                </div>
-            </div>
-            
-            <div class="charts-section">
-                <div class="chart-box">
-                    <h3>Top 10 Booths</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="cancellationTopBooths"></canvas>
-                    </div>
-                </div>
-                <div class="chart-box">
-                    <h3>Daily Trend</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="cancellationTrend"></canvas>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    function renderPayoutDetails(data) {
-        const total = safeGet(data, 'total', 0);
-        const totalAmount = safeGet(data, 'total_amount', 0);
-        const averageAmount = safeGet(data, 'average_amount', 0);
-        const last24hCount = safeGet(data, 'last_24h.count', 0);
-        
-        return `
-            <div class="detail-stats">
-                <div class="detail-card">
-                    <div class="detail-icon" style="background: #10b981;">💵</div>
-                    <div class="detail-number">${formatNumber(total)}</div>
-                    <div class="detail-label">Total Payouts</div>
-                </div>
-                <div class="detail-card">
-                    <div class="detail-icon" style="background: #f59e0b;">💰</div>
-                    <div class="detail-number" style="font-size: 24px;">${formatCurrency(totalAmount)}</div>
-                    <div class="detail-label">Total Amount</div>
-                </div>
-                <div class="detail-card">
-                    <div class="detail-icon" style="background: #06b6d4;">📊</div>
-                    <div class="detail-number" style="font-size: 24px;">${formatCurrency(averageAmount)}</div>
-                    <div class="detail-label">Average Payout</div>
-                </div>
-                <div class="detail-card">
-                    <div class="detail-icon" style="background: #8b5cf6;">⏰</div>
-                    <div class="detail-number">${formatNumber(last24hCount)}</div>
-                    <div class="detail-label">Last 24 Hours</div>
-                </div>
-            </div>
-            
-            <div class="charts-section">
-                <div class="chart-box">
-                    <h3>Top 10 Outlets</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="payoutTopOutlets"></canvas>
-                    </div>
-                </div>
-                <div class="chart-box">
-                    <h3>Amount Trend</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="payoutTrend"></canvas>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    function renderDeviceDetails(data) {
-        const total = safeGet(data, 'total', 0);
-        const last24h = safeGet(data, 'last_24h', 0);
-        const phoneCount = safeGet(data, 'by_type.phone', 0);
-        const posCount = safeGet(data, 'by_type.pos', 0);
-        
-        return `
-            <div class="detail-stats">
-                <div class="detail-card">
-                    <div class="detail-icon" style="background: #3b82f6;">🔄</div>
-                    <div class="detail-number">${formatNumber(total)}</div>
-                    <div class="detail-label">Total Changes</div>
-                </div>
-                <div class="detail-card">
-                    <div class="detail-icon" style="background: #ec4899;">📱</div>
-                    <div class="detail-number">${formatNumber(phoneCount)}</div>
-                    <div class="detail-label">Phone Users</div>
-                </div>
-                <div class="detail-card">
-                    <div class="detail-icon" style="background: #8b5cf6;">🖥️</div>
-                    <div class="detail-number">${formatNumber(posCount)}</div>
-                    <div class="detail-label">POS Users</div>
-                </div>
                 <div class="detail-card">
                     <div class="detail-icon" style="background: #f59e0b;">⏰</div>
                     <div class="detail-number">${formatNumber(last24h)}</div>
@@ -1424,4 +1325,113 @@
         }
     }
     
-})();
+})();detail-icon" style="background: #3b82f6;">📋</div>
+                    <div class="detail-number">${formatNumber(total)}</div>
+                    <div class="detail-label">Total Cancellations</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-icon" style="background: #10b981;">✅</div>
+                    <div class="detail-number">${formatNumber(approved)}</div>
+                    <div class="detail-label">Approved</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-icon" style="background: #ef4444;">❌</div>
+                    <div class="detail-number">${formatNumber(denied)}</div>
+                    <div class="detail-label">Denied</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-icon" style="background: #f59e0b;">⏳</div>
+                    <div class="detail-number">${formatNumber(pending)}</div>
+                    <div class="detail-label">Pending</div>
+                </div>
+            </div>
+            
+            <div class="charts-section">
+                <div class="chart-box">
+                    <h3>Top 10 Booths</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="cancellationTopBooths"></canvas>
+                    </div>
+                </div>
+                <div class="chart-box">
+                    <h3>Daily Trend</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="cancellationTrend"></canvas>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    function renderPayoutDetails(data) {
+        const total = safeGet(data, 'total', 0);
+        const totalAmount = safeGet(data, 'total_amount', 0);
+        const averageAmount = safeGet(data, 'average_amount', 0);
+        const last24hCount = safeGet(data, 'last_24h.count', 0);
+        
+        return `
+            <div class="detail-stats">
+                <div class="detail-card">
+                    <div class="detail-icon" style="background: #10b981;">💵</div>
+                    <div class="detail-number">${formatNumber(total)}</div>
+                    <div class="detail-label">Total Payouts</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-icon" style="background: #f59e0b;">💰</div>
+                    <div class="detail-number" style="font-size: 24px;">${formatCurrency(totalAmount)}</div>
+                    <div class="detail-label">Total Amount</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-icon" style="background: #06b6d4;">📊</div>
+                    <div class="detail-number" style="font-size: 24px;">${formatCurrency(averageAmount)}</div>
+                    <div class="detail-label">Average Payout</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-icon" style="background: #8b5cf6;">⏰</div>
+                    <div class="detail-number">${formatNumber(last24hCount)}</div>
+                    <div class="detail-label">Last 24 Hours</div>
+                </div>
+            </div>
+            
+            <div class="charts-section">
+                <div class="chart-box">
+                    <h3>Top 10 Outlets</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="payoutTopOutlets"></canvas>
+                    </div>
+                </div>
+                <div class="chart-box">
+                    <h3>Amount Trend</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="payoutTrend"></canvas>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    function renderDeviceDetails(data) {
+        const total = safeGet(data, 'total', 0);
+        const last24h = safeGet(data, 'last_24h', 0);
+        const phoneCount = safeGet(data, 'by_type.phone', 0);
+        const posCount = safeGet(data, 'by_type.pos', 0);
+        
+        return `
+            <div class="detail-stats">
+                <div class="detail-card">
+                    <div class="detail-icon" style="background: #3b82f6;">🔄</div>
+                    <div class="detail-number">${formatNumber(total)}</div>
+                    <div class="detail-label">Total Changes</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-icon" style="background: #ec4899;">📱</div>
+                    <div class="detail-number">${formatNumber(phoneCount)}</div>
+                    <div class="detail-label">Phone Users</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-icon" style="background: #8b5cf6;">🖥️</div>
+                    <div class="detail-number">${formatNumber(posCount)}</div>
+                    <div class="detail-label">POS Users</div>
+                </div>
+                <div class="detail-card">
+                    <div class="
