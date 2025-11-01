@@ -721,7 +721,7 @@ function renderRankingsAnalytics(container) {
         fetchRankingsData('force-cancellers', state.filters.filterMode),
         fetchRankingsData('payout-tellers', state.filters.filterMode),
         fetchRankingsData('payout-stations', state.filters.filterMode)
-    ]).then(([requesters, cancellers, forceCancellers, payoutTellers, payoutStations]) => {
+    ]).then(([requesters, approvers, forceCancellers, payoutTellers, payoutStations]) => {
         container.innerHTML = `
             <div class="overview-header">
                 <h3><i class="fas fa-trophy"></i> Rankings & Leaderboards</h3>
