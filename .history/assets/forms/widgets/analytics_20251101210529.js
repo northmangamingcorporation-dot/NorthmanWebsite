@@ -1993,37 +1993,7 @@ function changeFilterMode(mode) {
                 padding: 60px 20px;
                 gap: 20px;
             }
-            .custom-date-inputs {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-    padding: 12px;
-    background: #f9fafb;
-    border-radius: 6px;
-    align-items: center;
-}
-
-.custom-date-inputs .filter-input {
-    flex: 1;
-    min-width: 140px;
-}
-
-.custom-date-inputs button {
-    padding: 10px 16px;
-    white-space: nowrap;
-}
-
-@media (max-width: 768px) {
-    .custom-date-inputs {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .custom-date-inputs span {
-        text-align: center;
-    }
-}
-
+            
             @media (max-width: 768px) {
                 .rankings-grid {
                     grid-template-columns: 1fr;
@@ -2175,34 +2145,33 @@ function changeFilterMode(mode) {
     // ============================================
     
     window.AnalyticsWidget = {
-    init: initialize,
-    refresh: refresh,
-    destroy: destroy,
-    toggleFilters: toggleFilters,
-    updateFilter: updateFilter,
-    toggleMultiSelect: toggleMultiSelect,
-    removeMultiSelect: removeMultiSelect,
-    filterMultiSelect: filterMultiSelect,
-    applyFilters: applyFilters,
-    clearFilters: clearFilters,
-    switchTab: switchTab,
-    changeFilterMode: changeFilterMode,
-    applyCustomDates: applyCustomDates,  // ✅ NEW
-    exportData: exportData,
-    doExport: doExport,
-    closeExportMenu: closeExportMenu,
-    exportChart: exportChart,
-    state: () => ({ 
-        loaded: state.loaded,
-        loading: state.loading,
-        lastFetchTime: state.lastFetchTime,
-        activeTab: state.activeTab,
-        filterMode: state.filters.filterMode,
-        filters: state.filters,
-        charts: Object.keys(state.charts)
-    })
-};
-
+        init: initialize,
+        refresh: refresh,
+        destroy: destroy,
+        toggleFilters: toggleFilters,
+        updateFilter: updateFilter,
+        toggleMultiSelect: toggleMultiSelect,
+        removeMultiSelect: removeMultiSelect,
+        filterMultiSelect: filterMultiSelect,
+        applyFilters: applyFilters,
+        clearFilters: clearFilters,
+        switchTab: switchTab,
+        changeFilterMode: changeFilterMode,
+        exportData: exportData,
+        doExport: doExport,
+        closeExportMenu: closeExportMenu,
+        exportChart: exportChart,
+        state: () => ({ 
+            loaded: state.loaded,
+            loading: state.loading,
+            lastFetchTime: state.lastFetchTime,
+            activeTab: state.activeTab,
+            filterMode: state.filters.filterMode,
+            filters: state.filters,
+            charts: Object.keys(state.charts)
+        })
+    };
+    
     // Auto-initialize on DOM ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {

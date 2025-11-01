@@ -494,28 +494,6 @@ async function fetchDataGatheringRate(filterMode = 'day') {
         }
     }
 
-function applyCustomDates() {
-    const startDate = document.getElementById('customStartDate')?.value;
-    const endDate = document.getElementById('customEndDate')?.value;
-    
-    if (!startDate || !endDate) {
-        alert('Please select both start and end dates');
-        return;
-    }
-    
-    if (new Date(startDate) > new Date(endDate)) {
-        alert('Start date must be before end date');
-        return;
-    }
-    
-    state.filters.startDate = startDate;
-    state.filters.endDate = endDate;
-    state.filters.filterMode = 'custom';
-    
-    refresh();
-}
-
-
     function renderOverviewAnalytics(data, container) {
     try {
         const metrics = data.metrics || {};
@@ -525,39 +503,12 @@ function applyCustomDates() {
         const payouts = metrics.payouts || {};
         const other = metrics.other || {};
         
-        // ✅ FIX: Better period text handling
         let periodText = '';
         if (period.report_date) {
             periodText = `Report Date: ${period.report_date}`;
         } else if (period.period_start && period.period_end) {
             periodText = `Period: ${period.period_start} to ${period.period_end}`;
-        } else {
-            periodText = 'No date range specified';
         }
-        
-        // ✅ FIX: Add custom date inputs in the filter selector
-        const customDateInputs = state.filters.filterMode === 'custom' ? `
-            <div class="custom-date-inputs" style="display: flex; gap: 8px; margin-top: 8px; width: 100%;">
-                <input type="date" 
-                       id="customStartDate" 
-                       class="filter-input" 
-                       value="${state.filters.startDate || ''}"
-                       onchange="window.AnalyticsWidget.updateFilter('startDate', this.value)"
-                       style="flex: 1;">
-                <span style="align-self: center;">to</span>
-                <input type="date" 
-                       id="customEndDate" 
-                       class="filter-input" 
-                       value="${state.filters.endDate || ''}"
-                       onchange="window.AnalyticsWidget.updateFilter('endDate', this.value)"
-                       style="flex: 1;">
-                <button class="filter-mode-btn" 
-                        onclick="window.AnalyticsWidget.applyCustomDates()"
-                        style="background: #10b981; color: white; border: none;">
-                    <i class="fas fa-check"></i> Apply
-                </button>
-            </div>
-        ` : '';
         
         container.innerHTML = `
             <div class="overview-header">
@@ -581,7 +532,6 @@ function applyCustomDates() {
                         <i class="fas fa-calendar"></i> Custom
                     </button>
                 </div>
-                ${customDateInputs}
             </div>
             
             <div class="overview-section">
@@ -895,19 +845,6 @@ function renderRankingTable(title, data, headers) {
 }
 
 function changeFilterMode(mode) {
-    // ✅ FIX: Validate custom mode has dates
-    if (mode === 'custom') {
-        if (!state.filters.startDate || !state.filters.endDate) {
-            // Show custom date inputs if not set
-            state.filters.filterMode = mode;
-            const header = document.querySelector('.analytics-header');
-            if (header) {
-                header.outerHTML = renderHeader();
-            }
-            return; // Don't refresh yet, wait for dates
-        }
-    }
-    
     state.filters.filterMode = mode;
     refresh();
 }
@@ -1284,39 +1221,19 @@ function changeFilterMode(mode) {
             `;
             
             const topOperators = safeGet(data, 'top_operators', []);
-        const trend = safeGet(data, 'trend', []);
-        
-        // ✅ FIX: Use requestAnimationFrame for proper DOM timing
-        if (topOperators.length > 0) {
-            requestAnimationFrame(() => {
-                setTimeout(() => {
-                    const canvas = document.getElementById('cancellationChart');
-                    if (canvas) {
-                        renderBarChart('cancellationChart', topOperators, 'booth', 'count', CONFIG.CHART_COLORS.primary);
-                    } else {
-                        logger.warn('cancellationChart canvas not found');
-                    }
-                }, 100);
-            });
+            const trend = safeGet(data, 'trend', []);
+            
+            if (topOperators.length > 0) {
+                setTimeout(() => renderBarChart('cancellationChart', topOperators, 'booth', 'count', CONFIG.CHART_COLORS.primary), 100);
+            }
+            if (trend.length > 0) {
+                setTimeout(() => renderLineChart('cancellationTrendChart', trend, 'date', 'count', CONFIG.CHART_COLORS.success), 100);
+            }
+        } catch (error) {
+            logger.error(`Cancellation render error: ${error.message}`);
+            container.innerHTML = '<div class="section-error">Failed to render cancellation analytics</div>';
         }
-        
-        if (trend.length > 0) {
-            requestAnimationFrame(() => {
-                setTimeout(() => {
-                    const canvas = document.getElementById('cancellationTrendChart');
-                    if (canvas) {
-                        renderLineChart('cancellationTrendChart', trend, 'date', 'count', CONFIG.CHART_COLORS.success);
-                    } else {
-                        logger.warn('cancellationTrendChart canvas not found');
-                    }
-                }, 150);
-            });
-        }
-    } catch (error) {
-        logger.error(`Cancellation render error: ${error.message}`);
-        container.innerHTML = '<div class="section-error">Failed to render cancellation analytics</div>';
     }
-}
     
     function renderPayoutAnalytics(data, container) {
         try {
@@ -1993,37 +1910,7 @@ function changeFilterMode(mode) {
                 padding: 60px 20px;
                 gap: 20px;
             }
-            .custom-date-inputs {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-    padding: 12px;
-    background: #f9fafb;
-    border-radius: 6px;
-    align-items: center;
-}
-
-.custom-date-inputs .filter-input {
-    flex: 1;
-    min-width: 140px;
-}
-
-.custom-date-inputs button {
-    padding: 10px 16px;
-    white-space: nowrap;
-}
-
-@media (max-width: 768px) {
-    .custom-date-inputs {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .custom-date-inputs span {
-        text-align: center;
-    }
-}
-
+            
             @media (max-width: 768px) {
                 .rankings-grid {
                     grid-template-columns: 1fr;
@@ -2175,34 +2062,33 @@ function changeFilterMode(mode) {
     // ============================================
     
     window.AnalyticsWidget = {
-    init: initialize,
-    refresh: refresh,
-    destroy: destroy,
-    toggleFilters: toggleFilters,
-    updateFilter: updateFilter,
-    toggleMultiSelect: toggleMultiSelect,
-    removeMultiSelect: removeMultiSelect,
-    filterMultiSelect: filterMultiSelect,
-    applyFilters: applyFilters,
-    clearFilters: clearFilters,
-    switchTab: switchTab,
-    changeFilterMode: changeFilterMode,
-    applyCustomDates: applyCustomDates,  // ✅ NEW
-    exportData: exportData,
-    doExport: doExport,
-    closeExportMenu: closeExportMenu,
-    exportChart: exportChart,
-    state: () => ({ 
-        loaded: state.loaded,
-        loading: state.loading,
-        lastFetchTime: state.lastFetchTime,
-        activeTab: state.activeTab,
-        filterMode: state.filters.filterMode,
-        filters: state.filters,
-        charts: Object.keys(state.charts)
-    })
-};
-
+        init: initialize,
+        refresh: refresh,
+        destroy: destroy,
+        toggleFilters: toggleFilters,
+        updateFilter: updateFilter,
+        toggleMultiSelect: toggleMultiSelect,
+        removeMultiSelect: removeMultiSelect,
+        filterMultiSelect: filterMultiSelect,
+        applyFilters: applyFilters,
+        clearFilters: clearFilters,
+        switchTab: switchTab,
+        changeFilterMode: changeFilterMode,
+        exportData: exportData,
+        doExport: doExport,
+        closeExportMenu: closeExportMenu,
+        exportChart: exportChart,
+        state: () => ({ 
+            loaded: state.loaded,
+            loading: state.loading,
+            lastFetchTime: state.lastFetchTime,
+            activeTab: state.activeTab,
+            filterMode: state.filters.filterMode,
+            filters: state.filters,
+            charts: Object.keys(state.charts)
+        })
+    };
+    
     // Auto-initialize on DOM ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {

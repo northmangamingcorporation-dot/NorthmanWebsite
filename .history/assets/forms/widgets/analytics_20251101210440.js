@@ -1284,39 +1284,19 @@ function changeFilterMode(mode) {
             `;
             
             const topOperators = safeGet(data, 'top_operators', []);
-        const trend = safeGet(data, 'trend', []);
-        
-        // ✅ FIX: Use requestAnimationFrame for proper DOM timing
-        if (topOperators.length > 0) {
-            requestAnimationFrame(() => {
-                setTimeout(() => {
-                    const canvas = document.getElementById('cancellationChart');
-                    if (canvas) {
-                        renderBarChart('cancellationChart', topOperators, 'booth', 'count', CONFIG.CHART_COLORS.primary);
-                    } else {
-                        logger.warn('cancellationChart canvas not found');
-                    }
-                }, 100);
-            });
+            const trend = safeGet(data, 'trend', []);
+            
+            if (topOperators.length > 0) {
+                setTimeout(() => renderBarChart('cancellationChart', topOperators, 'booth', 'count', CONFIG.CHART_COLORS.primary), 100);
+            }
+            if (trend.length > 0) {
+                setTimeout(() => renderLineChart('cancellationTrendChart', trend, 'date', 'count', CONFIG.CHART_COLORS.success), 100);
+            }
+        } catch (error) {
+            logger.error(`Cancellation render error: ${error.message}`);
+            container.innerHTML = '<div class="section-error">Failed to render cancellation analytics</div>';
         }
-        
-        if (trend.length > 0) {
-            requestAnimationFrame(() => {
-                setTimeout(() => {
-                    const canvas = document.getElementById('cancellationTrendChart');
-                    if (canvas) {
-                        renderLineChart('cancellationTrendChart', trend, 'date', 'count', CONFIG.CHART_COLORS.success);
-                    } else {
-                        logger.warn('cancellationTrendChart canvas not found');
-                    }
-                }, 150);
-            });
-        }
-    } catch (error) {
-        logger.error(`Cancellation render error: ${error.message}`);
-        container.innerHTML = '<div class="section-error">Failed to render cancellation analytics</div>';
     }
-}
     
     function renderPayoutAnalytics(data, container) {
         try {
@@ -1993,37 +1973,7 @@ function changeFilterMode(mode) {
                 padding: 60px 20px;
                 gap: 20px;
             }
-            .custom-date-inputs {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-    padding: 12px;
-    background: #f9fafb;
-    border-radius: 6px;
-    align-items: center;
-}
-
-.custom-date-inputs .filter-input {
-    flex: 1;
-    min-width: 140px;
-}
-
-.custom-date-inputs button {
-    padding: 10px 16px;
-    white-space: nowrap;
-}
-
-@media (max-width: 768px) {
-    .custom-date-inputs {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .custom-date-inputs span {
-        text-align: center;
-    }
-}
-
+            
             @media (max-width: 768px) {
                 .rankings-grid {
                     grid-template-columns: 1fr;
@@ -2175,34 +2125,33 @@ function changeFilterMode(mode) {
     // ============================================
     
     window.AnalyticsWidget = {
-    init: initialize,
-    refresh: refresh,
-    destroy: destroy,
-    toggleFilters: toggleFilters,
-    updateFilter: updateFilter,
-    toggleMultiSelect: toggleMultiSelect,
-    removeMultiSelect: removeMultiSelect,
-    filterMultiSelect: filterMultiSelect,
-    applyFilters: applyFilters,
-    clearFilters: clearFilters,
-    switchTab: switchTab,
-    changeFilterMode: changeFilterMode,
-    applyCustomDates: applyCustomDates,  // ✅ NEW
-    exportData: exportData,
-    doExport: doExport,
-    closeExportMenu: closeExportMenu,
-    exportChart: exportChart,
-    state: () => ({ 
-        loaded: state.loaded,
-        loading: state.loading,
-        lastFetchTime: state.lastFetchTime,
-        activeTab: state.activeTab,
-        filterMode: state.filters.filterMode,
-        filters: state.filters,
-        charts: Object.keys(state.charts)
-    })
-};
-
+        init: initialize,
+        refresh: refresh,
+        destroy: destroy,
+        toggleFilters: toggleFilters,
+        updateFilter: updateFilter,
+        toggleMultiSelect: toggleMultiSelect,
+        removeMultiSelect: removeMultiSelect,
+        filterMultiSelect: filterMultiSelect,
+        applyFilters: applyFilters,
+        clearFilters: clearFilters,
+        switchTab: switchTab,
+        changeFilterMode: changeFilterMode,
+        exportData: exportData,
+        doExport: doExport,
+        closeExportMenu: closeExportMenu,
+        exportChart: exportChart,
+        state: () => ({ 
+            loaded: state.loaded,
+            loading: state.loading,
+            lastFetchTime: state.lastFetchTime,
+            activeTab: state.activeTab,
+            filterMode: state.filters.filterMode,
+            filters: state.filters,
+            charts: Object.keys(state.charts)
+        })
+    };
+    
     // Auto-initialize on DOM ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
