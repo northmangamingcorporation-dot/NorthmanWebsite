@@ -649,15 +649,6 @@ function mapRankingData(type, data) {
         denied: item.denied_count
       }));
 
-    case 'cancellers':
-      return data.map((item, i) => ({
-        name: item.requester_name,
-        total: item.total_requests,
-        pending: item.pending_count,
-        approved: item.approved_count,
-        denied: item.denied_count
-      }));
-
     case 'force-cancellers':
       return data.map((item, i) => ({
         username: item.sender_username,
@@ -750,7 +741,7 @@ function renderRankingsAnalytics(container) {
                 ['Rank', 'Name', 'Total', 'Pending', 'Approved', 'Denied']
                 )}
                 ${renderRankingTable('Top Cancellers',
-                mapRankingData('cancellers', approvers.data),
+                mapRankingData('Cancellers', approvers.data),
                 ['Rank', 'Name', 'Total', 'Pending', 'Approved', 'Denied']
                 )}
                 ${renderRankingTable('Top Force Cancellers',
