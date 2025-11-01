@@ -638,47 +638,6 @@ async function fetchDataGatheringRate(filterMode = 'day') {
     }
 }
 
-function mapRankingData(type, data) {
-  switch (type) {
-    case 'requesters':
-      return data.map((item, i) => ({
-        rank: i + 1,
-        name: item.requester_name,
-        total: item.total_requests,
-        pending: item.pending_count,
-        approved: item.approved_count,
-        denied: item.denied_count
-      }));
-
-    case 'force-cancellers':
-      return data.map((item, i) => ({
-        rank: i + 1,
-        username: item.sender_username,
-        total: item.total_forced_cancellations,
-        affected_booths: item.affected_booths
-      }));
-
-    case 'payout-tellers':
-      return data.map((item, i) => ({
-        rank: i + 1,
-        teller: item.teller_name,
-        count: item.total_payouts,
-        total_amount: item.total_payout_amount,
-        avg_amount: item.avg_payout_amount
-      }));
-
-    case 'payout-stations':
-      return data.map((item, i) => ({
-        rank: i + 1,
-        outlet: item.teller_name,
-        count: item.total_payouts,
-        total_amount: item.total_payout_amount,
-        avg_amount: item.avg_payout_amount
-      }));
-  }
-}
-
-
 function renderRankingsAnalytics(container) {
     container.innerHTML = `
         <div class="overview-header">
@@ -740,22 +699,10 @@ function renderRankingsAnalytics(container) {
             </div>
             
             <div class="rankings-grid">
-                ${renderRankingTable('Top Requesters',
-                mapRankingData('requesters', requesters.data),
-                ['Rank', 'Name', 'Total', 'Pending', 'Approved', 'Denied']
-                )}
-                ${renderRankingTable('Top Force Cancellers',
-                mapRankingData('force-cancellers', forceCancellers.data),
-                ['Rank', 'Username', 'Total Forced', 'Affected Booths']
-                )}
-                ${renderRankingTable('Top Payout Tellers',
-                mapRankingData('payout-tellers', payoutTellers.data),
-                ['Rank', 'Teller', 'Count', 'Total Amount', 'Avg Amount']
-                )}
-                ${renderRankingTable('Top Payout Stations',
-                mapRankingData('payout-stations', payoutStations.data),
-                ['Rank', 'Outlet', 'Count', 'Total Amount', 'Avg Amount']
-                )}
+                ${renderRankingTable('Top Requesters', requesters.data, ['Rank', 'Name', 'Total', 'Pending', 'Approved', 'Denied'])}
+                ${renderRankingTable('Top Force Cancellers', forceCancellers.data, ['Rank', 'Username', 'Total', 'Affected Booths'])}
+                ${renderRankingTable('Top Payout Tellers', payoutTellers.data, ['Rank', 'Teller', 'Count', 'Total Amount', 'Avg Amount'])}
+                ${renderRankingTable('Top Payout Stations', payoutStations.data, ['Rank', 'Outlet', 'Count', 'Total Amount', 'Unique Tellers'])}
             </div>
         `;
     }).catch(error => {

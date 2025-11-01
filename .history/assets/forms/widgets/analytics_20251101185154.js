@@ -740,22 +740,10 @@ function renderRankingsAnalytics(container) {
             </div>
             
             <div class="rankings-grid">
-                ${renderRankingTable('Top Requesters',
-                mapRankingData('requesters', requesters.data),
-                ['Rank', 'Name', 'Total', 'Pending', 'Approved', 'Denied']
-                )}
-                ${renderRankingTable('Top Force Cancellers',
-                mapRankingData('force-cancellers', forceCancellers.data),
-                ['Rank', 'Username', 'Total Forced', 'Affected Booths']
-                )}
-                ${renderRankingTable('Top Payout Tellers',
-                mapRankingData('payout-tellers', payoutTellers.data),
-                ['Rank', 'Teller', 'Count', 'Total Amount', 'Avg Amount']
-                )}
-                ${renderRankingTable('Top Payout Stations',
-                mapRankingData('payout-stations', payoutStations.data),
-                ['Rank', 'Outlet', 'Count', 'Total Amount', 'Avg Amount']
-                )}
+                ${renderRankingTable('Top Requesters', requesters.data, ['Rank', 'Name', 'Total', 'Pending', 'Approved', 'Denied'])}
+                ${renderRankingTable('Top Force Cancellers', forceCancellers.data, ['Rank', 'Username', 'Total', 'Affected Booths'])}
+                ${renderRankingTable('Top Payout Tellers', payoutTellers.data, ['Rank', 'Teller', 'Count', 'Total Amount', 'Avg Amount'])}
+                ${renderRankingTable('Top Payout Stations', payoutStations.data, ['Rank', 'Outlet', 'Count', 'Total Amount', 'Unique Tellers'])}
             </div>
         `;
     }).catch(error => {
