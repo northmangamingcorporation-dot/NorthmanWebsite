@@ -642,6 +642,7 @@ function mapRankingData(type, data) {
   switch (type) {
     case 'requesters':
       return data.map((item, i) => ({
+        rank: item.rank,
         name: item.requester_name,
         total: item.total_requests,
         pending: item.pending_count,

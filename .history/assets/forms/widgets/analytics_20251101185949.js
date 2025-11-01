@@ -642,6 +642,7 @@ function mapRankingData(type, data) {
   switch (type) {
     case 'requesters':
       return data.map((item, i) => ({
+        rank: i + 1,
         name: item.requester_name,
         total: item.total_requests,
         pending: item.pending_count,
@@ -651,6 +652,7 @@ function mapRankingData(type, data) {
 
     case 'force-cancellers':
       return data.map((item, i) => ({
+        rank: i + 1,
         username: item.sender_username,
         total: item.total_forced_cancellations,
         affected_booths: item.affected_booths
@@ -658,6 +660,7 @@ function mapRankingData(type, data) {
 
     case 'payout-tellers':
       return data.map((item, i) => ({
+        rank: item.teller_name,
         teller: item.teller_name,
         count: item.total_payouts,
         total_amount: item.total_payout_amount,
@@ -666,6 +669,7 @@ function mapRankingData(type, data) {
 
     case 'payout-stations':
       return data.map((item, i) => ({
+        rank: i + 1,
         outlet: item.teller_name,
         count: item.total_payouts,
         total_amount: item.total_payout_amount,
