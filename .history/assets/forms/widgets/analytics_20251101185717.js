@@ -742,7 +742,7 @@ function renderRankingsAnalytics(container) {
             <div class="rankings-grid">
                 ${renderRankingTable('Top Requesters',
                 mapRankingData('requesters', requesters.data),
-                ['Name', 'Total', 'Pending', 'Approved', 'Denied']
+                ['Rank', 'Name', 'Total', 'Pending', 'Approved', 'Denied']
                 )}
                 ${renderRankingTable('Top Force Cancellers',
                 mapRankingData('force-cancellers', forceCancellers.data),

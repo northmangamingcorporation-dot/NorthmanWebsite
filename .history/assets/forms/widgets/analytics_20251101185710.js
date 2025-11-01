@@ -742,15 +742,15 @@ function renderRankingsAnalytics(container) {
             <div class="rankings-grid">
                 ${renderRankingTable('Top Requesters',
                 mapRankingData('requesters', requesters.data),
-                ['Name', 'Total', 'Pending', 'Approved', 'Denied']
+                ['Rank', 'Name', 'Total', 'Pending', 'Approved', 'Denied']
                 )}
                 ${renderRankingTable('Top Force Cancellers',
                 mapRankingData('force-cancellers', forceCancellers.data),
-                ['Username', 'Total Forced', 'Affected Booths']
+                ['Rank', 'Username', 'Total Forced', 'Affected Booths']
                 )}
                 ${renderRankingTable('Top Payout Tellers',
                 mapRankingData('payout-tellers', payoutTellers.data),
-                ['Teller', 'Count', 'Total Amount', 'Avg Amount']
+                ['Rank', 'Teller', 'Count', 'Total Amount', 'Avg Amount']
                 )}
                 ${renderRankingTable('Top Payout Stations',
                 mapRankingData('payout-stations', payoutStations.data),
