@@ -810,89 +810,6 @@ function attachEventListeners() {
 .time-btn.active {
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
-
-
-.filter-mode-selector {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.filter-mode-btn {
-    flex: 1;
-    min-width: 120px;
-    padding: 12px 20px;
-    border: 2px solid #e5e7eb;
-    background: white;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s;
-}
-
-.filter-mode-btn:hover {
-    border-color: #3b82f6;
-    color: #3b82f6;
-    background: #f9fafb;
-}
-
-.filter-mode-btn.active {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: white;
-    border-color: #3b82f6;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-}
-
-.custom-date-filter {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 16px;
-    flex-wrap: wrap;
-}
-
-.date-input {
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.date-separator {
-    color: #6b7280;
-    font-size: 14px;
-}
-
-.btn-apply {
-    background: #3b82f6;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 500;
-    transition: all 0.2s;
-}
-
-.btn-apply:hover {
-    background: #2563eb;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.btn-apply:active {
-    transform: translateY(0);
-}
             .custom-date-filter { display: flex; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
             .date-input { padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
             .date-separator { color: #6b7280; font-size: 14px; }
@@ -1037,26 +954,16 @@ function attachEventListeners() {
     
     // Add this function (it's an alias for setTimeRange)
 function changeFilterMode(mode) {
-    logger.info(`Changing filter mode to: ${mode}`);
-    state.timeRange = mode;
-    
-    // Set default dates for custom mode
-    if (mode === 'custom') {
-        const today = new Date().toISOString().split('T')[0];
-        if (!state.startDate) state.startDate = today;
-        if (!state.endDate) state.endDate = today;
-    }
-    
-    refresh();
+    setTimeRange(mode);
 }
 
-// 2. Make sure it's in the public API
+// Update your window.AnalyticsWidget to include it
 window.AnalyticsWidget = {
     init: initialize,
     refresh: refresh,
     destroy: destroy,
-    changeFilterMode: changeFilterMode,  // ✅ ADD THIS
     setTimeRange: setTimeRange,
+    changeFilterMode: changeFilterMode,  // ✅ ADD THIS
     setStartDate: setStartDate,
     setEndDate: setEndDate,
     applyCustomRange: applyCustomRange,

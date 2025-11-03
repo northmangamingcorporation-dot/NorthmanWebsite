@@ -1037,26 +1037,16 @@ function attachEventListeners() {
     
     // Add this function (it's an alias for setTimeRange)
 function changeFilterMode(mode) {
-    logger.info(`Changing filter mode to: ${mode}`);
-    state.timeRange = mode;
-    
-    // Set default dates for custom mode
-    if (mode === 'custom') {
-        const today = new Date().toISOString().split('T')[0];
-        if (!state.startDate) state.startDate = today;
-        if (!state.endDate) state.endDate = today;
-    }
-    
-    refresh();
+    setTimeRange(mode);
 }
 
-// 2. Make sure it's in the public API
+// Update your window.AnalyticsWidget to include it
 window.AnalyticsWidget = {
     init: initialize,
     refresh: refresh,
     destroy: destroy,
-    changeFilterMode: changeFilterMode,  // ✅ ADD THIS
     setTimeRange: setTimeRange,
+    changeFilterMode: changeFilterMode,  // ✅ ADD THIS
     setStartDate: setStartDate,
     setEndDate: setEndDate,
     applyCustomRange: applyCustomRange,
