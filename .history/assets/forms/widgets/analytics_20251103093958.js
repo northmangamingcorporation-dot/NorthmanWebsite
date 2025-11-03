@@ -359,62 +359,6 @@
     `;
 }
     
-function attachEventListeners() {
-    // Refresh button
-    const refreshBtn = document.getElementById('refreshBtn');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            refresh();
-        });
-    }
-    
-    // Time range buttons
-    document.querySelectorAll('.time-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const range = btn.getAttribute('data-range');
-            if (range) {
-                setTimeRange(range);
-            }
-        });
-    });
-    
-    // Tab buttons
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const tab = btn.getAttribute('data-tab');
-            if (tab) {
-                switchTab(tab);
-            }
-        });
-    });
-    
-    // Custom date inputs (if they exist)
-    const startDateInput = document.getElementById('startDateInput');
-    if (startDateInput) {
-        startDateInput.addEventListener('change', (e) => {
-            setStartDate(e.target.value);
-        });
-    }
-    
-    const endDateInput = document.getElementById('endDateInput');
-    if (endDateInput) {
-        endDateInput.addEventListener('change', (e) => {
-            setEndDate(e.target.value);
-        });
-    }
-    
-    const applyRangeBtn = document.getElementById('applyRangeBtn');
-    if (applyRangeBtn) {
-        applyRangeBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            applyCustomRange();
-        });
-    }
-}
-
     function renderTimeFilter() {
     return `
         <div class="time-filter">
@@ -796,20 +740,7 @@ function attachEventListeners() {
             .time-btn { flex: 1; min-width: 120px; padding: 12px 20px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
             .time-btn:hover { border-color: #3b82f6; color: #3b82f6; }
             .time-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
-            .time-btn, .tab-button, .btn-header, .btn-apply {
-    cursor: pointer !important;
-    user-select: none;
-}
-
-.time-btn:hover:not(.active) {
-    background: #f9fafb;
-    border-color: #3b82f6;
-    color: #3b82f6;
-}
-
-.time-btn.active {
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-}
+            
             .custom-date-filter { display: flex; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
             .date-input { padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
             .date-separator { color: #6b7280; font-size: 14px; }
@@ -865,60 +796,57 @@ function attachEventListeners() {
     // ============================================
     
     async function initialize() {
-    try {
-        const container = document.getElementById(CONFIG.CONTAINER_ID);
-        
-        if (!container) {
-            logger.error(`Container #${CONFIG.CONTAINER_ID} not found`);
-            return;
-        }
-        
-        injectStyles();
-        showLoading(container);
-        
-        const data = await fetchAnalyticsData();
-        
-        container.innerHTML = '';
-        container.innerHTML = renderHeader();
-        
-        const summaryDiv = document.createElement('div');
-        summaryDiv.innerHTML = renderSummaryCards(data);
-        container.appendChild(summaryDiv);
-        
-        const tabsDiv = document.createElement('div');
-        tabsDiv.innerHTML = renderTabs();
-        container.appendChild(tabsDiv);
-        
-        const contentDiv = document.createElement('div');
-        contentDiv.id = 'tabContent';
-        container.appendChild(contentDiv);
-        
-        switch(state.activeTab) {
-            case 'cancellations':
-                renderCancellations(data.cancellations, contentDiv);
-                break;
-            case 'payouts':
-                renderPayouts(data.payouts, contentDiv);
-                break;
-            case 'device-changes':
-                renderDeviceChanges(data.device_changes, contentDiv);
-                break;
-        }
-        
-        // ✅ ADD THIS LINE:
-        attachEventListeners();
-        
-        logger.info('✅ Widget initialized');
-        scheduleRefresh();
-        
-    } catch (error) {
-        logger.error(`Initialization failed: ${error.message}`);
-        const container = document.getElementById(CONFIG.CONTAINER_ID);
-        if (container) {
-            showError(container, error.message);
+        try {
+            const container = document.getElementById(CONFIG.CONTAINER_ID);
+            
+            if (!container) {
+                logger.error(`Container #${CONFIG.CONTAINER_ID} not found`);
+                return;
+            }
+            
+            injectStyles();
+            showLoading(container);
+            
+            const data = await fetchAnalyticsData();
+            
+            container.innerHTML = '';
+            container.innerHTML = renderHeader();
+            
+            const summaryDiv = document.createElement('div');
+            summaryDiv.innerHTML = renderSummaryCards(data);
+            container.appendChild(summaryDiv);
+            
+            const tabsDiv = document.createElement('div');
+            tabsDiv.innerHTML = renderTabs();
+            container.appendChild(tabsDiv);
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.id = 'tabContent';
+            container.appendChild(contentDiv);
+            
+            switch(state.activeTab) {
+                case 'cancellations':
+                    renderCancellations(data.cancellations, contentDiv);
+                    break;
+                case 'payouts':
+                    renderPayouts(data.payouts, contentDiv);
+                    break;
+                case 'device-changes':
+                    renderDeviceChanges(data.device_changes, contentDiv);
+                    break;
+            }
+            
+            logger.info('✅ Widget initialized');
+            scheduleRefresh();
+            
+        } catch (error) {
+            logger.error(`Initialization failed: ${error.message}`);
+            const container = document.getElementById(CONFIG.CONTAINER_ID);
+            if (container) {
+                showError(container, error.message);
+            }
         }
     }
-}
     
     function scheduleRefresh() {
         if (state.refreshTimer) {

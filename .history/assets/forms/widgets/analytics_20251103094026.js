@@ -796,20 +796,7 @@ function attachEventListeners() {
             .time-btn { flex: 1; min-width: 120px; padding: 12px 20px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
             .time-btn:hover { border-color: #3b82f6; color: #3b82f6; }
             .time-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
-            .time-btn, .tab-button, .btn-header, .btn-apply {
-    cursor: pointer !important;
-    user-select: none;
-}
-
-.time-btn:hover:not(.active) {
-    background: #f9fafb;
-    border-color: #3b82f6;
-    color: #3b82f6;
-}
-
-.time-btn.active {
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-}
+            
             .custom-date-filter { display: flex; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
             .date-input { padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
             .date-separator { color: #6b7280; font-size: 14px; }

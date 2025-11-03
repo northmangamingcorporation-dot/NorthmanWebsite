@@ -116,93 +116,51 @@
     }
     
     async function fetchAnalyticsData() {
-    try {
-        logger.info('Fetching analytics data...');
-        
-        // ✅ Build proper filter parameters
-        let filterMode = state.timeRange; // 'day', 'week', 'month', 'custom'
-        
-        const queryParams = new URLSearchParams({
-            filter_mode: filterMode
-        });
-        
-        // Add custom dates if needed
-        if (filterMode === 'custom' && state.startDate && state.endDate) {
-            queryParams.append('from_date', state.startDate);
-            queryParams.append('to_date', state.endDate);
+        try {
+            logger.info('Fetching analytics data...');
+            
+            const dateParams = getDateRange();
+            const queryParams = new URLSearchParams();
+            
+            if (dateParams.days) {
+                queryParams.append('days', dateParams.days);
+            } else {
+                if (dateParams.start_date) queryParams.append('start_date', dateParams.start_date);
+                if (dateParams.end_date) queryParams.append('end_date', dateParams.end_date);
+            }
+            
+            const paramStr = queryParams.toString();
+            
+            const [cancellations, payouts, deviceChanges, summary] = await Promise.all([
+                fetchWithTimeout(`${CONFIG.API_URL}/analytics/v2/cancellations?${paramStr}`).then(r => r.json()),
+                fetchWithTimeout(`${CONFIG.API_URL}/analytics/v2/payouts?${paramStr}`).then(r => r.json()),
+                fetchWithTimeout(`${CONFIG.API_URL}/analytics/v2/device-changes?${paramStr}`).then(r => r.json()),
+                fetchWithTimeout(`${CONFIG.API_URL}/analytics/v2/summary?${paramStr}`).then(r => r.json())
+            ]);
+            
+            const data = {
+                cancellations,
+                payouts,
+                device_changes: deviceChanges,
+                summary,
+                timestamp: new Date().toISOString()
+            };
+            
+            state.lastSuccessfulData = data;
+            state.lastFetchTime = Date.now();
+            
+            logger.info('✅ Data fetched successfully');
+            return data;
+            
+        } catch (error) {
+            logger.error(`Fetch failed: ${error.message}`);
+            if (state.lastSuccessfulData) {
+                logger.info('Using cached data');
+                return state.lastSuccessfulData;
+            }
+            throw error;
         }
-        
-        const paramStr = queryParams.toString();
-        
-        // ✅ SINGLE API CALL instead of 4
-        const comprehensive = await fetchWithTimeout(
-            `${CONFIG.API_URL}/analytics/v2/comprehensive?${paramStr}`
-        ).then(r => r.json());
-        
-        // ✅ Transform the data
-        const metrics = comprehensive?.metrics || {};
-        const cMetrics = metrics.cancellations || {};
-        const pMetrics = metrics.payouts || {};
-        const oMetrics = metrics.other || {};
-        
-        const totalCancellations = (cMetrics.total_approved || 0) +
-                                   (cMetrics.total_denied || 0) +
-                                   (cMetrics.total_pending || 0);
-        
-        const approvalRate = totalCancellations > 0 
-            ? Math.round((cMetrics.total_approved / totalCancellations) * 100 * 10) / 10
-            : 0;
-        
-        const data = {
-            cancellations: {
-                total: totalCancellations,
-                total_approved: cMetrics.total_approved || 0,
-                total_denied: cMetrics.total_denied || 0,
-                total_pending: cMetrics.total_pending || 0,
-                approval_rate: approvalRate,
-                top_operators: [], // Add if needed
-                trend: []
-            },
-            payouts: {
-                total: pMetrics.total_count || 0,
-                total_amount: pMetrics.total_amount || 0,
-                average_amount: pMetrics.total_count > 0 
-                    ? pMetrics.total_amount / pMetrics.total_count 
-                    : 0,
-                top_outlets: [],
-                trend: []
-            },
-            device_changes: {
-                total: oMetrics.total_device_changes || 0,
-                by_type: { phone: 0, pos: 0 },
-                top_operators: [],
-                trend: []
-            },
-            summary: {
-                overview: {
-                    total_cancellations: totalCancellations,
-                    total_payouts: pMetrics.total_count || 0,
-                    total_device_changes: oMetrics.total_device_changes || 0
-                }
-            },
-            timestamp: new Date().toISOString()
-        };
-        
-        state.lastSuccessfulData = data;
-        state.lastFetchTime = Date.now();
-        
-        logger.info('✅ Data fetched (1 API call)');
-        return data;
-        
-    } catch (error) {
-        logger.error(`Fetch failed: ${error.message}`);
-        if (state.lastSuccessfulData) {
-            logger.info('Using cached data');
-            return state.lastSuccessfulData;
-        }
-        throw error;
     }
-}
     
     // ============================================
     // CHART RENDERING
@@ -328,135 +286,73 @@
     // ============================================
     
     function renderHeader() {
-    const lastUpdate = state.lastFetchTime > 0 
-        ? new Date(state.lastFetchTime).toLocaleTimeString()
-        : 'Never';
-    
-    const timeRangeLabel = {
-        'day': 'Today',
-        'week': 'Last 7 Days',
-        'month': 'Last 30 Days',
-        'custom': `${state.startDate} to ${state.endDate}`
-    }[state.timeRange] || 'Today';
-    
-    return `
-        <div class="analytics-header">
-            <div class="header-left">
-                <h1><i class="fas fa-chart-line"></i> Analytics Dashboard</h1>
-                <p class="header-subtitle">
-                    <i class="fas fa-clock"></i> Last updated: ${lastUpdate}
-                    <span class="separator">•</span>
-                    <i class="fas fa-calendar"></i> ${timeRangeLabel}
-                </p>
-            </div>
-            <div class="header-actions">
-                <button class="btn-header" id="refreshBtn">
-                    <i class="fas fa-sync-alt"></i> Refresh
-                </button>
-            </div>
-        </div>
-        ${renderTimeFilter()}
-    `;
-}
-    
-function attachEventListeners() {
-    // Refresh button
-    const refreshBtn = document.getElementById('refreshBtn');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            refresh();
-        });
-    }
-    
-    // Time range buttons
-    document.querySelectorAll('.time-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const range = btn.getAttribute('data-range');
-            if (range) {
-                setTimeRange(range);
-            }
-        });
-    });
-    
-    // Tab buttons
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const tab = btn.getAttribute('data-tab');
-            if (tab) {
-                switchTab(tab);
-            }
-        });
-    });
-    
-    // Custom date inputs (if they exist)
-    const startDateInput = document.getElementById('startDateInput');
-    if (startDateInput) {
-        startDateInput.addEventListener('change', (e) => {
-            setStartDate(e.target.value);
-        });
-    }
-    
-    const endDateInput = document.getElementById('endDateInput');
-    if (endDateInput) {
-        endDateInput.addEventListener('change', (e) => {
-            setEndDate(e.target.value);
-        });
-    }
-    
-    const applyRangeBtn = document.getElementById('applyRangeBtn');
-    if (applyRangeBtn) {
-        applyRangeBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            applyCustomRange();
-        });
-    }
-}
-
-    function renderTimeFilter() {
-    return `
-        <div class="time-filter">
-            <div class="time-filter-buttons">
-                <button class="time-btn ${state.timeRange === 'day' ? 'active' : ''}" 
-                        data-range="day">
-                    <i class="fas fa-calendar-day"></i> Today
-                </button>
-                <button class="time-btn ${state.timeRange === 'week' ? 'active' : ''}" 
-                        data-range="week">
-                    <i class="fas fa-calendar-week"></i> Week
-                </button>
-                <button class="time-btn ${state.timeRange === 'month' ? 'active' : ''}" 
-                        data-range="month">
-                    <i class="fas fa-calendar"></i> Month
-                </button>
-                <button class="time-btn ${state.timeRange === 'custom' ? 'active' : ''}" 
-                        data-range="custom">
-                    <i class="fas fa-calendar-alt"></i> Custom
-                </button>
-            </div>
-            ${state.timeRange === 'custom' ? `
-                <div class="custom-date-filter">
-                    <input type="date" 
-                           id="startDateInput" 
-                           class="date-input" 
-                           value="${state.startDate}"
-                           max="${new Date().toISOString().split('T')[0]}">
-                    <span class="date-separator">to</span>
-                    <input type="date" 
-                           id="endDateInput" 
-                           class="date-input" 
-                           value="${state.endDate}"
-                           max="${new Date().toISOString().split('T')[0]}">
-                    <button class="btn-apply" id="applyRangeBtn">
-                        <i class="fas fa-check"></i> Apply
+        const lastUpdate = state.lastFetchTime > 0 
+            ? new Date(state.lastFetchTime).toLocaleTimeString()
+            : 'Never';
+        
+        const timeRangeLabel = {
+            'day': 'Today',
+            'week': 'Last 7 Days',
+            'month': 'Last 30 Days',
+            'custom': 'Custom Range'
+        }[state.timeRange] || 'Today';
+        
+        return `
+            <div class="analytics-header">
+                <div class="header-left">
+                    <h1><i class="fas fa-chart-line"></i> Analytics Dashboard</h1>
+                    <p class="header-subtitle">
+                        <i class="fas fa-clock"></i> Last updated: ${lastUpdate}
+                        <span class="separator">•</span>
+                        <i class="fas fa-calendar"></i> ${timeRangeLabel}
+                    </p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-header" onclick="window.AnalyticsWidget.refresh()">
+                        <i class="fas fa-sync-alt"></i> Refresh
                     </button>
                 </div>
-            ` : ''}
-        </div>
-    `;
-}
+            </div>
+            ${renderTimeFilter()}
+        `;
+    }
+    
+    function renderTimeFilter() {
+        return `
+            <div class="time-filter">
+                <div class="time-filter-buttons">
+                    <button class="time-btn ${state.timeRange === 'day' ? 'active' : ''}" 
+                            onclick="window.AnalyticsWidget.setTimeRange('day')">
+                        <i class="fas fa-calendar-day"></i> Today
+                    </button>
+                    <button class="time-btn ${state.timeRange === 'week' ? 'active' : ''}" 
+                            onclick="window.AnalyticsWidget.setTimeRange('week')">
+                        <i class="fas fa-calendar-week"></i> Week
+                    </button>
+                    <button class="time-btn ${state.timeRange === 'month' ? 'active' : ''}" 
+                            onclick="window.AnalyticsWidget.setTimeRange('month')">
+                        <i class="fas fa-calendar"></i> Month
+                    </button>
+                    <button class="time-btn ${state.timeRange === 'custom' ? 'active' : ''}" 
+                            onclick="window.AnalyticsWidget.setTimeRange('custom')">
+                        <i class="fas fa-calendar-alt"></i> Custom
+                    </button>
+                </div>
+                ${state.timeRange === 'custom' ? `
+                    <div class="custom-date-filter">
+                        <input type="date" id="startDate" class="date-input" value="${state.startDate}" 
+                               onchange="window.AnalyticsWidget.setStartDate(this.value)">
+                        <span class="date-separator">to</span>
+                        <input type="date" id="endDate" class="date-input" value="${state.endDate}" 
+                               onchange="window.AnalyticsWidget.setEndDate(this.value)">
+                        <button class="btn-apply" onclick="window.AnalyticsWidget.applyCustomRange()">
+                            <i class="fas fa-check"></i> Apply
+                        </button>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
     
     function renderSummaryCards(data) {
         const summary = data?.summary?.overview || {};
@@ -497,23 +393,23 @@ function attachEventListeners() {
     }
     
     function renderTabs() {
-    return `
-        <div class="analytics-tabs">
-            <button class="tab-button ${state.activeTab === 'cancellations' ? 'active' : ''}" 
-                    data-tab="cancellations">
-                <i class="fas fa-times-circle"></i> Cancellations
-            </button>
-            <button class="tab-button ${state.activeTab === 'payouts' ? 'active' : ''}" 
-                    data-tab="payouts">
-                <i class="fas fa-money-bill-wave"></i> Payouts
-            </button>
-            <button class="tab-button ${state.activeTab === 'device-changes' ? 'active' : ''}" 
-                    data-tab="device-changes">
-                <i class="fas fa-mobile-alt"></i> Device Changes
-            </button>
-        </div>
-    `;
-}
+        return `
+            <div class="analytics-tabs">
+                <button class="tab-button ${state.activeTab === 'cancellations' ? 'active' : ''}" 
+                        onclick="window.AnalyticsWidget.switchTab('cancellations')">
+                    <i class="fas fa-times-circle"></i> Cancellations
+                </button>
+                <button class="tab-button ${state.activeTab === 'payouts' ? 'active' : ''}" 
+                        onclick="window.AnalyticsWidget.switchTab('payouts')">
+                    <i class="fas fa-money-bill-wave"></i> Payouts
+                </button>
+                <button class="tab-button ${state.activeTab === 'device-changes' ? 'active' : ''}" 
+                        onclick="window.AnalyticsWidget.switchTab('device-changes')">
+                    <i class="fas fa-mobile-alt"></i> Device Changes
+                </button>
+            </div>
+        `;
+    }
     
     function renderCancellations(data, container) {
         const total = data?.total || 0;
@@ -796,20 +692,7 @@ function attachEventListeners() {
             .time-btn { flex: 1; min-width: 120px; padding: 12px 20px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
             .time-btn:hover { border-color: #3b82f6; color: #3b82f6; }
             .time-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
-            .time-btn, .tab-button, .btn-header, .btn-apply {
-    cursor: pointer !important;
-    user-select: none;
-}
-
-.time-btn:hover:not(.active) {
-    background: #f9fafb;
-    border-color: #3b82f6;
-    color: #3b82f6;
-}
-
-.time-btn.active {
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-}
+            
             .custom-date-filter { display: flex; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
             .date-input { padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
             .date-separator { color: #6b7280; font-size: 14px; }
@@ -865,60 +748,57 @@ function attachEventListeners() {
     // ============================================
     
     async function initialize() {
-    try {
-        const container = document.getElementById(CONFIG.CONTAINER_ID);
-        
-        if (!container) {
-            logger.error(`Container #${CONFIG.CONTAINER_ID} not found`);
-            return;
-        }
-        
-        injectStyles();
-        showLoading(container);
-        
-        const data = await fetchAnalyticsData();
-        
-        container.innerHTML = '';
-        container.innerHTML = renderHeader();
-        
-        const summaryDiv = document.createElement('div');
-        summaryDiv.innerHTML = renderSummaryCards(data);
-        container.appendChild(summaryDiv);
-        
-        const tabsDiv = document.createElement('div');
-        tabsDiv.innerHTML = renderTabs();
-        container.appendChild(tabsDiv);
-        
-        const contentDiv = document.createElement('div');
-        contentDiv.id = 'tabContent';
-        container.appendChild(contentDiv);
-        
-        switch(state.activeTab) {
-            case 'cancellations':
-                renderCancellations(data.cancellations, contentDiv);
-                break;
-            case 'payouts':
-                renderPayouts(data.payouts, contentDiv);
-                break;
-            case 'device-changes':
-                renderDeviceChanges(data.device_changes, contentDiv);
-                break;
-        }
-        
-        // ✅ ADD THIS LINE:
-        attachEventListeners();
-        
-        logger.info('✅ Widget initialized');
-        scheduleRefresh();
-        
-    } catch (error) {
-        logger.error(`Initialization failed: ${error.message}`);
-        const container = document.getElementById(CONFIG.CONTAINER_ID);
-        if (container) {
-            showError(container, error.message);
+        try {
+            const container = document.getElementById(CONFIG.CONTAINER_ID);
+            
+            if (!container) {
+                logger.error(`Container #${CONFIG.CONTAINER_ID} not found`);
+                return;
+            }
+            
+            injectStyles();
+            showLoading(container);
+            
+            const data = await fetchAnalyticsData();
+            
+            container.innerHTML = '';
+            container.innerHTML = renderHeader();
+            
+            const summaryDiv = document.createElement('div');
+            summaryDiv.innerHTML = renderSummaryCards(data);
+            container.appendChild(summaryDiv);
+            
+            const tabsDiv = document.createElement('div');
+            tabsDiv.innerHTML = renderTabs();
+            container.appendChild(tabsDiv);
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.id = 'tabContent';
+            container.appendChild(contentDiv);
+            
+            switch(state.activeTab) {
+                case 'cancellations':
+                    renderCancellations(data.cancellations, contentDiv);
+                    break;
+                case 'payouts':
+                    renderPayouts(data.payouts, contentDiv);
+                    break;
+                case 'device-changes':
+                    renderDeviceChanges(data.device_changes, contentDiv);
+                    break;
+            }
+            
+            logger.info('✅ Widget initialized');
+            scheduleRefresh();
+            
+        } catch (error) {
+            logger.error(`Initialization failed: ${error.message}`);
+            const container = document.getElementById(CONFIG.CONTAINER_ID);
+            if (container) {
+                showError(container, error.message);
+            }
         }
     }
-}
     
     function scheduleRefresh() {
         if (state.refreshTimer) {
